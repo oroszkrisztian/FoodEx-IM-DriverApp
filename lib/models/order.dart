@@ -13,6 +13,9 @@ class Order {
   String delivered; // Add delivered field
   final String upNotes;
   final String downNotes;
+  final String uitEkr; // New field
+  final String invoice; // New field
+  final String cmr; // New field
   final List<Company> companies;
   final List<Warehouse> warehouses;
   final List<Product> products;
@@ -28,6 +31,9 @@ class Order {
     required this.delivered, // Initialize delivered
     required this.upNotes,
     required this.downNotes,
+    required this.uitEkr, // Initialize uit_ekr
+    required this.invoice, // Initialize invoice
+    required this.cmr, // Initialize cmr
     required this.companies,
     required this.warehouses,
     required this.products,
@@ -41,12 +47,13 @@ class Order {
       vehicle: json['vehicle'],
       pickupTime: json['pickup_time'],
       deliveryTime: json['delivery_time'],
-      pickedUp: json['picked_up'] ??
-          '0000-00-00 00:00:00', // Handle missing picked_up value
-      delivered: json['delivered'] ??
-          '0000-00-00 00:00:00', // Handle missing delivered value
+      pickedUp: json['picked_up'] ?? '0000-00-00 00:00:00', // Handle missing picked_up value
+      delivered: json['delivered'] ?? '0000-00-00 00:00:00', // Handle missing delivered value
       upNotes: json['up_notes'] ?? '',
       downNotes: json['down_notes'] ?? '',
+      uitEkr: json['uit_ekr'] ?? '', // Handle missing uit_ekr value
+      invoice: json['invoice'] ?? '', // Handle missing invoice value
+      cmr: json['cmr'] ?? '', // Handle missing cmr value
       companies: (json['companies'] as List)
           .map((companyJson) => Company.fromJson(companyJson))
           .toList(),

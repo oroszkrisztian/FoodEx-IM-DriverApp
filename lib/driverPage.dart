@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foodex/models/company.dart';
 import 'package:foodex/models/contact_person.dart';
 import 'package:foodex/models/order.dart';
+import 'package:foodex/models/product.dart';
 import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/services/delivery_service.dart';
 import 'package:foodex/services/order_services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'globals.dart';
@@ -98,6 +101,86 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  Table buildProductsTable(List<Product> products, String type) {
+    // Filter products to include only those with the specified type
+    var filteredProducts =
+        products.where((product) => product.productType == type).toList();
+
+    // Check if the filtered list is empty
+    if (filteredProducts.isEmpty) {
+      return Table(
+        children: const [
+          TableRow(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('No containers info available',
+                    style: TextStyle(fontStyle: FontStyle.italic)),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Table(
+      border: TableBorder.all(),
+      columnWidths: const {
+        0: FlexColumnWidth(3), // Product Name
+        1: FlexColumnWidth(1), // Quantity
+        2: FlexColumnWidth(1), // Price (RON)
+      },
+      children: [
+        TableRow(
+          decoration: const BoxDecoration(color: Colors.grey),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                type == 'product' ? 'Product Name' : 'Container Name',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: const Text(
+                'Quantity',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Price (RON)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        // Build table rows for each filtered product
+        ...filteredProducts.map((product) {
+          double totalPrice = product.quantity * product.price;
+          return TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(product.productName),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('${product.quantity} kg'),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('${totalPrice.toStringAsFixed(2)} RON'),
+              ),
+            ],
+          );
+        }).toList(),
+      ],
+    );
   }
 
   void initializeAnimations() {
@@ -282,42 +365,653 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             : 'Are you sure you want to deliver this order?');
 
     if (confirmed) {
-      if (order.pickedUp == '0000-00-00 00:00:00') {
-        print('Order ID for pickup: $orderId');
-        await deliveryService.pickUpOrder(
-            orderId); // Call your delivery service
-        setState(() {
-          order.pickedUp =
-              DateTime.now().toString(); // Update the order's pickedUp status
-        });
-        _showSnackBar(context,
-            'Order picked up successfully'); // Show SnackBar after confirmation
-      } else if (order.delivered == '0000-00-00 00:00:00') {
-        print('Order ID for delivery: $orderId');
-        await deliveryService.deliverOrder(
-            orderId); // Call your delivery service
-        setState(() {
-          order.delivered =
-              DateTime.now().toString(); // Update the order's delivered status
-        });
-        await fetchInitialOrders(); // Fetch orders again after delivery
-        _showSnackBar(context,
-            'Order delivered successfully'); // Show SnackBar after confirmation
+      try {
+        // Retrieve the list of products from the order
+        List<Product> products = order.products;
+        String? uitEkr = order.uitEkr;
+        String? invoice = order.invoice;
+        String? cmr = order.cmr;
+
+        // Check if any updates are needed
+        bool needsUitEkr = uitEkr?.isEmpty ?? true;
+        bool needsInvoice = invoice?.isEmpty ?? true;
+        bool needsCmr = cmr?.isEmpty ?? true;
+        bool hasContainerProducts =
+            products.any((product) => product.productType == 'container');
+        bool needsContainer = !hasContainerProducts &&
+            !products.any((product) =>
+                product.productType == 'pallet' ||
+                product.productType == 'crate');
+
+        bool needsUpdates =
+            needsUitEkr || needsInvoice || needsCmr || needsContainer;
+
+        // Only show the options dialog if updates are needed
+        Map<String, dynamic>? options;
+        if (needsUpdates) {
+          options = await _showOptionDialog(
+            products,
+            uitEkr,
+            invoice,
+            cmr,
+            orderId,
+          );
+
+          // If dialog was cancelled (null returned), return early
+          if (options == null) {
+            return;
+          }
+        }
+
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        // If there are updates to be made, handle them first
+        if (options != null && options.isNotEmpty) {
+          await deliveryService.handleOrderUpdates(orderId, options);
+        }
+
+        // Handle pickup or delivery
+        if (order.pickedUp == '0000-00-00 00:00:00') {
+          await deliveryService.pickUpOrder(orderId);
+          setState(() {
+            order.pickedUp = DateTime.now().toString();
+          });
+          if (mounted) {
+            Navigator.of(context).pop(); // Remove loading indicator
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order picked up successfully')),
+            );
+          }
+        } else if (order.delivered == '0000-00-00 00:00:00') {
+          await deliveryService.deliverOrder(orderId);
+          setState(() {
+            order.delivered = DateTime.now().toString();
+          });
+          await fetchInitialOrders();
+          if (mounted) {
+            Navigator.of(context).pop(); // Remove loading indicator
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order delivered successfully')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.of(context).pop(); // Remove loading indicator
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
 
+// Function to show the dialog with checkboxes and dropdowns for 'Pallet' and 'Case'
+
+  Future<Map<String, dynamic>?> _showOptionDialog(List<Product> products,
+      String? uitEkr, String? invoice, String? cmr, int orderId) async {
+    // Initialize state variables only if needed
+    final imagePicker = ImagePicker();
+
+    // Only initialize if container info is needed
+    bool isPalletChecked = false;
+    bool isCaseChecked = false;
+    String? palletSubOption;
+    String? caseSubOption;
+    int palletAmount = 0;
+    int caseAmount = 0;
+
+    // Only initialize controllers for missing data
+    final uitEkrController = TextEditingController(text: uitEkr);
+    File? invoiceImage;
+    File? cmrImage;
+
+    // Determine what needs to be shown based on empty values
+    bool needsUitEkr = uitEkr?.isEmpty ?? true;
+    bool needsInvoice = invoice?.isEmpty ?? true;
+    bool needsCmr = cmr?.isEmpty ?? true;
+    bool hasContainerProducts =
+        products.any((product) => product.productType == 'container');
+    bool needsContainer = !hasContainerProducts &&
+        !products.any((product) =>
+            product.productType == 'pallet' || product.productType == 'crate');
+
+    // If nothing needs to be updated, return null immediately
+
+    bool needsUpdates =
+        needsUitEkr || needsInvoice || needsCmr || needsContainer;
+
+    // Removed the early return for no updates needed
+    // The dialog will now always show, allowing the user to proceed
+
+    Future<File?> pickImage() async {
+      try {
+        final pickedFile = await imagePicker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
+        return pickedFile != null ? File(pickedFile.path) : null;
+      } catch (e) {
+        print('Error picking image: $e');
+        return null;
+      }
+    }
+
+    return showDialog<Map<String, dynamic>?>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(
+                              needsUpdates
+                                  ? Icons.inventory_2
+                                  : Icons.check_circle,
+                              color: Theme.of(context).colorScheme.onPrimary),
+                          const SizedBox(width: 8),
+                          Text(
+                            needsUpdates
+                                ? 'Required Information'
+                                : 'Order Ready',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Content
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Only show documents section if any document is needed
+                            if (needsUitEkr || needsInvoice || needsCmr) ...[
+                              _buildSectionHeader(
+                                context,
+                                'Required Documents',
+                                Icons.description,
+                              ),
+                              const SizedBox(height: 16),
+
+                              // UitEkr Input (only if needed)
+                              if (needsUitEkr)
+                                Card(
+                                  elevation: 0,
+                                  color: Theme.of(context).colorScheme.surface,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'UitEkr Reference',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        TextField(
+                                          controller: uitEkrController,
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Theme.of(context)
+                                                .colorScheme
+                                                .surface
+                                                .withOpacity(0.1),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            hintText:
+                                                'Enter UitEkr reference number',
+                                            prefixIcon:
+                                                const Icon(Icons.numbers),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                              const SizedBox(height: 16),
+
+                              // Document Upload Cards (only if needed)
+                              Row(
+                                children: [
+                                  if (needsInvoice)
+                                    Expanded(
+                                      child: _buildDocumentUploadCard(
+                                        context,
+                                        'Invoice',
+                                        invoiceImage,
+                                        () async {
+                                          final image = await pickImage();
+                                          if (image != null) {
+                                            setState(
+                                                () => invoiceImage = image);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  if (needsInvoice && needsCmr)
+                                    const SizedBox(width: 16),
+                                  if (needsCmr)
+                                    Expanded(
+                                      child: _buildDocumentUploadCard(
+                                        context,
+                                        'CMR',
+                                        cmrImage,
+                                        () async {
+                                          final image = await pickImage();
+                                          if (image != null) {
+                                            setState(() => cmrImage = image);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+
+                            // Packaging Options (only if needed and no container products)
+                            if (needsContainer) ...[
+                              const SizedBox(height: 24),
+                              _buildSectionHeader(
+                                context,
+                                'Packaging Options',
+                                Icons.inventory,
+                              ),
+                              const SizedBox(height: 16),
+                              Card(
+                                elevation: 0,
+                                color: Theme.of(context).colorScheme.surface,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    children: [
+                                      _buildPackagingOption(
+                                        context,
+                                        'Pallet',
+                                        isPalletChecked,
+                                        palletSubOption,
+                                        palletAmount,
+                                        ['Plastic', 'Wood'],
+                                        (checked) {
+                                          setState(() {
+                                            isPalletChecked = checked ?? false;
+                                            if (!checked!) {
+                                              palletSubOption = null;
+                                              palletAmount = 0;
+                                            }
+                                          });
+                                        },
+                                        (value) => setState(
+                                            () => palletSubOption = value),
+                                        (value) => setState(
+                                            () => palletAmount = value),
+                                      ),
+                                      const Divider(height: 32),
+                                      _buildPackagingOption(
+                                        context,
+                                        'Crate',
+                                        isCaseChecked,
+                                        caseSubOption,
+                                        caseAmount,
+                                        ['E2', 'M10'],
+                                        (checked) {
+                                          setState(() {
+                                            isCaseChecked = checked ?? false;
+                                            if (!checked!) {
+                                              caseSubOption = null;
+                                              caseAmount = 0;
+                                            }
+                                          });
+                                        },
+                                        (value) => setState(
+                                            () => caseSubOption = value),
+                                        (value) =>
+                                            setState(() => caseAmount = value),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Actions
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        border: Border(
+                          top: BorderSide(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .outline
+                                .withOpacity(0.2),
+                          ),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(null),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 16),
+                          FilledButton(
+                            onPressed: () {
+                              final result = <String, dynamic>{};
+
+                              // Only include values that need updating
+                              if (needsUitEkr &&
+                                  uitEkrController.text.trim().isNotEmpty) {
+                                result['UitEkr'] = uitEkrController.text.trim();
+                              }
+
+                              if (needsInvoice && invoiceImage != null) {
+                                result['Invoice'] = invoiceImage!.path;
+                              }
+
+                              if (needsCmr && cmrImage != null) {
+                                result['CMR'] = cmrImage!.path;
+                              }
+
+                              if (needsContainer) {
+                                if (isPalletChecked &&
+                                    palletSubOption != null &&
+                                    palletAmount > 0) {
+                                  result['Pallet'] = {
+                                    'type': palletSubOption,
+                                    'amount': palletAmount,
+                                  };
+                                }
+
+                                if (isCaseChecked &&
+                                    caseSubOption != null &&
+                                    caseAmount > 0) {
+                                  result['Case'] = {
+                                    'type': caseSubOption,
+                                    'amount': caseAmount,
+                                  };
+                                }
+                              }
+
+                              // Always return a result (even if empty) to indicate the dialog was confirmed
+                              Navigator.of(context).pop(result);
+                            },
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                            ),
+                            child: const Text('Confirm'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionHeader(
+      BuildContext context, String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentUploadCard(
+    BuildContext context,
+    String title,
+    File? image,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surface,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          height: 180,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (image != null) ...[
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      image,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Change $title',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ] else ...[
+                Icon(
+                  Icons.upload_file,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Upload $title',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Click to select',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPackagingOption(
+    BuildContext context,
+    String title,
+    bool isChecked,
+    String? selectedOption,
+    int amount,
+    List<String> options,
+    Function(bool?) onCheckChanged,
+    Function(String?) onOptionChanged,
+    Function(int) onAmountChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: isChecked,
+                    onChanged: onCheckChanged,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isChecked) ...[
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedOption,
+                      hint: const Text('Select Type'),
+                      isExpanded: true,
+                      items: options.map((String option) {
+                        return DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        );
+                      }).toList(),
+                      onChanged: onOptionChanged,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintText: 'Amount',
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  onChanged: (value) {
+                    final amount = int.tryParse(value) ?? 0;
+                    onAmountChanged(amount);
+                  },
+                  controller: TextEditingController(
+                      text: amount > 0 ? amount.toString() : ''),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (isChecked)
+          Padding(
+            padding: const EdgeInsets.only(left: 40, top: 8),
+            child: Text(
+              'Total: $amount ${title.toLowerCase()}${amount != 1 ? 's' : ''}',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   void _showSnackBar(BuildContext context, String message) {
-  final snackBar = SnackBar(
-    content: Text(message),
-    duration: const Duration(seconds: 3), // Duration for which the SnackBar is shown
-    behavior: SnackBarBehavior.floating, // Optional: makes it float above other content
-    backgroundColor: Colors.green, // Customize the background color
-  );
+    final snackBar = SnackBar(
+      content: Text(message),
+      duration: const Duration(
+          seconds: 3), // Duration for which the SnackBar is shown
+      behavior: SnackBarBehavior
+          .floating, // Optional: makes it float above other content
+      backgroundColor: Colors.green, // Customize the background color
+    );
 
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
 // Show confirmation dialog
   Future<bool> _showConfirmationDialog(String message) {
@@ -711,8 +1405,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                             columnWidths: const {
                                               0: FlexColumnWidth(
                                                   3), // Product Name
-                                              1: FlexColumnWidth(1), // Price
-                                              2: FlexColumnWidth(1), // Quantity
+                                              1: FlexColumnWidth(1), // Quantity
+                                              2: FlexColumnWidth(
+                                                  1), // Price (RON)
                                             },
                                             children: [
                                               const TableRow(
@@ -748,9 +1443,13 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                   ),
                                                 ],
                                               ),
-                                              // Add a row for each product
-                                              ...order.products.map((product) {
-                                                double price =
+                                              // Filter products to include only those with type 'product'
+                                              ...order.products
+                                                  .where((product) =>
+                                                      product.productType ==
+                                                      'product')
+                                                  .map((product) {
+                                                double totalPrice =
                                                     product.quantity *
                                                         product.price;
                                                 return TableRow(
@@ -774,13 +1473,22 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                           const EdgeInsets.all(
                                                               8.0),
                                                       child: Text(
-                                                          '\ ${price.toStringAsFixed(2)}'),
+                                                          '${totalPrice.toStringAsFixed(2)} RON'),
                                                     ),
                                                   ],
                                                 );
                                               }).toList(),
                                             ],
                                           ),
+                                          const SizedBox(height: 12.0),
+                                          if (buildProductsTable(
+                                                  order.products, 'container')
+                                              .children
+                                              .isNotEmpty)
+                                            buildProductsTable(
+                                                order.products, 'container'),
+
+                                          const SizedBox(height: 12.0),
                                         ],
                                       ),
                                     ),
@@ -905,7 +1613,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                           const SizedBox(height: 10.0),
                                           Text(
                                             'Contact Person: ${deliveryContact.name}',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold,
                                             ),

@@ -50,8 +50,10 @@ class OrderService {
             });
           }).toList();
 
-          print('Total orders fetched: ${orders.length}');
+          print('Total orders fetched: ${_orders.length}');
           Globals.ordersNumber = _orders.length;
+
+          
 
           // Print total quantity for each order
           for (var order in _orders) {
