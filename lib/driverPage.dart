@@ -52,6 +52,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   bool _isLoggedIn = false;
   bool _vehicleLoggedIn = false;
   bool hasOrders = false;
+  bool _isLoading = false;
 
   //orders
   final OrderService _orderService = OrderService();
@@ -420,9 +421,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
         // Handle pickup or delivery
         if (order.pickedUp == '0000-00-00 00:00:00') {
           await deliveryService.pickUpOrder(orderId);
-          setState(() {
-            order.pickedUp = DateTime.now().toString();
-          });
+          // Refresh data after pickup
+          await _refreshOrderData();
           if (mounted) {
             Navigator.of(context).pop(); // Remove loading indicator
             ScaffoldMessenger.of(context).showSnackBar(
@@ -431,10 +431,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           }
         } else if (order.delivered == '0000-00-00 00:00:00') {
           await deliveryService.deliverOrder(orderId);
-          setState(() {
-            order.delivered = DateTime.now().toString();
-          });
-          await fetchInitialOrders();
+          // Refresh data after delivery
+          await _refreshOrderData();
           if (mounted) {
             Navigator.of(context).pop(); // Remove loading indicator
             ScaffoldMessenger.of(context).showSnackBar(
@@ -452,6 +450,38 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             ),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _refreshOrderData() async {
+    try {
+      // Show loading state if needed
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Refresh orders
+      await fetchInitialOrders();
+
+      // Update loading state
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // Handle any errors during refresh
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error refreshing data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

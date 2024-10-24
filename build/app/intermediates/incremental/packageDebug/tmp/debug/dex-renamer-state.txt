@@ -1,4 +1,4 @@
-#Thu Oct 24 14:32:28 EEST 2024
+#Thu Oct 24 14:44:08 EEST 2024
 base.0=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeLibDexDebug/0/classes.dex
 base.2=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
