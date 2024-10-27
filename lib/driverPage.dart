@@ -1178,6 +1178,10 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                     color: Colors.black, width: 1.5),
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
+                              color: order.pickedUp != '0000-00-00 00:00:00' &&
+                                      order.delivered == '0000-00-00 00:00:00'
+                                  ? Colors.green[200]
+                                  : Colors.white,
                               child: Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: Column(
@@ -1430,85 +1434,98 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 8.0),
-                                          Table(
-                                            border: TableBorder.all(),
-                                            columnWidths: const {
-                                              0: FlexColumnWidth(
-                                                  3), // Product Name
-                                              1: FlexColumnWidth(1), // Quantity
-                                              2: FlexColumnWidth(
-                                                  1), // Price (RON)
-                                            },
-                                            children: [
-                                              const TableRow(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.grey),
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Text('Product Name',
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Text('Quantity',
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Text('Price (RON)',
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                  ),
-                                                ],
-                                              ),
-                                              // Filter products to include only those with type 'product'
-                                              ...order.products
-                                                  .where((product) =>
-                                                      product.productType ==
-                                                      'product')
-                                                  .map((product) {
-                                                double totalPrice =
-                                                    product.quantity *
-                                                        product.price;
-                                                return TableRow(
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(4.0),
+                                            ),
+                                            child: Table(
+                                              border: TableBorder.all(),
+                                              columnWidths: const {
+                                                0: FlexColumnWidth(
+                                                    3), // Product Name
+                                                1: FlexColumnWidth(
+                                                    1), // Quantity
+                                                2: FlexColumnWidth(
+                                                    1), // Price (RON)
+                                              },
+                                              children: [
+                                                const TableRow(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.grey),
                                                   children: [
                                                     Padding(
                                                       padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
+                                                          EdgeInsets.all(8.0),
                                                       child: Text(
-                                                          product.productName),
+                                                          'Product Name',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                     Padding(
                                                       padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Text(
-                                                          '${product.quantity} kg'),
+                                                          EdgeInsets.all(8.0),
+                                                      child: Text('Quantity',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                     Padding(
                                                       padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Text(
-                                                          '${totalPrice.toStringAsFixed(2)} RON'),
+                                                          EdgeInsets.all(8.0),
+                                                      child: Text('Price (RON)',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                   ],
-                                                );
-                                              }).toList(),
-                                            ],
+                                                ),
+                                                ...order.products
+                                                    .where((product) =>
+                                                        product.productType ==
+                                                        'product')
+                                                    .map((product) {
+                                                  double totalPrice =
+                                                      product.quantity *
+                                                          product.price;
+                                                  return TableRow(
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                      color: Colors
+                                                          .white, // Ensure each row has white background
+                                                    ),
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(product
+                                                            .productName),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                            '${product.quantity} kg'),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                            '${totalPrice.toStringAsFixed(2)} RON'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                }).toList(),
+                                              ],
+                                            ),
                                           ),
                                           const SizedBox(height: 12.0),
                                           if (buildProductsTable(
