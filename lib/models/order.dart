@@ -47,8 +47,10 @@ class Order {
       vehicle: json['vehicle'],
       pickupTime: json['pickup_time'],
       deliveryTime: json['delivery_time'],
-      pickedUp: json['picked_up'] ?? '0000-00-00 00:00:00', // Handle missing picked_up value
-      delivered: json['delivered'] ?? '0000-00-00 00:00:00', // Handle missing delivered value
+      pickedUp: json['picked_up'] ??
+          '0000-00-00 00:00:00', // Handle missing picked_up value
+      delivered: json['delivered'] ??
+          '0000-00-00 00:00:00', // Handle missing delivered value
       upNotes: json['up_notes'] ?? '',
       downNotes: json['down_notes'] ?? '',
       uitEkr: json['uit_ekr'] ?? '', // Handle missing uit_ekr value
@@ -72,6 +74,12 @@ class Order {
 
   // Method to calculate the total quantity of products
   int getTotalQuantity() {
-    return products.fold(0, (total, product) => total + product.quantity);
+    return products.fold<int>(0, (total, product) => total + product.quantity);
+  }
+
+  // Calculate total weight
+  double getTotalWeight() {
+    return products.fold<double>(0.0,
+        (total, product) => total + (product.quantity * product.productWeight));
   }
 }

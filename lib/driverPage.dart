@@ -80,8 +80,31 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
-    fetchInitialOrders();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      await _checkLoginStatus();
+      await _syncVehicleStatus(); // New method to sync vehicle status
+      if (_isLoggedIn) {
+        await fetchInitialOrders();
+      }
+    } catch (e) {
+      debugPrint('Error in initialization: $e');
+      setState(() {
+        errorMessage = 'Error initializing: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void prepareAnimation() {
@@ -95,6 +118,37 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     );
   }
 
+  // New method to sync vehicle status
+  Future<void> _syncVehicleStatus() async {
+    // First check if we already have a vehicle ID in globals
+    if (Globals.vehicleID != null) {
+      setState(() {
+        _vehicleLoggedIn = true;
+        debugPrint('Vehicle already logged in with ID: ${Globals.vehicleID}');
+      });
+      return;
+    }
+
+    // If no vehicle ID in globals, check with server
+    try {
+      final vehicleId = await _orderService.checkVehicleLogin();
+      setState(() {
+        _vehicleLoggedIn = vehicleId != null;
+        if (_vehicleLoggedIn) {
+          debugPrint(
+              'Successfully synced vehicle status. Vehicle ID: $vehicleId');
+        } else {
+          debugPrint('No vehicle currently logged in');
+        }
+      });
+    } catch (e) {
+      debugPrint('Error syncing vehicle status: $e');
+      setState(() {
+        _vehicleLoggedIn = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     // Dispose all animation controllers
@@ -104,12 +158,123 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  Widget buildContainersTables(List<Product> products) {
+    final palletteTable = buildProductsTable(products, 'palette');
+    final crateTable = buildProductsTable(products, 'crate');
+
+    final hasPalettes = palletteTable.children.length > 1;
+    final hasCrates = crateTable.children.length > 1;
+
+    if (!hasPalettes && !hasCrates) {
+      return const SizedBox.shrink();
+    }
+
+    // Get container products
+    final containerProducts = products
+        .where((p) => p.productType == 'palette' || p.productType == 'crate')
+        .toList();
+
+    // Create aggregation maps using int for quantity
+    final Map<String, int> quantityMap = {};
+    final Map<String, double> priceMap = {};
+    final Map<String, Product> firstOccurrence = {};
+
+    // Aggregate quantities and keep track of first product instance for other details
+    for (var product in containerProducts) {
+      if (quantityMap.containsKey(product.productName)) {
+        quantityMap[product.productName] =
+            (quantityMap[product.productName] ?? 0) + product.quantity;
+      } else {
+        quantityMap[product.productName] = product.quantity;
+        firstOccurrence[product.productName] = product;
+        priceMap[product.productName] = product.price;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Center(
+          child: Text(
+            'Containers:',
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          child: Table(
+            border: TableBorder.all(),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: const {
+              0: FlexColumnWidth(3),
+              1: FlexColumnWidth(1),
+              2: FlexColumnWidth(1),
+            },
+            children: [
+              TableRow(
+                decoration: BoxDecoration(
+                  color: Colors.grey[500],
+                ),
+                children: [
+                  _buildHeaderCell('Container Name'),
+                  _buildHeaderCell('Quantity'),
+                  _buildHeaderCell('Price (RON)'),
+                ],
+              ),
+              ...firstOccurrence.entries.map((entry) {
+                final productName = entry.key;
+                final product = entry.value;
+                final quantity = quantityMap[productName] ?? 0;
+                final totalPrice = quantity * (priceMap[productName] ?? 0);
+
+                return TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(productName),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('$quantity pieces'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('${totalPrice.toStringAsFixed(2)} RON'),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+// Keep the original buildProductsTable for compatibility with existing checks
   Table buildProductsTable(List<Product> products, String type) {
-    // Filter products to include only those with the specified type
-    var filteredProducts =
+    final filteredProducts =
         products.where((product) => product.productType == type).toList();
 
-    // Check if the filtered list is empty
     if (filteredProducts.isEmpty) {
       return Table(
         children: const [
@@ -117,8 +282,10 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             children: [
               Padding(
                 padding: EdgeInsets.all(8.0),
-                child: Text('No containers info available',
-                    style: TextStyle(fontStyle: FontStyle.italic)),
+                child: Text(
+                  'No containers info available',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
               ),
             ],
           ),
@@ -129,40 +296,23 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     return Table(
       border: TableBorder.all(),
       columnWidths: const {
-        0: FlexColumnWidth(3), // Product Name
-        1: FlexColumnWidth(1), // Quantity
-        2: FlexColumnWidth(1), // Price (RON)
+        0: FlexColumnWidth(3),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
       },
       children: [
         TableRow(
-          decoration: const BoxDecoration(color: Colors.grey),
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+          ),
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                type == 'product' ? 'Product Name' : 'Container Name',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: const Text(
-                'Quantity',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Price (RON)',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            _buildHeaderCell('Container Name'),
+            _buildHeaderCell('Quantity'),
+            _buildHeaderCell('Price (RON)'),
           ],
         ),
-        // Build table rows for each filtered product
         ...filteredProducts.map((product) {
-          double totalPrice = product.quantity * product.price;
+          final totalPrice = product.quantity * product.price;
           return TableRow(
             children: [
               Padding(
@@ -262,11 +412,11 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    int? vehicleId = Globals.vehicleID;
+    //int? vehicleId = Globals.vehicleID;
 
     setState(() {
       _isLoggedIn = isLoggedIn;
-      _vehicleLoggedIn = vehicleId != null;
+      // _vehicleLoggedIn = vehicleId != null;
     });
   }
 
@@ -355,11 +505,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   }
 
   Future<void> handleButtonPress(int orderId, int index) async {
-    // Get the order from the order service
     Order order =
         _orderService.orders.firstWhere((order) => order.orderId == orderId);
 
-    // Show confirmation dialog
     bool confirmed = await _showConfirmationDialog(
         order.pickedUp == '0000-00-00 00:00:00'
             ? 'Are you sure you want to pick up this order?'
@@ -367,44 +515,18 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
     if (confirmed) {
       try {
-        // Retrieve the list of products from the order
-        List<Product> products = order.products;
-        String? uitEkr = order.uitEkr;
-        String? invoice = order.invoice;
-        String? cmr = order.cmr;
+        Map<String, dynamic>? options = await _showOptionDialog(
+          order.products,
+          order.uitEkr,
+          order.invoice,
+          order.cmr,
+          orderId,
+        );
 
-        // Check if any updates are needed
-        bool needsUitEkr = uitEkr?.isEmpty ?? true;
-        bool needsInvoice = invoice?.isEmpty ?? true;
-        bool needsCmr = cmr?.isEmpty ?? true;
-        bool hasContainerProducts =
-            products.any((product) => product.productType == 'container');
-        bool needsContainer = !hasContainerProducts &&
-            !products.any((product) =>
-                product.productType == 'pallet' ||
-                product.productType == 'crate');
-
-        bool needsUpdates =
-            needsUitEkr || needsInvoice || needsCmr || needsContainer;
-
-        // Only show the options dialog if updates are needed
-        Map<String, dynamic>? options;
-        if (needsUpdates) {
-          options = await _showOptionDialog(
-            products,
-            uitEkr,
-            invoice,
-            cmr,
-            orderId,
-          );
-
-          // If dialog was cancelled (null returned), return early
-          if (options == null) {
-            return;
-          }
+        if (options == null) {
+          return;
         }
 
-        // Show loading indicator
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -413,15 +535,31 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           ),
         );
 
-        // If there are updates to be made, handle them first
-        if (options != null && options.isNotEmpty) {
-          await deliveryService.handleOrderUpdates(orderId, options);
+        // Only process updates if there are actually changes
+        if (options.isNotEmpty) {
+          try {
+            await deliveryService.handleOrderUpdates(orderId, options);
+            await _refreshOrderData();
+            order =
+                _orderService.orders.firstWhere((o) => o.orderId == orderId);
+          } catch (e) {
+            if (mounted) {
+              Navigator.of(context).pop(); // Remove loading indicator
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content:
+                      Text('Error updating order details: ${e.toString()}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
+          }
         }
 
         // Handle pickup or delivery
         if (order.pickedUp == '0000-00-00 00:00:00') {
           await deliveryService.pickUpOrder(orderId);
-          // Refresh data after pickup
           await _refreshOrderData();
           if (mounted) {
             Navigator.of(context).pop(); // Remove loading indicator
@@ -431,7 +569,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           }
         } else if (order.delivered == '0000-00-00 00:00:00') {
           await deliveryService.deliverOrder(orderId);
-          // Refresh data after delivery
           await _refreshOrderData();
           if (mounted) {
             Navigator.of(context).pop(); // Remove loading indicator
@@ -490,10 +627,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
   Future<Map<String, dynamic>?> _showOptionDialog(List<Product> products,
       String? uitEkr, String? invoice, String? cmr, int orderId) async {
-    // Initialize state variables only if needed
     final imagePicker = ImagePicker();
 
-    // Only initialize if container info is needed
+    // Initialize state variables
     bool isPalletChecked = false;
     bool isCaseChecked = false;
     String? palletSubOption;
@@ -501,28 +637,18 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     int palletAmount = 0;
     int caseAmount = 0;
 
-    // Only initialize controllers for missing data
     final uitEkrController = TextEditingController(text: uitEkr);
     File? invoiceImage;
     File? cmrImage;
 
-    // Determine what needs to be shown based on empty values
-    bool needsUitEkr = uitEkr?.isEmpty ?? true;
-    bool needsInvoice = invoice?.isEmpty ?? true;
-    bool needsCmr = cmr?.isEmpty ?? true;
-    bool hasContainerProducts =
-        products.any((product) => product.productType == 'container');
-    bool needsContainer = !hasContainerProducts &&
-        !products.any((product) =>
-            product.productType == 'pallet' || product.productType == 'crate');
-
-    // If nothing needs to be updated, return null immediately
-
-    bool needsUpdates =
-        needsUitEkr || needsInvoice || needsCmr || needsContainer;
-
-    // Removed the early return for no updates needed
-    // The dialog will now always show, allowing the user to proceed
+    // Check for existing values
+    bool hasUitEkr = uitEkr?.isNotEmpty ?? false;
+    bool hasInvoice = invoice?.isNotEmpty ?? false;
+    bool hasCmr = cmr?.isNotEmpty ?? false;
+    bool hasPaletteProducts =
+        products.any((product) => product.productType == 'palette');
+    bool hasCrateProducts =
+        products.any((product) => product.productType == 'crate');
 
     Future<File?> pickImage() async {
       try {
@@ -563,16 +689,11 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(
-                              needsUpdates
-                                  ? Icons.inventory_2
-                                  : Icons.check_circle,
+                          Icon(Icons.edit_document,
                               color: Theme.of(context).colorScheme.onPrimary),
                           const SizedBox(width: 8),
                           Text(
-                            needsUpdates
-                                ? 'Required Information'
-                                : 'Order Ready',
+                            'Order Details',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 18,
@@ -590,25 +711,24 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Only show documents section if any document is needed
-                            if (needsUitEkr || needsInvoice || needsCmr) ...[
-                              _buildSectionHeader(
-                                context,
-                                'Required Documents',
-                                Icons.description,
-                              ),
-                              const SizedBox(height: 16),
+                            // Documents section - always visible
+                            _buildSectionHeader(
+                              context,
+                              'Documents',
+                              Icons.description,
+                            ),
+                            const SizedBox(height: 16),
 
-                              // UitEkr Input (only if needed)
-                              if (needsUitEkr)
-                                Card(
-                                  elevation: 0,
-                                  color: Theme.of(context).colorScheme.surface,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                            // UitEkr Input
+                            Card(
+                              elevation: 0,
+                              color: Theme.of(context).colorScheme.surface,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
                                       children: [
                                         const Text(
                                           'UitEkr Reference',
@@ -617,135 +737,142 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                             fontSize: 14,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        TextField(
-                                          controller: uitEkrController,
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Theme.of(context)
-                                                .colorScheme
-                                                .surface
-                                                .withOpacity(0.1),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: BorderSide.none,
-                                            ),
-                                            hintText:
-                                                'Enter UitEkr reference number',
-                                            prefixIcon:
-                                                const Icon(Icons.numbers),
+                                        if (hasUitEkr) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 16,
                                           ),
-                                        ),
+                                        ],
                                       ],
                                     ),
-                                  ),
-                                ),
-
-                              const SizedBox(height: 16),
-
-                              // Document Upload Cards (only if needed)
-                              Row(
-                                children: [
-                                  if (needsInvoice)
-                                    Expanded(
-                                      child: _buildDocumentUploadCard(
-                                        context,
-                                        'Invoice',
-                                        invoiceImage,
-                                        () async {
-                                          final image = await pickImage();
-                                          if (image != null) {
-                                            setState(
-                                                () => invoiceImage = image);
-                                          }
-                                        },
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: uitEkrController,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface
+                                            .withOpacity(0.1),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                        hintText: hasUitEkr
+                                            ? 'Current: $uitEkr'
+                                            : 'Enter UitEkr reference number',
+                                        prefixIcon: const Icon(Icons.numbers),
                                       ),
                                     ),
-                                  if (needsInvoice && needsCmr)
-                                    const SizedBox(width: 16),
-                                  if (needsCmr)
-                                    Expanded(
-                                      child: _buildDocumentUploadCard(
-                                        context,
-                                        'CMR',
-                                        cmrImage,
-                                        () async {
-                                          final image = await pickImage();
-                                          if (image != null) {
-                                            setState(() => cmrImage = image);
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-
-                            // Packaging Options (only if needed and no container products)
-                            if (needsContainer) ...[
-                              const SizedBox(height: 24),
-                              _buildSectionHeader(
-                                context,
-                                'Packaging Options',
-                                Icons.inventory,
-                              ),
-                              const SizedBox(height: 16),
-                              Card(
-                                elevation: 0,
-                                color: Theme.of(context).colorScheme.surface,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    children: [
-                                      _buildPackagingOption(
-                                        context,
-                                        'Pallet',
-                                        isPalletChecked,
-                                        palletSubOption,
-                                        palletAmount,
-                                        ['Plastic', 'Wood'],
-                                        (checked) {
-                                          setState(() {
-                                            isPalletChecked = checked ?? false;
-                                            if (!checked!) {
-                                              palletSubOption = null;
-                                              palletAmount = 0;
-                                            }
-                                          });
-                                        },
-                                        (value) => setState(
-                                            () => palletSubOption = value),
-                                        (value) => setState(
-                                            () => palletAmount = value),
-                                      ),
-                                      const Divider(height: 32),
-                                      _buildPackagingOption(
-                                        context,
-                                        'Crate',
-                                        isCaseChecked,
-                                        caseSubOption,
-                                        caseAmount,
-                                        ['E2', 'M10'],
-                                        (checked) {
-                                          setState(() {
-                                            isCaseChecked = checked ?? false;
-                                            if (!checked!) {
-                                              caseSubOption = null;
-                                              caseAmount = 0;
-                                            }
-                                          });
-                                        },
-                                        (value) => setState(
-                                            () => caseSubOption = value),
-                                        (value) =>
-                                            setState(() => caseAmount = value),
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Document Upload Cards
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDocumentUploadCard(
+                                    context,
+                                    'Invoice',
+                                    invoiceImage,
+                                    () async {
+                                      final image = await pickImage();
+                                      if (image != null) {
+                                        setState(() => invoiceImage = image);
+                                      }
+                                    },
+                                    hasExisting: hasInvoice,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDocumentUploadCard(
+                                    context,
+                                    'CMR',
+                                    cmrImage,
+                                    () async {
+                                      final image = await pickImage();
+                                      if (image != null) {
+                                        setState(() => cmrImage = image);
+                                      }
+                                    },
+                                    hasExisting: hasCmr,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Packaging Section - always visible
+                            const SizedBox(height: 24),
+                            _buildSectionHeader(
+                              context,
+                              'Containers',
+                              Icons.inventory,
+                            ),
+                            const SizedBox(height: 16),
+                            Card(
+                              elevation: 0,
+                              color: Theme.of(context).colorScheme.surface,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  children: [
+                                    _buildPackagingOption(
+                                      context,
+                                      'Pallet',
+                                      isPalletChecked,
+                                      palletSubOption,
+                                      palletAmount,
+                                      ['Plastic', 'Lemn'],
+                                      (checked) {
+                                        setState(() {
+                                          isPalletChecked = checked ?? false;
+                                          if (!checked!) {
+                                            palletSubOption = null;
+                                            palletAmount = 0;
+                                          }
+                                        });
+                                      },
+                                      (value) => setState(
+                                          () => palletSubOption = value),
+                                      (value) =>
+                                          setState(() => palletAmount = value),
+                                      hasExisting: hasPaletteProducts,
+                                    ),
+                                    const Divider(height: 32),
+                                    _buildPackagingOption(
+                                      context,
+                                      'Crate',
+                                      isCaseChecked,
+                                      caseSubOption,
+                                      caseAmount,
+                                      ['E2', 'M10'],
+                                      (checked) {
+                                        setState(() {
+                                          isCaseChecked = checked ?? false;
+                                          if (!checked!) {
+                                            caseSubOption = null;
+                                            caseAmount = 0;
+                                          }
+                                        });
+                                      },
+                                      (value) =>
+                                          setState(() => caseSubOption = value),
+                                      (value) =>
+                                          setState(() => caseAmount = value),
+                                      hasExisting: hasCrateProducts,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -781,46 +908,57 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                             onPressed: () {
                               final result = <String, dynamic>{};
 
-                              // Only include values that need updating
-                              if (needsUitEkr &&
-                                  uitEkrController.text.trim().isNotEmpty) {
+                              // Include any changed or new values
+                              if (uitEkrController.text.trim().isNotEmpty &&
+                                  uitEkrController.text.trim() != uitEkr) {
                                 result['UitEkr'] = uitEkrController.text.trim();
                               }
 
-                              if (needsInvoice && invoiceImage != null) {
+                              if (invoiceImage != null) {
                                 result['Invoice'] = invoiceImage!.path;
                               }
 
-                              if (needsCmr && cmrImage != null) {
+                              if (cmrImage != null) {
                                 result['CMR'] = cmrImage!.path;
                               }
 
-                              if (needsContainer) {
-                                if (isPalletChecked &&
-                                    palletSubOption != null &&
-                                    palletAmount > 0) {
-                                  result['Pallet'] = {
-                                    'type': palletSubOption,
-                                    'amount': palletAmount,
-                                  };
-                                }
+                              // Create containers map only if there are container changes
+                              Map<String, dynamic> containers = {};
 
-                                if (isCaseChecked &&
-                                    caseSubOption != null &&
-                                    caseAmount > 0) {
-                                  result['Case'] = {
-                                    'type': caseSubOption,
-                                    'amount': caseAmount,
-                                  };
-                                }
+                              // Add pallet data if checked
+                              if (isPalletChecked &&
+                                  palletSubOption != null &&
+                                  palletAmount > 0) {
+                                containers['Pallet'] = {
+                                  'type': palletSubOption,
+                                  'amount': palletAmount,
+                                };
                               }
 
-                              // Always return a result (even if empty) to indicate the dialog was confirmed
+                              // Add crate data if checked
+                              if (isCaseChecked &&
+                                  caseSubOption != null &&
+                                  caseAmount > 0) {
+                                containers['Case'] = {
+                                  'type': caseSubOption,
+                                  'amount': caseAmount,
+                                };
+                              }
+
+                              // Only add containers to result if there are any changes
+                              if (containers.isNotEmpty) {
+                                result['Containers'] = containers;
+                              }
+
+                              // Even if no changes were made, we want to return an empty object
+                              // rather than null to indicate the dialog was confirmed
                               Navigator.of(context).pop(result);
                             },
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
                             ),
                             child: const Text('Confirm'),
                           ),
@@ -834,6 +972,191 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           },
         );
       },
+    );
+  }
+
+  Widget _buildDocumentUploadCard(
+    BuildContext context,
+    String title,
+    File? selectedFile,
+    VoidCallback onUpload, {
+    bool hasExisting = false,
+  }) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+                if (hasExisting && selectedFile == null) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (selectedFile != null) ...[
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.file_present, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        selectedFile.path.split('/').last,
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            OutlinedButton.icon(
+              onPressed: onUpload,
+              icon: Icon(selectedFile != null ? Icons.refresh : Icons.upload),
+              label: Text(selectedFile != null
+                  ? 'Change File'
+                  : hasExisting
+                      ? 'Update File'
+                      : 'Upload File'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                minimumSize: const Size(double.infinity, 40),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPackagingOption(
+    BuildContext context,
+    String title,
+    bool isChecked,
+    String? selectedOption,
+    int amount,
+    List<String> options,
+    Function(bool?) onCheckChanged,
+    Function(String?) onOptionChanged,
+    Function(int) onAmountChanged, {
+    bool hasExisting = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Checkbox(
+              value: isChecked,
+              onChanged: onCheckChanged,
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+            if (hasExisting && !isChecked) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '(Already added)',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (isChecked) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Type dropdown
+                DropdownButtonFormField<String>(
+                  value: selectedOption,
+                  decoration: InputDecoration(
+                    labelText: 'Type',
+                    filled: true,
+                    fillColor:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: options.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList(),
+                  onChanged: onOptionChanged,
+                ),
+                const SizedBox(height: 12),
+                // Amount input
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed:
+                          amount > 0 ? () => onAmountChanged(amount - 1) : null,
+                      icon: const Icon(Icons.remove),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        amount.toString(),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => onAmountChanged(amount + 1),
+                      icon: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -854,178 +1177,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             fontWeight: FontWeight.bold,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildDocumentUploadCard(
-    BuildContext context,
-    String title,
-    File? image,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surface,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          height: 180,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (image != null) ...[
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      image,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Change $title',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ] else ...[
-                Icon(
-                  Icons.upload_file,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Upload $title',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Click to select',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPackagingOption(
-    BuildContext context,
-    String title,
-    bool isChecked,
-    String? selectedOption,
-    int amount,
-    List<String> options,
-    Function(bool?) onCheckChanged,
-    Function(String?) onOptionChanged,
-    Function(int) onAmountChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Row(
-                children: [
-                  Checkbox(
-                    value: isChecked,
-                    onChanged: onCheckChanged,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isChecked) ...[
-              Expanded(
-                flex: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedOption,
-                      hint: const Text('Select Type'),
-                      isExpanded: true,
-                      items: options.map((String option) {
-                        return DropdownMenuItem<String>(
-                          value: option,
-                          child: Text(option),
-                        );
-                      }).toList(),
-                      onChanged: onOptionChanged,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 1,
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    hintText: 'Amount',
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  onChanged: (value) {
-                    final amount = int.tryParse(value) ?? 0;
-                    onAmountChanged(amount);
-                  },
-                  controller: TextEditingController(
-                      text: amount > 0 ? amount.toString() : ''),
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (isChecked)
-          Padding(
-            padding: const EdgeInsets.only(left: 40, top: 8),
-            child: Text(
-              'Total: $amount ${title.toLowerCase()}${amount != 1 ? 's' : ''}',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -1265,7 +1416,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                               // Clickable address
                                               GestureDetector(
                                                 onTap: () async {
-                                                  print(Globals.vehicleID);
                                                   // Use coordinates if available, otherwise fall back to the warehouse address
                                                   final String address =
                                                       pickupWarehouse
@@ -1512,7 +1662,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                             const EdgeInsets
                                                                 .all(8.0),
                                                         child: Text(
-                                                            '${product.quantity} kg'),
+                                                            '${product.quantity * product.productWeight} kg'),
                                                       ),
                                                       Padding(
                                                         padding:
@@ -1529,11 +1679,15 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                           ),
                                           const SizedBox(height: 12.0),
                                           if (buildProductsTable(
-                                                  order.products, 'container')
-                                              .children
-                                              .isNotEmpty)
-                                            buildProductsTable(
-                                                order.products, 'container'),
+                                                      order.products, 'palette')
+                                                  .children
+                                                  .isNotEmpty ||
+                                              buildProductsTable(
+                                                      order.products, 'crate')
+                                                  .children
+                                                  .isNotEmpty)
+                                            buildContainersTables(
+                                                order.products),
 
                                           const SizedBox(height: 12.0),
                                         ],
@@ -1731,7 +1885,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
                                     // Quantity Field
                                     Text(
-                                      'Quantity: ${order.getTotalQuantity()} kg',
+                                      'Quantity: ${order.getTotalWeight()} kg',
                                       style: const TextStyle(
                                         fontSize: 16.0,
                                         fontWeight: FontWeight.bold,

@@ -52,7 +52,6 @@ class _LogoutPageState extends State<LogoutPage> {
   @override
   void initState() {
     super.initState();
-    // Removed getCarDetails call since it's not needed
     getLastKm(Globals.userId, Globals.vehicleID);
   }
 
@@ -311,9 +310,6 @@ class _LogoutPageState extends State<LogoutPage> {
     );
   }
 
-  void _hideLoggingOutDialog() {
-    Navigator.of(context, rootNavigator: true).pop();
-  }
 
   void _hideLoggingDialog() {
     Navigator.of(context, rootNavigator: true).pop();

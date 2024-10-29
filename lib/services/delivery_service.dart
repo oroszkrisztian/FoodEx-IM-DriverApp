@@ -147,35 +147,27 @@ class DeliveryService {
 
   Future<void> updateOrderContainer(
     int orderId, {
-    String? crateType,
-    String? palletType,
-    int? crateAmount,
-    int? palletAmount,
+    Map<String, dynamic>? containerData,
   }) async {
     try {
-      // Only include container types that are actually selected
+      if (containerData == null) {
+        throw Exception('No container data provided');
+      }
+
+      // Extract container data
+      final pallet = containerData['Pallet'];
+      final crate = containerData['Case'];
+
+      // Backend expects both pallet and crate data
       Map<String, String> body = {
         'action': 'update-order',
         'type': 'container',
         'order-id': orderId.toString(),
+        'pallet': (pallet?['amount'] ?? '0').toString(),
+        'pallet-type': pallet?['type'] ?? '',
+        'crate': (crate?['amount'] ?? '0').toString(),
+        'crate-type': crate?['type'] ?? '',
       };
-
-      // Only add crate info if it's provided
-      if (crateType != null && crateAmount != null && crateAmount > 0) {
-        body['crate'] = crateAmount.toString();
-        body['crate-type'] = crateType;
-      }
-
-      // Only add pallet info if it's provided
-      if (palletType != null && palletAmount != null && palletAmount > 0) {
-        body['pallet'] = palletAmount.toString();
-        body['pallet-type'] = palletType;
-      }
-
-      // If neither crate nor pallet info is provided, return early
-      if (!body.containsKey('crate') && !body.containsKey('pallet')) {
-        return;
-      }
 
       final response = await http.post(
         Uri.parse(baseUrl),
@@ -203,43 +195,30 @@ class DeliveryService {
     }
   }
 
-  // Helper method to handle all updates from dialog
+// Helper method to handle all updates from dialog
   Future<void> handleOrderUpdates(
       int orderId, Map<String, dynamic> updates) async {
     try {
-      // Sequential processing to maintain order and handle errors better
-      List<Future<void>> updateOperations = [];
-
-      // Collect all necessary update operations
+      // Process document updates first
       if (updates['UitEkr']?.isNotEmpty ?? false) {
-        updateOperations.add(updateOrderUitEkr(orderId, updates['UitEkr']));
+        await updateOrderUitEkr(orderId, updates['UitEkr']);
       }
 
       if (updates['Invoice'] != null) {
-        updateOperations
-            .add(updateOrderInvoice(orderId, File(updates['Invoice'])));
+        await updateOrderInvoice(orderId, File(updates['Invoice']));
       }
 
       if (updates['CMR'] != null) {
-        updateOperations.add(updateOrderCmr(orderId, File(updates['CMR'])));
+        await updateOrderCmr(orderId, File(updates['CMR']));
       }
 
-      if (updates['Pallet'] != null || updates['Case'] != null) {
-        updateOperations.add(updateOrderContainer(
+      // Handle container updates if present
+      if (updates['Containers'] != null) {
+        await updateOrderContainer(
           orderId,
-          crateType: updates['Case']?['type'],
-          palletType: updates['Pallet']?['type'],
-          crateAmount: updates['Case']?['amount'],
-          palletAmount: updates['Pallet']?['amount'],
-        ));
+          containerData: updates['Containers'],
+        );
       }
-
-      // Execute all updates sequentially
-      for (var operation in updateOperations) {
-        await operation;
-      }
-
-      return;
     } catch (e) {
       print('Error handling order updates: $e');
       throw e;

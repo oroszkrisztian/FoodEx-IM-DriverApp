@@ -20,7 +20,7 @@ class OrderService {
         if (fromDate != null) 'data-from': fromDate.toString().split(' ')[0],
         if (toDate != null) 'data-to': toDate.toString().split(' ')[0],
         'order-status': 'active',
-        'driver' : Globals.userId.toString()
+        'driver': Globals.userId.toString()
       };
 
       final response = await http.post(
@@ -53,8 +53,6 @@ class OrderService {
           print('Total orders fetched: ${_orders.length}');
           Globals.ordersNumber = _orders.length;
 
-          
-
           // Print total quantity for each order
           for (var order in _orders) {
             print(
@@ -79,6 +77,70 @@ class OrderService {
     } catch (e) {
       print('Error fetching orders: $e');
       throw e;
+    }
+  }
+
+  Future<int?> checkVehicleLogin() async {
+    try {
+      final body = {
+        'action': 'get-vehicle-id',
+        'driver': Globals.userId.toString()
+      };
+
+      final response = await http.post(
+        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Raw vehicle response: ${response.body}');
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        if (data['success'] == true && data['data'] != null) {
+          final vehicleData = data['data'];
+          final vehicleId = vehicleData['vehicle_id'];
+
+          if (vehicleId != null) {
+            // Convert to int, handling both string and int inputs
+            int? parsedVehicleId;
+            if (vehicleId is String) {
+              parsedVehicleId = int.tryParse(vehicleId);
+            } else if (vehicleId is int) {
+              parsedVehicleId = vehicleId;
+            }
+
+            if (parsedVehicleId != null) {
+              Globals.vehicleID = parsedVehicleId;
+              debugPrint('Successfully stored vehicle ID: $parsedVehicleId');
+
+              // Also store photos if needed
+              if (vehicleData['photos'] != null) {
+                final List<dynamic> photos = json.decode(vehicleData['photos']);
+                debugPrint('Found ${photos.length} photos');
+                // Handle photos if needed
+              }
+
+              return parsedVehicleId;
+            }
+          }
+
+          debugPrint('No valid vehicle ID found in response');
+          return null;
+        } else {
+          debugPrint(
+              'Response indicates failure or missing data: ${data['message']}');
+          return null;
+        }
+      } else {
+        debugPrint('HTTP Error: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error in checkVehicleLogin: $e');
+      return null;
     }
   }
 

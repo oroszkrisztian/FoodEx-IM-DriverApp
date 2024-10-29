@@ -87,21 +87,14 @@ class _LoginPageState extends State<LoginPage> {
             List<dynamic> carList = jsonDecode(response.body);
 
             // Ensure carList is a list of maps
-            if (carList is List<dynamic>) {
-              List<Car> cars = carList
-                  .map((json) => Car.fromJson(json as Map<String, dynamic>))
-                  .toList();
+            List<Car> cars = carList
+                .map((json) => Car.fromJson(json as Map<String, dynamic>))
+                .toList();
 
-              setState(() {
-                _cars = cars;
-                _isLoading = false;
-              });
-            } else {
-              setState(() {
-                _errorMessage = 'Data is not in expected format.';
-                _isLoading = false;
-              });
-            }
+            setState(() {
+              _cars = cars;
+              _isLoading = false;
+            });
           } catch (e) {
             setState(() {
               _errorMessage = 'Failed to parse cars data: $e';
@@ -138,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
         body: {
           'action': 'get-last-km',
           'driver_id': driverId.toString(),
-          'vehicle_id': vehicleId.toString(),
+          'vehicle_id': _selectedCarId.toString(),
         },
       );
 
@@ -454,12 +447,6 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
     await prefs.setInt('vehicleId', Globals.vehicleID!);
-    await prefs.setString('image1', _image1!.path);
-    await prefs.setString('image2', _image2!.path);
-    await prefs.setString('image3', _image3!.path);
-    await prefs.setString('image4', _image4!.path);
-    await prefs.setString('image5', _image5!.path);
-    await prefs.setString('parcursIn', parcursIn!.path);
 
     // Check if last KM is null, set to 0 if it is
     _lastKm ??= 0;
@@ -551,27 +538,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _resetVehicleData() {
-    setState(() {
-      // Clear all vehicle-related fields and reset image files
-      Globals.vehicleID = null;
-      Globals.kmValue = null;
-      Globals.image1 = null;
-      Globals.image2 = null;
-      Globals.image3 = null;
-      Globals.image4 = null;
-      Globals.image5 = null;
-      _selectedCarId = null;
-      _kmController.clear();
-      _image1 = null;
-      _image2 = null;
-      _image3 = null;
-      _image4 = null;
-      _image5 = null;
-      _lastKm = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -638,22 +604,36 @@ class _LoginPageState extends State<LoginPage> {
                                         child: Text(
                                           '${car.make} - ${car.model} - ${car.licencePlate}',
                                           style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 1, 160, 226)),
+                                            color: Color.fromARGB(
+                                                255, 1, 160, 226),
+                                          ),
                                         ),
                                       ),
                                     );
                                   }).toList(),
-                                  onChanged: (newValue) {
+                                  onChanged: (newValue) async {
                                     setState(() {
                                       _selectedCarId = newValue;
                                     });
+
+                                    // Ensure you have driverId and pass the selected car ID to getLastKm
+                                    int? driverId = Globals
+                                        .userId; // Replace with the actual driver ID variable
+                                    if (_selectedCarId != null &&
+                                        driverId != null) {
+                                      bool result = await getLastKm(
+                                          driverId, _selectedCarId);
+                                      if (!result) {
+                                        // Handle error or notification if needed
+                                        print('Failed to fetch last KM');
+                                      }
+                                    }
                                   },
                                   decoration: InputDecoration(
                                     labelText: 'Car',
                                     labelStyle: const TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 1, 160, 226)),
+                                      color: Color.fromARGB(255, 1, 160, 226),
+                                    ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromARGB(255, 1, 160, 226),
@@ -668,7 +648,8 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                   style: const TextStyle(
-                                      color: Color.fromARGB(255, 1, 160, 226)),
+                                    color: Color.fromARGB(255, 1, 160, 226),
+                                  ),
                                   dropdownColor: Colors.white,
                                   icon: const Icon(Icons.arrow_drop_down,
                                       color: Color.fromARGB(255, 1, 160, 226)),
@@ -690,7 +671,7 @@ class _LoginPageState extends State<LoginPage> {
                                       color: Color.fromARGB(255, 1, 160, 226),
                                     ),
                                     hintText:
-                                        'Last KM: ', // Add placeholder text here
+                                        'Last KM: $_lastKm', // Add placeholder text here
                                     hintStyle: TextStyle(
                                       color: Colors.grey
                                           .shade400, // Optional: customize the hint text color
