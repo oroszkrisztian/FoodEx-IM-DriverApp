@@ -137,6 +137,7 @@ Future<bool> loginVehicle() async {
 }
 
 //only push lib folder content
+//commit kriszti
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
