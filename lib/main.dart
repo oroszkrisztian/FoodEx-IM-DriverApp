@@ -34,7 +34,7 @@ Future<bool> handleImageUpload(Map<String, dynamic>? inputData) async {
     await uploadImages(inputData);
     return Future.value(true);
   } catch (e) {
-    print('Error in image upload task: $e');
+    print('Error in image upload task check: $e');
     return Future.value(false);
   }
 }
