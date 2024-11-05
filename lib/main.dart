@@ -137,7 +137,7 @@ Future<bool> loginVehicle() async {
 }
 
 //levente commit
-//commit kriszti
+//commit kriszti 2
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
