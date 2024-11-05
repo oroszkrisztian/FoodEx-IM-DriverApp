@@ -136,7 +136,7 @@ Future<bool> loginVehicle() async {
   }
 }
 
-//only push lib folder content
+//levente commit
 //commit kriszti
 
 void main() async {
