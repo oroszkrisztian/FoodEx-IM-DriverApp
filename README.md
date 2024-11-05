@@ -4,5 +4,5 @@
 git -C lib/ pull  
 git add lib/  
 git commit -m "message"  
-  
+git push 
 
