@@ -3,7 +3,7 @@
 Inditas utan mindig meg kell csinalni a pull:  
 git -C lib/ pull  
 
-Miutan befejeyted a modositast:  
+Miutan befejezted a modositast:  
 git add lib/  
 git commit -m "message"  
 git push 
