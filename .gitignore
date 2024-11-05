@@ -1,20 +1,6 @@
-# Allow gitignore
-!.gitignore
-
-# Ignore everything else
+# Ignore everything
 *
 
-# Allow the lib directory and its contents
+# But not the lib directory
 !lib/
-!lib/**
-
-# Ignore Flutter-related files
-.flutter-plugins
-.flutter-plugins-dependencies
-.dart_tool/
-.dart_tool/package_config.json
-.dart_tool/package_config_subset
-.dart_tool/version
-
-# Ignore the .idea directory
-.idea/" > .gitignore
+!lib/**" > .gitignore
