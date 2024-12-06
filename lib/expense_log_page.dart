@@ -48,7 +48,6 @@ class ExpenseEntry {
   }
 }
 
-
 void main() {
   runApp(
     const MaterialApp(
@@ -77,6 +76,50 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   void initState() {
     super.initState();
     _fetchExpenseData(); // Fetch data initially
+  }
+
+  Future<List<String>> fetchExpenseTypes() async {
+    try {
+      final response = await http.post(
+          Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+          headers: <String, String>{
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: {
+            'action': 'get-categories',
+            'type': 'expenses'
+          });
+
+      print(response
+          .body); // Print the response body to see the data for debugging
+
+      if (response.statusCode == 200) {
+        // Try parsing the response body as a List<dynamic> (since it's an array, not a map)
+        final List<dynamic> jsonData = jsonDecode(response.body);
+
+        if (jsonData != null && jsonData.isNotEmpty) {
+          // Map over the list and extract the 'name' field from each object in the list
+          final List<String> expenseTypes = jsonData.map((type) {
+            // Check if 'name' key exists and is not null
+            if (type is Map<String, dynamic> && type.containsKey('name')) {
+              return type['name'].toString(); // Convert to String just in case
+            } else {
+              throw Exception('Missing or invalid "name" field in response');
+            }
+          }).toList();
+          return expenseTypes;
+        } else {
+          throw Exception('No expense data found or data is empty');
+        }
+      } else {
+        throw Exception(
+            'Failed to load expense types with status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Show error dialog or log it based on your app's error handling strategy
+      _showErrorDialog('Error', 'Failed to load expense data: $e');
+      rethrow; // Rethrow the exception if you want it to propagate
+    }
   }
 
   Future<void> _fetchExpenseData() async {
@@ -113,7 +156,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
         setState(() {
           _filteredExpenseData = _expenseData;
         });
-
       } else {
         _showErrorDialog('Failed to load expense data',
             'Status code: ${response.statusCode}');
@@ -388,20 +430,42 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
                             color: Colors.black),
                       ),
                       const SizedBox(height: 8.0),
-                      DropdownButton<String>(
-                        value: _selectedType,
-                        onChanged: (value) {
-                          _filterByType(value!);
-                        },
-                        items: ['All', 'Fuel', 'Wash', 'Others']
-                            .map((type) => DropdownMenuItem<String>(
+                      FutureBuilder<List<String>>(
+                        future: fetchExpenseTypes(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text(
+                              'Error: ${snapshot.error}',
+                              style: const TextStyle(color: Colors.red),
+                            );
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Text(
+                              'No expense types available',
+                              style: TextStyle(color: Colors.black),
+                            );
+                          } else {
+                            final expenseTypes = snapshot.data!;
+                            return DropdownButton<String>(
+                              value: _selectedType,
+                              onChanged: (value) {
+                                _filterByType(value!);
+                              },
+                              items: ['All', ...expenseTypes].map((type) {
+                                return DropdownMenuItem<String>(
                                   value: type,
                                   child: Text(type,
                                       style:
                                           const TextStyle(color: Colors.black)),
-                                ))
-                            .toList(),
-                      ),
+                                );
+                              }).toList(),
+                            );
+                          }
+                        },
+                      )
                     ],
                   ),
                   const SizedBox(height: 16.0),
@@ -456,7 +520,7 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
                     ),
                     DataColumn(
                       label: Text(
-                        'Driver',
+                        'Driver', // Edit here
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black),
                       ),
@@ -549,7 +613,7 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
                                   ),
                                 )
                               : const Text('No photos'),
-                        )
+                        ),
                       ],
                     );
                   }).toList(),

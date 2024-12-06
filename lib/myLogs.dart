@@ -5,35 +5,44 @@ import 'package:intl/intl.dart';
 import 'globals.dart'; // Assuming you have a globals.dart file for global variables
 
 class LogEntry {
-  final String date;
+  final String inShiftDate;
+  final String outShiftDate;
   final String vehicle;
   final String driver;
   final String from;
   final String to;
+  final String totalTime;
   final int startKm;
   final int endKm;
+  final String kmDifference;
   final List<String> photos;
 
   LogEntry({
-    required this.date,
+    required this.inShiftDate,
+    required this.outShiftDate,
     required this.vehicle,
     required this.driver,
     required this.from,
     required this.to,
+    required this.totalTime,
     required this.startKm,
     required this.endKm,
+    required this.kmDifference,
     required this.photos,
   });
 
   factory LogEntry.fromJson(Map<String, dynamic> json) {
     return LogEntry(
-      date: json['shift_date'] ?? '',
+      inShiftDate: json['in_shift_date'] ?? '',
+      outShiftDate: json['out_shift_date'] ?? '',
       vehicle: json['vehicle'] ?? '',
       driver: json['driver'] ?? '',
       from: json['shift_start'] ?? '',
       to: json['shift_end'] ?? '',
+      totalTime: json['time_spent'] ?? '',
       startKm: json['km_start'] ?? 0,
       endKm: json['km_end'] ?? 0,
+      kmDifference: (json['km_difference']?.toString() ?? '0') + ' km',
       photos: (json['photos'] ?? '')
           .toString()
           .split(',')
@@ -43,26 +52,8 @@ class LogEntry {
     );
   }
 
-  String calculateTotalTime() {
-    if (from.isEmpty || to.isEmpty) {
-      return '';
-    }
-    try {
-      final DateFormat format = DateFormat('HH:mm');
-      final DateTime startTime = format.parse(from);
-      final DateTime endTime = format.parse(to);
-      final Duration difference = endTime.difference(startTime);
-      final int hours = difference.inHours;
-      final int minutes = difference.inMinutes % 60;
-      return '${hours}h ${minutes}m';
-    } catch (e) {
-      print('Error parsing time: $e');
-      return '';
-    }
-  }
-
   String calculateKmDifference() {
-    return '${endKm - startKm} km';
+    return kmDifference;
   }
 }
 
@@ -202,32 +193,35 @@ class _MyLogPageState extends State<MyLogPage> {
           'action': 'vehicle-logs-filter',
           'from': DateFormat('yyyy-MM-dd').format(_startDate!),
           'to': DateFormat('yyyy-MM-dd').format(_endDate!),
-          'vehicle': _selectedCarId == -1 ? 'all' : _selectedCarId.toString(),
-          'driver': Globals.userId == null ? 'all' : Globals.userId.toString(),
+          'vehicle': _selectedCarId == -1
+              ? 'all'
+              : _selectedCarId.toString(), // Convert to String
+          'driver': Globals.userId == null
+              ? 'all'
+              : Globals.userId.toString(), // Convert to String
         },
       );
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
-
-        // Check if jsonResponse is a list
+        print(response.body);
+        // Check for valid response structure
         if (jsonResponse is List) {
           setState(() {
-            _logData =
-                jsonResponse.map((data) => LogEntry.fromJson(data)).toList();
+            _logData = jsonResponse
+                .map((data) => LogEntry.fromJson(data as Map<String, dynamic>))
+                .toList();
             _sortLogData();
             _filteredLogData = _logData;
             _filterByDate();
             _isLoading = false;
           });
-        } else if (jsonResponse is Map) {
-          // Handle the case where the response is a map
+        } else {
           setState(() {
-            _errorMessage = 'Unexpected data format';
+            _errorMessage = 'Unexpected response format';
             _isLoading = false;
           });
         }
-        print('Response Body  _fetchLogData: ${response.body}');
       } else {
         _showErrorDialog(
             'Failed to load logs', 'Status code: ${response.statusCode}');
@@ -246,9 +240,9 @@ class _MyLogPageState extends State<MyLogPage> {
   void _sortLogData() {
     _logData.sort((a, b) {
       DateTime dateTimeA =
-          DateFormat('yyyy-MM-dd HH:mm').parse('${a.date} ${a.from}');
+          DateFormat('yyyy-MM-dd HH:mm').parse('${a.inShiftDate} ${a.from}');
       DateTime dateTimeB =
-          DateFormat('yyyy-MM-dd HH:mm').parse('${b.date} ${b.from}');
+          DateFormat('yyyy-MM-dd HH:mm').parse('${b.inShiftDate} ${b.from}');
       return dateTimeB.compareTo(dateTimeA);
     });
   }
@@ -284,7 +278,7 @@ class _MyLogPageState extends State<MyLogPage> {
         _filteredLogData = _logData;
       } else {
         _filteredLogData = _logData.where((log) {
-          DateTime logDate = DateFormat('yyyy-MM-dd').parse(log.date);
+          DateTime logDate = DateFormat('yyyy-MM-dd').parse(log.inShiftDate);
           if (_startDate != null && logDate.isBefore(_startDate!)) {
             return false;
           }
@@ -355,10 +349,10 @@ class _MyLogPageState extends State<MyLogPage> {
     _fetchLogData().then((_) {
       setState(() {
         _filteredLogData.sort((a, b) {
-          DateTime dateTimeA =
-              DateFormat('yyyy-MM-dd HH:mm').parse('${a.date} ${a.from}');
-          DateTime dateTimeB =
-              DateFormat('yyyy-MM-dd HH:mm').parse('${b.date} ${b.from}');
+          DateTime dateTimeA = DateFormat('yyyy-MM-dd HH:mm')
+              .parse('${a.inShiftDate} ${a.from}');
+          DateTime dateTimeB = DateFormat('yyyy-MM-dd HH:mm')
+              .parse('${b.inShiftDate} ${b.from}');
           return dateTimeB.compareTo(dateTimeA);
         });
       });
@@ -633,6 +627,17 @@ class LogDataTable extends StatelessWidget {
     required this.onImageTap,
   });
 
+  String formatDateTime(String date, String time) {
+    try {
+      // Combine date and time
+      DateTime dateTime = DateFormat('yyyy-MM-dd HH:mm').parse('$date $time');
+      // Format to show both date and time
+      return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+    } catch (e) {
+      return '$date $time'; // Fallback if parsing fails
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -671,8 +676,8 @@ class LogDataTable extends StatelessWidget {
                 label: Text('From',
                     style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(
-                label:
-                    Text('To', style: TextStyle(fontWeight: FontWeight.bold))),
+                label: Text('To',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(
                 label: Text('Time',
                     style: TextStyle(fontWeight: FontWeight.bold))),
@@ -690,28 +695,27 @@ class LogDataTable extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold))),
           ],
           rows: logData.map((log) {
-            final totalTime = log.calculateTotalTime();
-            final kmDifference = log.calculateKmDifference();
             return DataRow(
               cells: [
-                DataCell(Text(log.date)),
+                DataCell(Text(log.inShiftDate)),
                 DataCell(Text(log.vehicle)),
                 DataCell(Text(log.driver)),
-                DataCell(Text(log.from)),
-                DataCell(Text(log.to)),
-                DataCell(Text(totalTime)),
+                DataCell(Text(formatDateTime(log.inShiftDate, log.from))),
+                DataCell(Text(formatDateTime(log.outShiftDate, log.to))),
+                DataCell(Text(log.totalTime)),
                 DataCell(Text(log.startKm.toString())),
                 DataCell(Text(log.endKm.toString())),
-                DataCell(Text(kmDifference)),
+                DataCell(Text(log.kmDifference)),
                 DataCell(
                   log.photos.isNotEmpty
                       ? GestureDetector(
                           onTap: () => onImageTap(log.photos),
-                          child: const Icon(Icons.image,
-                              color: Color.fromARGB(
-                                  255, 1, 160, 226)), // Blue theme color
+                          child: const Icon(
+                            Icons.image,
+                            color: Color.fromARGB(255, 1, 160, 226),
+                          ),
                         )
-                      : const Text('No photos'),
+                      : const Icon(Icons.no_photography, color: Colors.grey),
                 ),
               ],
             );

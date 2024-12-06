@@ -1,6 +1,6 @@
 -- Merging decision tree log ---
 application
-INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:5-33:19
+INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:9:5-40:19
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:8:5-32:19
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:8:5-32:19
@@ -29,18 +29,23 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/krisz
 	android:name
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml
 manifest
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-45:12
-MERGED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-45:12
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-52:12
+MERGED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-52:12
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml:1:1-7:12
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml:1:1-7:12
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml:1:1-7:12
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-10:12
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-34:12
 MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
+MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-14:12
 MERGED from [:workmanager] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/workmanager/intermediates/merged_manifest/debug/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.activity:activity:1.9.2] /home/kriszti/.gradle/caches/transforms-3/2d91bc83866874eb6317ae5ae27d2dc9/transformed/jetified-activity-1.9.2/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/9a7a783aa8682aaa028c57031d48c15e/transformed/browser-1.8.0/AndroidManifest.xml:2:1-7:12
@@ -75,6 +80,7 @@ MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches
 MERGED from [androidx.sqlite:sqlite:2.3.0] /home/kriszti/.gradle/caches/transforms-3/a989389bd9150996c9524d34fb90dca6/transformed/sqlite-2.3.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/6dde453803d512b3f23cc981e264e9e0/transformed/jetified-core-1.0.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:2:1-9:12
 	package
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
 	android:versionName
@@ -83,26 +89,58 @@ MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.g
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
 	xmlns:android
 		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:11-69
-queries
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:39:5-44:15
-intent#action:name:android.intent.action.PROCESS_TEXT+data:mimeType:text/plain
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:40:9-43:18
-action#android.intent.action.PROCESS_TEXT
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:41:13-72
-	android:name
-		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:41:21-70
-data
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:42:13-50
-	android:mimeType
-		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:42:19-48
 uses-permission#android.permission.INTERNET
-ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml:6:5-66
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:1-62
+MERGED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:1-62
+MERGED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:1-62
 	android:name
-		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml:6:22-64
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:18-60
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:3:1-76
+MERGED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:25:5-81
+MERGED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:25:5-81
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:3:18-74
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:4:5-79
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:4:22-77
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:5:5-80
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:5:22-78
+uses-permission#android.permission.VIBRATE
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:6:1-62
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:7:5-66
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:7:5-66
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:6:18-59
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:7:1-72
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:8:5-77
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:8:5-77
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:7:18-70
+queries
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:46:5-51:15
+intent#action:name:android.intent.action.PROCESS_TEXT+data:mimeType:text/plain
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:47:9-50:18
+action#android.intent.action.PROCESS_TEXT
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:48:13-72
+	android:name
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:48:21-70
+data
+ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:49:13-50
+	android:mimeType
+		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:49:19-48
 uses-sdk
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:6:5-44
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/debug/AndroidManifest.xml:6:5-44
 MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
@@ -111,12 +149,18 @@ MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flut
 MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:workmanager] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/workmanager/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:workmanager] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/workmanager/intermediates/merged_manifest/debug/AndroidManifest.xml:5:5-44
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity:1.9.2] /home/kriszti/.gradle/caches/transforms-3/2d91bc83866874eb6317ae5ae27d2dc9/transformed/jetified-activity-1.9.2/AndroidManifest.xml:20:5-44
@@ -185,6 +229,8 @@ MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/c
 MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/6dde453803d512b3f23cc981e264e9e0/transformed/jetified-core-1.0.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
 	android:targetSdkVersion
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/debug/AndroidManifest.xml
 	android:minSdkVersion
@@ -243,10 +289,6 @@ uses-permission#android.permission.ACCESS_NETWORK_STATE
 ADDED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:24:5-79
 	android:name
 		ADDED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:24:22-76
-uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
-ADDED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:25:5-81
-	android:name
-		ADDED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:25:22-78
 uses-permission#android.permission.FOREGROUND_SERVICE
 ADDED from [androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:26:5-77
 	android:name

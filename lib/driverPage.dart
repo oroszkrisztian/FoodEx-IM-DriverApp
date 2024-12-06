@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:foodex/models/company.dart';
 import 'package:foodex/models/contact_person.dart';
 import 'package:foodex/models/order.dart';
@@ -10,6 +12,7 @@ import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/services/delivery_service.dart';
 import 'package:foodex/services/order_services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'globals.dart';
@@ -54,6 +57,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   bool hasOrders = false;
   bool _isLoading = false;
 
+  final TextEditingController _amountController = TextEditingController();
+
+
   //orders
   final OrderService _orderService = OrderService();
   final deliveryService = DeliveryService();
@@ -68,8 +74,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
       []; // List to track button visibility for each order
 
   //animation
-  late AnimationController _controller;
-  late Animation<double> _animation;
   bool isExpanded = false;
 
   // Track expanded state and animation controllers for each card
@@ -107,16 +111,130 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     }
   }
 
-  void prepareAnimation() {
-    _controller = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.fastOutSlowIn,
+  void ShowEkr(BuildContext context, String uitEkr) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Rounded corners for the dialog
+          ),
+          title: const Text(
+            'EKR Details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, // Ensures dialog doesn't take up too much space
+            children: [
+              Text(
+                'EKR Number:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700], // Subtle text color
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                uitEkr,
+                style: const TextStyle(
+                  fontSize: 32, // Larger font for better visibility
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue, // Blue OK button
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
+
+  void ShowInvoiceCmr(BuildContext context, String relativePdfUrl) async {
+    try {
+      // Define the base URL for your server
+      String baseUrl = 'https://vinczefi.com/foodexim/';
+
+      // Combine the base URL with the relative path to build the full URL
+      String fullUrl = baseUrl + relativePdfUrl;
+
+      // Encode the full URL to handle special characters like spaces and accents
+      final encodedUrl = Uri.encodeFull(fullUrl);
+      print('Full PDF URL: $fullUrl');
+      print('Encoded PDF URL: $encodedUrl');
+
+      // Download the PDF file from the server
+      final response = await http.get(Uri.parse(encodedUrl));
+
+      if (response.statusCode == 200) {
+        // Save the PDF file to the local file system (temporary directory)
+        final file = File('${(await getTemporaryDirectory()).path}/invoice.pdf');
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Show the PDF view in a dialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: const Text(
+                'Invoice Details',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: PDFView(
+                  filePath: file.path,  // Path to the local file
+                  enableSwipe: true,     // Allow swipe to navigate pages
+                  swipeHorizontal: true, // Horizontal swipe for page navigation
+                  autoSpacing: true,     // Automatically adjust spacing
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print('Failed to load PDF: ${response.statusCode}');
+        // Handle the error (e.g., show a message to the user)
+      }
+    } catch (e) {
+      print('Error loading PDF from URL: $e');
+      // Handle the error (e.g., display an error message to the user)
+    }
+  }
+
+  void prepareAnimation() {}
 
   // New method to sync vehicle status
   Future<void> _syncVehicleStatus() async {
@@ -748,25 +866,27 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    TextField(
-                                      controller: uitEkrController,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Theme.of(context)
-                                            .colorScheme
-                                            .surface
-                                            .withOpacity(0.1),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide.none,
+                                    if(!hasUitEkr) ...[
+                                      TextField(
+                                        controller: uitEkrController,
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withOpacity(0.1),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(8),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          hintText: hasUitEkr
+                                              ? 'Current: $uitEkr'
+                                              : 'Enter UitEkr reference number',
+                                          prefixIcon: const Icon(Icons.numbers),
                                         ),
-                                        hintText: hasUitEkr
-                                            ? 'Current: $uitEkr'
-                                            : 'Enter UitEkr reference number',
-                                        prefixIcon: const Icon(Icons.numbers),
                                       ),
-                                    ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -1009,43 +1129,45 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                 ],
               ],
             ),
-            const SizedBox(height: 12),
-            if (selectedFile != null) ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.file_present, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        selectedFile.path.split('/').last,
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
+            if(!hasExisting)...[
+              const SizedBox(height: 12),
+              if (selectedFile != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.file_present, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          selectedFile.path.split('/').last,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              OutlinedButton.icon(
+                onPressed: onUpload,
+                icon: Icon(selectedFile != null ? Icons.refresh : Icons.upload),
+                label: Text(selectedFile != null
+                    ? 'Change File'
+                    : hasExisting
+                    ? 'Update File'
+                    : 'Upload File'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  minimumSize: const Size(double.infinity, 40),
                 ),
               ),
-              const SizedBox(height: 8),
             ],
-            OutlinedButton.icon(
-              onPressed: onUpload,
-              icon: Icon(selectedFile != null ? Icons.refresh : Icons.upload),
-              label: Text(selectedFile != null
-                  ? 'Change File'
-                  : hasExisting
-                      ? 'Update File'
-                      : 'Upload File'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                minimumSize: const Size(double.infinity, 40),
-              ),
-            ),
           ],
         ),
       ),
@@ -1064,6 +1186,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     Function(int) onAmountChanged, {
     bool hasExisting = false,
   }) {
+
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1126,32 +1250,39 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                   onChanged: onOptionChanged,
                 ),
                 const SizedBox(height: 12),
-                // Amount input
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed:
-                          amount > 0 ? () => onAmountChanged(amount - 1) : null,
-                      icon: const Icon(Icons.remove),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        amount.toString(),
-                        style: const TextStyle(fontSize: 16),
+                // Numeric input field
+                SizedBox(
+                  width: 120,
+                  child: TextFormField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Amount',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => onAmountChanged(amount + 1),
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly, // Only digits allowed
+                    ],
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        // Ensure we're passing the correct integer value
+                        try {
+                          int parsedValue = int.parse(value);
+                          onAmountChanged(parsedValue); // Pass parsed integer
+                        } catch (e) {
+                          // Handle the error if parsing fails
+                          onAmountChanged(0);
+                        }
+                      } else {
+                        // If the field is empty, pass 0
+                        onAmountChanged(0);
+                      }
+                    },
+                  ),
+                )
+
               ],
             ),
           ),
@@ -1179,19 +1310,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
         ),
       ],
     );
-  }
-
-  void _showSnackBar(BuildContext context, String message) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      duration: const Duration(
-          seconds: 3), // Duration for which the SnackBar is shown
-      behavior: SnackBarBehavior
-          .floating, // Optional: makes it float above other content
-      backgroundColor: Colors.green, // Customize the background color
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
 // Show confirmation dialog
@@ -1249,14 +1367,19 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
         automaticallyImplyLeading: false,
         centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-        actions: _vehicleLoggedIn
-            ? []
-            : [
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  onPressed: _logoutUser,
-                ),
-              ],
+        actions: [
+          if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _refreshOrderData,
+              tooltip: 'Refresh Orders',
+            ),
+          if (!_vehicleLoggedIn) // Show logout button when vehicle is not logged in
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: _logoutUser,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -1547,155 +1670,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                         height:
                                             12.0), // Space between containers
 
-                                    SizeTransition(
-                                      sizeFactor: animations[index],
-                                      axis: Axis.vertical,
-                                      child: Column(
-                                        children: [
-                                          if (isButtonVisible[index])
-                                            Center(
-                                                child: ElevatedButton(
-                                              onPressed: () =>
-                                                  handleButtonPress(
-                                                      order.orderId, index),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.green,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 20,
-                                                        vertical: 10),
-                                              ),
-                                              child: Text(
-                                                getButtonLabel(
-                                                    order), // Use the dynamic label based on order status
-                                                style: const TextStyle(
-                                                    fontSize: 16,
-                                                    color: Colors.white),
-                                              ),
-                                            )),
-
-                                          const SizedBox(height: 12.0),
-
-                                          // Products Table
-                                          const Text(
-                                            'Products:',
-                                            style: TextStyle(
-                                                fontSize: 18.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          const SizedBox(height: 8.0),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                            ),
-                                            child: Table(
-                                              border: TableBorder.all(),
-                                              columnWidths: const {
-                                                0: FlexColumnWidth(
-                                                    3), // Product Name
-                                                1: FlexColumnWidth(
-                                                    1), // Quantity
-                                                2: FlexColumnWidth(
-                                                    1), // Price (RON)
-                                              },
-                                              children: [
-                                                const TableRow(
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.grey),
-                                                  children: [
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsets.all(8.0),
-                                                      child: Text(
-                                                          'Product Name',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsets.all(8.0),
-                                                      child: Text('Quantity',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          EdgeInsets.all(8.0),
-                                                      child: Text('Price (RON)',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                    ),
-                                                  ],
-                                                ),
-                                                ...order.products
-                                                    .where((product) =>
-                                                        product.productType ==
-                                                        'product')
-                                                    .map((product) {
-                                                  double totalPrice =
-                                                      product.quantity *
-                                                          product.price;
-                                                  return TableRow(
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                      color: Colors
-                                                          .white, // Ensure each row has white background
-                                                    ),
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Text(product
-                                                            .productName),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Text(
-                                                            '${product.quantity * product.productWeight} kg'),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Text(
-                                                            '${totalPrice.toStringAsFixed(2)} RON'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }).toList(),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12.0),
-                                          if (buildProductsTable(
-                                                      order.products, 'palette')
-                                                  .children
-                                                  .isNotEmpty ||
-                                              buildProductsTable(
-                                                      order.products, 'crate')
-                                                  .children
-                                                  .isNotEmpty)
-                                            buildContainersTables(
-                                                order.products),
-
-                                          const SizedBox(height: 12.0),
-                                        ],
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 12.0),
-
                                     // Delivery Details Container
 
                                     Container(
@@ -1882,15 +1856,237 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
                                     const SizedBox(
                                         height: 12.0), // Space before Quantity
+                                    SizeTransition(
+                                      sizeFactor: animations[index],
+                                      axis: Axis.vertical,
+                                      child: Column(
+                                        children: [
+                                          if (isButtonVisible[index])
+                                            Center(
+                                                child: ElevatedButton(
+                                                  onPressed: () =>
+                                                      handleButtonPress(
+                                                          order.orderId, index),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.green,
+                                                    padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                        vertical: 10),
+                                                  ),
+                                                  child: Text(
+                                                    getButtonLabel(
+                                                        order), // Use the dynamic label based on order status
+                                                    style: const TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.white),
+                                                  ),
+                                                )),
 
-                                    // Quantity Field
-                                    Text(
-                                      'Quantity: ${order.getTotalWeight()} kg',
-                                      style: const TextStyle(
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.bold,
+                                          const SizedBox(height: 12.0),
+
+                                          // Products Table
+                                          const Text(
+                                            'Products:',
+                                            style: TextStyle(
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 8.0),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                              BorderRadius.circular(4.0),
+                                            ),
+                                            child: Table(
+                                              border: TableBorder.all(),
+                                              columnWidths: const {
+                                                0: FlexColumnWidth(
+                                                    3), // Product Name
+                                                1: FlexColumnWidth(
+                                                    1), // Quantity
+                                                2: FlexColumnWidth(
+                                                    1), // Price (RON)
+                                              },
+                                              children: [
+                                                const TableRow(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.grey),
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                      EdgeInsets.all(8.0),
+                                                      child: Text(
+                                                          'Product Name',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                              FontWeight
+                                                                  .bold)),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                      EdgeInsets.all(8.0),
+                                                      child: Text('Quantity',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                              FontWeight
+                                                                  .bold)),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                      EdgeInsets.all(8.0),
+                                                      child: Text('Price (RON)',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                              FontWeight
+                                                                  .bold)),
+                                                    ),
+                                                  ],
+                                                ),
+                                                ...order.products
+                                                    .where((product) =>
+                                                product.productType ==
+                                                    'product')
+                                                    .map((product) {
+                                                  double totalPrice =
+                                                      product.quantity *
+                                                          product.price;
+                                                  return TableRow(
+                                                    decoration:
+                                                    const BoxDecoration(
+                                                      color: Colors
+                                                          .white, // Ensure each row has white background
+                                                    ),
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(8.0),
+                                                        child: Text(product
+                                                            .productName),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(8.0),
+                                                        child: Text(
+                                                            '${product.quantity * product.productWeight} kg'),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(8.0),
+                                                        child: Text(
+                                                            '${totalPrice.toStringAsFixed(2)} RON'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                }).toList()
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12.0),
+                                          if (buildProductsTable(
+                                              order.products, 'palette')
+                                              .children
+                                              .isNotEmpty ||
+                                              buildProductsTable(
+                                                  order.products, 'crate')
+                                                  .children
+                                                  .isNotEmpty)
+                                            buildContainersTables(
+                                                order.products),
+
+                                          const SizedBox(height: 12.0),
+                                        ],
                                       ),
                                     ),
+                                    // Quantity Field
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Quantity: ${order.getTotalWeight()} kg',
+                                          style: const TextStyle(
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10), // Adds spacing for clarity
+                                        GestureDetector(
+                                          onTap: order.uitEkr.isNotEmpty
+                                              ? () {
+                                            // Handle tap for EKR
+                                            ShowEkr(context, order.uitEkr);
+                                          }
+                                              : null, // Disable tap if not green
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: order.uitEkr.isNotEmpty ? Colors.green : Colors.red,
+                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                            ),
+                                            child: const Text(
+                                              'EKR',
+                                              style: TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white, // Text color
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10), // Space between containers
+                                        GestureDetector(
+                                          onTap: order.invoice.isNotEmpty
+                                              ? () {
+                                            // Handle tap for Invoice
+                                            ShowInvoiceCmr(context, order.invoice);
+                                          }
+                                              : null, // Disable tap if not green
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: order.invoice.isNotEmpty ? Colors.green : Colors.red,
+                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                            ),
+                                            child: const Text(
+                                              'Invoice',
+                                              style: TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white, // Text color
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10), // Space between containers
+                                        GestureDetector(
+                                          onTap: order.cmr.isNotEmpty
+                                              ? () {
+                                            ShowInvoiceCmr(context, order.cmr);
+                                          }
+                                              : null, // Disable tap if not green
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: order.cmr.isNotEmpty ? Colors.green : Colors.red,
+                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                            ),
+                                            child: const Text(
+                                              'CMR',
+                                              style: TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white, // Text color
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+
+
                                   ],
                                 ),
                               ),
