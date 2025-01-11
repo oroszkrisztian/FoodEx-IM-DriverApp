@@ -49,7 +49,8 @@ class OrderService {
                   : [],
             });
           }).toList();
-
+          // Sort orders by date ascending
+          _orders.sort((a, b) => a.pickupTime.compareTo(b.pickupTime));
           print('Total orders fetched: ${_orders.length}');
           Globals.ordersNumber = _orders.length;
 

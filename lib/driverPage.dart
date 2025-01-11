@@ -25,6 +25,7 @@ import 'vehicleData.dart';
 import 'my_routes_page.dart';
 import 'vehicleExpensePage.dart';
 import 'expense_log_page.dart';
+import 'shiftsPage.dart';
 
 final defaultPickupWarehouse = Warehouse(
   warehouseName: 'Unknown Pickup Warehouse',
@@ -58,7 +59,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
   bool _isLoading = false;
 
   final TextEditingController _amountController = TextEditingController();
-
 
   //orders
   final OrderService _orderService = OrderService();
@@ -117,7 +117,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Rounded corners for the dialog
+            borderRadius:
+                BorderRadius.circular(12), // Rounded corners for the dialog
           ),
           title: const Text(
             'EKR Details',
@@ -127,7 +128,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             ),
           ),
           content: Column(
-            mainAxisSize: MainAxisSize.min, // Ensures dialog doesn't take up too much space
+            mainAxisSize: MainAxisSize
+                .min, // Ensures dialog doesn't take up too much space
             children: [
               Text(
                 'EKR Number:',
@@ -185,7 +187,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
       if (response.statusCode == 200) {
         // Save the PDF file to the local file system (temporary directory)
-        final file = File('${(await getTemporaryDirectory()).path}/invoice.pdf');
+        final file =
+            File('${(await getTemporaryDirectory()).path}/invoice.pdf');
         await file.writeAsBytes(response.bodyBytes);
 
         // Show the PDF view in a dialog
@@ -204,10 +207,10 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                 width: double.maxFinite,
                 height: 300,
                 child: PDFView(
-                  filePath: file.path,  // Path to the local file
-                  enableSwipe: true,     // Allow swipe to navigate pages
+                  filePath: file.path, // Path to the local file
+                  enableSwipe: true, // Allow swipe to navigate pages
                   swipeHorizontal: true, // Horizontal swipe for page navigation
-                  autoSpacing: true,     // Automatically adjust spacing
+                  autoSpacing: true, // Automatically adjust spacing
                 ),
               ),
               actions: [
@@ -217,7 +220,10 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                   },
                   child: const Text(
                     'Close',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
                   ),
                 ),
               ],
@@ -498,8 +504,12 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-    DateTime pastDate = today.subtract(const Duration(days: 360));
-    DateTime futureDate = DateTime(now.year, now.month, now.day + 1, 23, 59);
+
+    // Past date as today at 00:01
+    DateTime pastDate = DateTime(today.year, today.month, today.day, 0, 1);
+
+    // Future date as 30 days from now
+    DateTime futureDate = now.add(const Duration(days: 30));
 
     try {
       await _orderService.fetchOrders(fromDate: pastDate, toDate: futureDate);
@@ -788,33 +798,37 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           builder: (BuildContext context, StateSetter setState) {
             return Dialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 500),
+                constraints:
+                    const BoxConstraints(maxWidth: 600, maxHeight: 800),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Header
                     Container(
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor,
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
                         ),
                       ),
-                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.edit_document,
-                              color: Theme.of(context).colorScheme.onPrimary),
-                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.local_shipping,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
                           Text(
                             'Order Details',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onPrimary,
-                              fontSize: 18,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -825,82 +839,61 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                     // Content
                     Flexible(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Documents section - always visible
+                            // Documentation Section
                             _buildSectionHeader(
                               context,
-                              'Documents',
+                              'Required Documents',
                               Icons.description,
+                              hasSubtitle: true,
+                              subtitle:
+                                  'Please provide the necessary documentation',
                             ),
                             const SizedBox(height: 16),
 
-                            // UitEkr Input
-                            Card(
-                              elevation: 0,
-                              color: Theme.of(context).colorScheme.surface,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'UitEkr Reference',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        if (hasUitEkr) ...[
-                                          const SizedBox(width: 8),
-                                          const Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    if(!hasUitEkr) ...[
-                                      TextField(
+                            // UitEkr Input Card
+                            _buildDocumentCard(
+                              context,
+                              'UitEkr Reference',
+                              'Enter the reference number',
+                              Icons.numbers,
+                              hasValue: hasUitEkr,
+                              child: !hasUitEkr
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      child: TextField(
                                         controller: uitEkrController,
                                         decoration: InputDecoration(
                                           filled: true,
-                                          fillColor: Theme.of(context)
-                                              .colorScheme
-                                              .surface
-                                              .withOpacity(0.1),
+                                          fillColor: Colors.grey[100],
                                           border: OutlineInputBorder(
                                             borderRadius:
-                                            BorderRadius.circular(8),
+                                                BorderRadius.circular(12),
                                             borderSide: BorderSide.none,
                                           ),
-                                          hintText: hasUitEkr
-                                              ? 'Current: $uitEkr'
-                                              : 'Enter UitEkr reference number',
-                                          prefixIcon: const Icon(Icons.numbers),
+                                          hintText:
+                                              'Enter UitEkr reference number',
+                                          prefixIcon: const Icon(Icons.tag),
                                         ),
                                       ),
-                                    ],
-                                  ],
-                                ),
-                              ),
+                                    )
+                                  : null,
                             ),
-
                             const SizedBox(height: 16),
 
-                            // Document Upload Cards
+                            // Document Upload Section
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildDocumentUploadCard(
+                                  child: _buildUploadCard(
                                     context,
                                     'Invoice',
+                                    Icons.receipt,
                                     invoiceImage,
                                     () async {
                                       final image = await pickImage();
@@ -913,9 +906,10 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildDocumentUploadCard(
+                                  child: _buildUploadCard(
                                     context,
                                     'CMR',
+                                    Icons.article,
                                     cmrImage,
                                     () async {
                                       final image = await pickImage();
@@ -929,106 +923,102 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                               ],
                             ),
 
-                            // Packaging Section - always visible
                             const SizedBox(height: 24),
+
+                            // Containers Section
                             _buildSectionHeader(
                               context,
-                              'Containers',
-                              Icons.inventory,
+                              'Container Information',
+                              Icons.inventory_2,
+                              hasSubtitle: true,
+                              subtitle:
+                                  'Specify the containers used for transport',
                             ),
                             const SizedBox(height: 16),
-                            Card(
-                              elevation: 0,
-                              color: Theme.of(context).colorScheme.surface,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  children: [
-                                    _buildPackagingOption(
-                                      context,
-                                      'Pallet',
-                                      isPalletChecked,
-                                      palletSubOption,
-                                      palletAmount,
-                                      ['Plastic', 'Lemn'],
-                                      (checked) {
-                                        setState(() {
-                                          isPalletChecked = checked ?? false;
-                                          if (!checked!) {
-                                            palletSubOption = null;
-                                            palletAmount = 0;
-                                          }
-                                        });
-                                      },
-                                      (value) => setState(
-                                          () => palletSubOption = value),
-                                      (value) =>
-                                          setState(() => palletAmount = value),
-                                      hasExisting: hasPaletteProducts,
-                                    ),
-                                    const Divider(height: 32),
-                                    _buildPackagingOption(
-                                      context,
-                                      'Crate',
-                                      isCaseChecked,
-                                      caseSubOption,
-                                      caseAmount,
-                                      ['E2', 'M10'],
-                                      (checked) {
-                                        setState(() {
-                                          isCaseChecked = checked ?? false;
-                                          if (!checked!) {
-                                            caseSubOption = null;
-                                            caseAmount = 0;
-                                          }
-                                        });
-                                      },
-                                      (value) =>
-                                          setState(() => caseSubOption = value),
-                                      (value) =>
-                                          setState(() => caseAmount = value),
-                                      hasExisting: hasCrateProducts,
-                                    ),
-                                  ],
-                                ),
-                              ),
+
+                            // Container Options
+                            _buildContainerCard(
+                              context,
+                              'Pallet Management',
+                              isPalletChecked,
+                              palletSubOption,
+                              palletAmount,
+                              ['Plastic', 'Lemn'],
+                              (checked) {
+                                setState(() {
+                                  isPalletChecked = checked ?? false;
+                                  if (!checked!) {
+                                    palletSubOption = null;
+                                    palletAmount = 0;
+                                  }
+                                });
+                              },
+                              (value) =>
+                                  setState(() => palletSubOption = value),
+                              (value) => setState(() => palletAmount = value),
+                              hasExisting: hasPaletteProducts,
+                              icon: Icons.palette,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            _buildContainerCard(
+                              context,
+                              'Crate Management',
+                              isCaseChecked,
+                              caseSubOption,
+                              caseAmount,
+                              ['E2', 'M10'],
+                              (checked) {
+                                setState(() {
+                                  isCaseChecked = checked ?? false;
+                                  if (!checked!) {
+                                    caseSubOption = null;
+                                    caseAmount = 0;
+                                  }
+                                });
+                              },
+                              (value) => setState(() => caseSubOption = value),
+                              (value) => setState(() => caseAmount = value),
+                              hasExisting: hasCrateProducts,
+                              icon: Icons.category,
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    // Actions
+                    // Action Buttons
                     Container(
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
+                        color: Colors.grey[50],
                         border: Border(
-                          top: BorderSide(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .outline
-                                .withOpacity(0.2),
-                          ),
+                          top: BorderSide(color: Colors.grey[200]!),
                         ),
                       ),
-                      padding: const EdgeInsets.all(16),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          OutlinedButton(
+                          TextButton(
                             onPressed: () => Navigator.of(context).pop(null),
-                            style: OutlinedButton.styleFrom(
+                            style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 12),
                             ),
-                            child: const Text('Cancel'),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          FilledButton(
+                          const SizedBox(width: 12),
+                          ElevatedButton(
                             onPressed: () {
                               final result = <String, dynamic>{};
 
-                              // Include any changed or new values
                               if (uitEkrController.text.trim().isNotEmpty &&
                                   uitEkrController.text.trim() != uitEkr) {
                                 result['UitEkr'] = uitEkrController.text.trim();
@@ -1042,10 +1032,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                 result['CMR'] = cmrImage!.path;
                               }
 
-                              // Create containers map only if there are container changes
                               Map<String, dynamic> containers = {};
 
-                              // Add pallet data if checked
                               if (isPalletChecked &&
                                   palletSubOption != null &&
                                   palletAmount > 0) {
@@ -1055,7 +1043,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                 };
                               }
 
-                              // Add crate data if checked
                               if (isCaseChecked &&
                                   caseSubOption != null &&
                                   caseAmount > 0) {
@@ -1065,22 +1052,27 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                 };
                               }
 
-                              // Only add containers to result if there are any changes
                               if (containers.isNotEmpty) {
                                 result['Containers'] = containers;
                               }
 
-                              // Even if no changes were made, we want to return an empty object
-                              // rather than null to indicate the dialog was confirmed
                               Navigator.of(context).pop(result);
                             },
-                            style: FilledButton.styleFrom(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
+                                  horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text('Confirm'),
+                            child: const Text(
+                              'Confirm',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -1095,16 +1087,61 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildDocumentUploadCard(
+  Widget _buildSectionHeader(
     BuildContext context,
     String title,
-    File? selectedFile,
-    VoidCallback onUpload, {
-    bool hasExisting = false,
+    IconData icon, {
+    bool hasSubtitle = false,
+    String subtitle = '',
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              color: Theme.of(context).primaryColor,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        if (hasSubtitle) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDocumentCard(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon, {
+    bool hasValue = false,
+    Widget? child,
   }) {
     return Card(
       elevation: 0,
-      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1112,11 +1149,70 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
           children: [
             Row(
               children: [
+                Icon(icon, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
                 Text(
                   title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                if (hasValue) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                ],
+              ],
+            ),
+            if (!hasValue && description.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+            if (child != null) child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    File? selectedFile,
+    VoidCallback onUpload, {
+    bool hasExisting = false,
+  }) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
                 if (hasExisting && selectedFile == null) ...[
@@ -1129,13 +1225,13 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                 ],
               ],
             ),
-            if(!hasExisting)...[
+            if (!hasExisting) ...[
               const SizedBox(height: 12),
               if (selectedFile != null) ...[
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                    color: Colors.blue[50],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1156,15 +1252,25 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
               ],
               OutlinedButton.icon(
                 onPressed: onUpload,
-                icon: Icon(selectedFile != null ? Icons.refresh : Icons.upload),
-                label: Text(selectedFile != null
-                    ? 'Change File'
-                    : hasExisting
-                    ? 'Update File'
-                    : 'Upload File'),
+                icon: Icon(
+                  selectedFile != null ? Icons.refresh : Icons.upload,
+                  size: 20,
+                ),
+                label: Text(
+                  selectedFile != null
+                      ? 'Change File'
+                      : hasExisting
+                          ? 'Update File'
+                          : 'Upload File',
+                ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  minimumSize: const Size(double.infinity, 40),
+                  foregroundColor: Theme.of(context).primaryColor,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  minimumSize: const Size(double.infinity, 45),
                 ),
               ),
             ],
@@ -1174,7 +1280,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildPackagingOption(
+// Helper widget for container cards
+// Helper widget for container cards
+  Widget _buildContainerCard(
     BuildContext context,
     String title,
     bool isChecked,
@@ -1185,130 +1293,177 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     Function(String?) onOptionChanged,
     Function(int) onAmountChanged, {
     bool hasExisting = false,
+    required IconData icon,
   }) {
-
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Checkbox(
-              value: isChecked,
-              onChanged: onCheckChanged,
+            // Title row with switch
+            Row(
+              children: [
+                Icon(icon, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (hasExisting && !isChecked) ...[
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '(Added)',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                const SizedBox(width: 8),
+                Switch(
+                  value: isChecked,
+                  onChanged: onCheckChanged,
+                  activeColor: Theme.of(context).primaryColor,
+                ),
+              ],
             ),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-            if (hasExisting && !isChecked) ...[
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 16,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '(Already added)',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
+            if (isChecked) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Type dropdown
+                    Text(
+                      'Container Type',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: selectedOption,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      items: options.map((String option) {
+                        return DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        );
+                      }).toList(),
+                      onChanged: onOptionChanged,
+                      hint: const Text('Select type'),
+                    ),
+                    const SizedBox(height: 16),
+                    // Amount input
+                    Text(
+                      'Quantity',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: SizedBox(
+                            height: 48,
+                            child: TextFormField(
+                              initialValue: amount > 0 ? amount.toString() : '',
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                hintText: 'Enter amount',
+                              ),
+                              onChanged: (value) {
+                                if (value.isNotEmpty) {
+                                  onAmountChanged(int.parse(value));
+                                } else {
+                                  onAmountChanged(0);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'units',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ],
         ),
-        if (isChecked) ...[
-          Padding(
-            padding: const EdgeInsets.only(left: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Type dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedOption,
-                  decoration: InputDecoration(
-                    labelText: 'Type',
-                    filled: true,
-                    fillColor:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: options.map((String option) {
-                    return DropdownMenuItem<String>(
-                      value: option,
-                      child: Text(option),
-                    );
-                  }).toList(),
-                  onChanged: onOptionChanged,
-                ),
-                const SizedBox(height: 12),
-                // Numeric input field
-                SizedBox(
-                  width: 120,
-                  child: TextFormField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Amount',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly, // Only digits allowed
-                    ],
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        // Ensure we're passing the correct integer value
-                        try {
-                          int parsedValue = int.parse(value);
-                          onAmountChanged(parsedValue); // Pass parsed integer
-                        } catch (e) {
-                          // Handle the error if parsing fails
-                          onAmountChanged(0);
-                        }
-                      } else {
-                        // If the field is empty, pass 0
-                        onAmountChanged(0);
-                      }
-                    },
-                  ),
-                )
-
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(
-      BuildContext context, String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -1317,46 +1472,122 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Action'),
-          content: Text(message),
-          actions: <Widget>[
-            // Cancel button with red background and rounded edges
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.red, // Red background
-                borderRadius: BorderRadius.circular(15.0), // Rounded edges
-              ),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false); // User canceled
-                },
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.white), // White text
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10.0,
+                  offset: Offset(0.0, 10.0),
                 ),
-              ),
+              ],
             ),
-            // Confirm button with green background and rounded edges
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.green, // Green background
-                borderRadius: BorderRadius.circular(15.0), // Rounded edges
-              ),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true); // User confirmed
-                },
-                child: const Text(
-                  'Confirm',
-                  style: TextStyle(color: Colors.white), // White text
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon at the top
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.help_outline,
+                    size: 32,
+                    color: Colors.blue,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 24),
+
+                // Title
+                const Text(
+                  'Confirm Action',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Message
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.grey[300]!),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Confirm Button
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
-    ).then((value) => value ?? false); // Ensure a default return value
+    ).then((value) => value ?? false);
   }
 
   @override
@@ -1415,7 +1646,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                         itemCount: _orderService.orders.length,
                         itemBuilder: (context, index) {
                           final order = _orderService.orders[index];
-                          final comanda = order.orderId;
 
                           final pickupWarehouse = order.warehouses.firstWhere(
                               (wh) => wh.type == 'pickup',
@@ -1864,24 +2094,24 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                           if (isButtonVisible[index])
                                             Center(
                                                 child: ElevatedButton(
-                                                  onPressed: () =>
-                                                      handleButtonPress(
-                                                          order.orderId, index),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.green,
-                                                    padding:
+                                              onPressed: () =>
+                                                  handleButtonPress(
+                                                      order.orderId, index),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 20,
                                                         vertical: 10),
-                                                  ),
-                                                  child: Text(
-                                                    getButtonLabel(
-                                                        order), // Use the dynamic label based on order status
-                                                    style: const TextStyle(
-                                                        fontSize: 16,
-                                                        color: Colors.white),
-                                                  ),
-                                                )),
+                                              ),
+                                              child: Text(
+                                                getButtonLabel(
+                                                    order), // Use the dynamic label based on order status
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.white),
+                                              ),
+                                            )),
 
                                           const SizedBox(height: 12.0),
 
@@ -1897,7 +2127,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                             decoration: BoxDecoration(
                                               color: Colors.white,
                                               borderRadius:
-                                              BorderRadius.circular(4.0),
+                                                  BorderRadius.circular(4.0),
                                             ),
                                             child: Table(
                                               border: TableBorder.all(),
@@ -1916,67 +2146,67 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                   children: [
                                                     Padding(
                                                       padding:
-                                                      EdgeInsets.all(8.0),
+                                                          EdgeInsets.all(8.0),
                                                       child: Text(
                                                           'Product Name',
                                                           style: TextStyle(
                                                               fontWeight:
-                                                              FontWeight
-                                                                  .bold)),
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                     Padding(
                                                       padding:
-                                                      EdgeInsets.all(8.0),
+                                                          EdgeInsets.all(8.0),
                                                       child: Text('Quantity',
                                                           style: TextStyle(
                                                               fontWeight:
-                                                              FontWeight
-                                                                  .bold)),
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                     Padding(
                                                       padding:
-                                                      EdgeInsets.all(8.0),
+                                                          EdgeInsets.all(8.0),
                                                       child: Text('Price (RON)',
                                                           style: TextStyle(
                                                               fontWeight:
-                                                              FontWeight
-                                                                  .bold)),
+                                                                  FontWeight
+                                                                      .bold)),
                                                     ),
                                                   ],
                                                 ),
                                                 ...order.products
                                                     .where((product) =>
-                                                product.productType ==
-                                                    'product')
+                                                        product.productType ==
+                                                        'product')
                                                     .map((product) {
                                                   double totalPrice =
                                                       product.quantity *
                                                           product.price;
                                                   return TableRow(
                                                     decoration:
-                                                    const BoxDecoration(
+                                                        const BoxDecoration(
                                                       color: Colors
                                                           .white, // Ensure each row has white background
                                                     ),
                                                     children: [
                                                       Padding(
                                                         padding:
-                                                        const EdgeInsets
-                                                            .all(8.0),
+                                                            const EdgeInsets
+                                                                .all(8.0),
                                                         child: Text(product
                                                             .productName),
                                                       ),
                                                       Padding(
                                                         padding:
-                                                        const EdgeInsets
-                                                            .all(8.0),
+                                                            const EdgeInsets
+                                                                .all(8.0),
                                                         child: Text(
                                                             '${product.quantity * product.productWeight} kg'),
                                                       ),
                                                       Padding(
                                                         padding:
-                                                        const EdgeInsets
-                                                            .all(8.0),
+                                                            const EdgeInsets
+                                                                .all(8.0),
                                                         child: Text(
                                                             '${totalPrice.toStringAsFixed(2)} RON'),
                                                       ),
@@ -1988,11 +2218,11 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                           ),
                                           const SizedBox(height: 12.0),
                                           if (buildProductsTable(
-                                              order.products, 'palette')
-                                              .children
-                                              .isNotEmpty ||
+                                                      order.products, 'palette')
+                                                  .children
+                                                  .isNotEmpty ||
                                               buildProductsTable(
-                                                  order.products, 'crate')
+                                                      order.products, 'crate')
                                                   .children
                                                   .isNotEmpty)
                                             buildContainersTables(
@@ -2012,81 +2242,106 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const SizedBox(width: 10), // Adds spacing for clarity
+                                        const SizedBox(
+                                            width:
+                                                10), // Adds spacing for clarity
                                         GestureDetector(
                                           onTap: order.uitEkr.isNotEmpty
                                               ? () {
-                                            // Handle tap for EKR
-                                            ShowEkr(context, order.uitEkr);
-                                          }
+                                                  // Handle tap for EKR
+                                                  ShowEkr(
+                                                      context, order.uitEkr);
+                                                }
                                               : null, // Disable tap if not green
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: order.uitEkr.isNotEmpty ? Colors.green : Colors.red,
-                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                              color: order.uitEkr.isNotEmpty
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8), // Rounded rectangle
                                             ),
                                             child: const Text(
                                               'EKR',
                                               style: TextStyle(
                                                 fontSize: 14.0,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white, // Text color
+                                                color:
+                                                    Colors.white, // Text color
                                               ),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 10), // Space between containers
+                                        const SizedBox(
+                                            width:
+                                                10), // Space between containers
                                         GestureDetector(
                                           onTap: order.invoice.isNotEmpty
                                               ? () {
-                                            // Handle tap for Invoice
-                                            ShowInvoiceCmr(context, order.invoice);
-                                          }
+                                                  // Handle tap for Invoice
+                                                  ShowInvoiceCmr(
+                                                      context, order.invoice);
+                                                }
                                               : null, // Disable tap if not green
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: order.invoice.isNotEmpty ? Colors.green : Colors.red,
-                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                              color: order.invoice.isNotEmpty
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8), // Rounded rectangle
                                             ),
                                             child: const Text(
                                               'Invoice',
                                               style: TextStyle(
                                                 fontSize: 14.0,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white, // Text color
+                                                color:
+                                                    Colors.white, // Text color
                                               ),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 10), // Space between containers
+                                        const SizedBox(
+                                            width:
+                                                10), // Space between containers
                                         GestureDetector(
                                           onTap: order.cmr.isNotEmpty
                                               ? () {
-                                            ShowInvoiceCmr(context, order.cmr);
-                                          }
+                                                  ShowInvoiceCmr(
+                                                      context, order.cmr);
+                                                }
                                               : null, // Disable tap if not green
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: order.cmr.isNotEmpty ? Colors.green : Colors.red,
-                                              borderRadius: BorderRadius.circular(8), // Rounded rectangle
+                                              color: order.cmr.isNotEmpty
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8), // Rounded rectangle
                                             ),
                                             child: const Text(
                                               'CMR',
                                               style: TextStyle(
                                                 fontSize: 14.0,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white, // Text color
+                                                color:
+                                                    Colors.white, // Text color
                                               ),
                                             ),
                                           ),
                                         ),
                                       ],
                                     )
-
-
                                   ],
                                 ),
                               ),
@@ -2134,11 +2389,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             if (_vehicleLoggedIn)
               _buildBottomButton(
                   'Expense', Icons.attach_money, _showExpenseDialog),
-            _buildBottomButton('MyRoutes', Icons.map, () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const MyRoutesPage()));
+            _buildBottomButton('Shifts', Icons.punch_clock_rounded, () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const ShiftsPage()));
             }),
             _buildVehicleActionButton(),
           ],
