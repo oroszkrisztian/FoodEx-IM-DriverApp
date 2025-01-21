@@ -21,5 +21,7 @@ class Globals {
   static int? ordersNumber;
   static File? parcursIn;
   static File? parcursOut;
+
+  static var driver;
 }
 

@@ -488,27 +488,6 @@ class _LogoutPageState extends State<LogoutPage> {
     }
   }
 
-  // void _resetVehicleData() {
-  //   setState(() {
-  //     // Clear all vehicle-related fields and reset image files
-
-  //     Globals.kmValue = null;
-  //     Globals.image6 = null;
-  //     Globals.image7 = null;
-  //     Globals.image8 = null;
-  //     Globals.image9 = null;
-  //     Globals.image10 = null;
-  //     //_selectedCarId = null;
-  //     _kmController.clear();
-  //     _image6 = null;
-  //     _image7 = null;
-  //     _image8 = null;
-  //     _image9 = null;
-  //     _image10 = null;
-  //     _lastKm = null;
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

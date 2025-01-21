@@ -57,15 +57,41 @@ class DeliveryService {
     }
   }
 
-  Future<void> updateOrderUitEkr(int orderId, String uitEkr) async {
+  Future<void> updateOrderUit(int orderId, String uit) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         body: {
           'action': 'update-order',
-          'type': 'uit-ekr',
+          'type': 'uit',
           'order-id': orderId.toString(),
-          'uit-ekr': uitEkr,
+          'uit': uit,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (!result['success']) {
+          throw Exception(result['message']);
+        }
+      } else {
+        throw Exception('Failed to update UIT/EKR');
+      }
+    } catch (e) {
+      print('Error updating UIT/EKR: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateOrderEkr(int orderId, String ekr) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: {
+          'action': 'update-order',
+          'type': 'ekr',
+          'order-id': orderId.toString(),
+          'ekr': ekr,
         },
       );
 
@@ -200,23 +226,27 @@ class DeliveryService {
       int orderId, Map<String, dynamic> updates) async {
     try {
       // Process document updates first
-      if (updates['UitEkr']?.isNotEmpty ?? false) {
-        await updateOrderUitEkr(orderId, updates['UitEkr']);
+      if (updates['uit']?.isNotEmpty ?? false) {
+        await updateOrderUit(orderId, updates['uit']);
       }
 
-      if (updates['Invoice'] != null) {
-        await updateOrderInvoice(orderId, File(updates['Invoice']));
+      if (updates['ekr']?.isNotEmpty ?? false) {
+        await updateOrderEkr(orderId, updates['ekr']);
       }
 
-      if (updates['CMR'] != null) {
-        await updateOrderCmr(orderId, File(updates['CMR']));
+      if (updates['invoice'] != null) {
+        await updateOrderInvoice(orderId, File(updates['invoice']));
+      }
+
+      if (updates['cmr'] != null) {
+        await updateOrderCmr(orderId, File(updates['cmr']));
       }
 
       // Handle container updates if present
-      if (updates['Containers'] != null) {
+      if (updates['containers'] != null) {
         await updateOrderContainer(
           orderId,
-          containerData: updates['Containers'],
+          containerData: updates['containers'],
         );
       }
     } catch (e) {

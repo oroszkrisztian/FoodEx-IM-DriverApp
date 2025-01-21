@@ -135,6 +135,9 @@ class _LoginPageState extends State<LoginPage> {
         },
       );
 
+      Globals.vehicleID=vehicleId;
+      print('Setting Vehicle ID: ${Globals.vehicleID}');
+
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         print('Response data: $data'); // Debug print to check the response
@@ -389,84 +392,122 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submitData() async {
-    if (_selectedCarId == null || _kmController.text.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Please select a car and enter the KM.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
+    try {
+      // Validate KM input
+      if (_kmController.text.isEmpty) {
+        await _showErrorDialog('Please enter the KM.');
+        return;
+      }
 
-    if (_image1 == null ||
-        _image2 == null ||
-        _image3 == null ||
-        _image4 == null ||
-        _image5 == null ||
-        parcursIn == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Please take all required pictures.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
+      // Validate all images are present
+      if (_image1 == null ||
+          _image2 == null ||
+          _image3 == null ||
+          _image4 == null ||
+          _image5 == null ||
+          parcursIn == null) {
+        await _showErrorDialog('Please take all required pictures.');
+        return;
+      }
 
-    Globals.image1 = _image1;
-    Globals.image2 = _image2;
-    Globals.image3 = _image3;
-    Globals.image4 = _image4;
-    Globals.image5 = _image5;
-    Globals.vehicleID = _selectedCarId;
-    Globals.kmValue = _kmController.text;
+      // Validate user ID and vehicle ID
+      int? userID = Globals.userId;
+      int? carId = Globals.vehicleID;
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
-    await prefs.setInt('vehicleId', Globals.vehicleID!);
+      print('Setting User ID: ${Globals.userId}');
+      print('Setting Vehicle ID: ${Globals.vehicleID}');
 
-    // Check if last KM is null, set to 0 if it is
-    _lastKm ??= 0;
+      if (userID == null || carId == null) {
+        await _showErrorDialog('User ID or Vehicle ID is missing.');
+        return;
+      }
 
-    if (int.tryParse(_kmController.text) != null) {
-      int userInputKm = int.parse(_kmController.text);
+      // Store data in globals
+      Globals.image1 = _image1;
+      Globals.image2 = _image2;
+      Globals.image3 = _image3;
+      Globals.image4 = _image4;
+      Globals.image5 = _image5;
+      Globals.kmValue = _kmController.text;
+      Globals.parcursIn = parcursIn;
 
-      // Allow user input KM to be equal to or greater than last KM
+      // Validate KM against last recorded value
+      bool isKmValid = await getLastKm(userID, carId);
+      if (!isKmValid || _lastKm == null) {
+        await _showErrorDialog(
+            'Unable to retrieve or validate KM data. Please try again.');
+        return;
+      }
+
+      // Validate user input KM
+      int? userInputKm = int.tryParse(_kmController.text);
+      if (userInputKm == null) {
+        await _showErrorDialog('Please enter a valid number for KM.');
+        return;
+      }
+
       if (userInputKm < _lastKm!) {
-        showDialog(
+        await _showErrorDialog(
+            'The entered KM must be greater than or equal to the last logged KM.\nLast km: $_lastKm');
+        return;
+      }
+
+      // Show loading dialog
+      _showLoggingDialog();
+
+      // Attempt to login vehicle
+      bool loginSuccessful = await loginVehicle();
+
+      if (loginSuccessful) {
+        // Register background task for image upload
+        await Workmanager().registerOneOffTask(
+          "1",
+          uploadImageTask,
+          inputData: {
+            'userId': userID.toString(),
+            'vehicleID': carId.toString(),
+            'km': _kmController.text,
+            'image1': Globals.image1?.path,
+            'image2': Globals.image2?.path,
+            'image3': Globals.image3?.path,
+            'image4': Globals.image4?.path,
+            'image5': Globals.image5?.path,
+            'image6': Globals.parcursIn?.path
+          },
+        );
+
+        _hideLoggingDialog();
+
+        // Navigate to driver page
+        if (!mounted) return;
+        await Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DriverPage(),
+          ),
+        );
+      } else {
+        _hideLoggingDialog();
+
+        if (!mounted) return;
+        // Show login failed dialog
+        await showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('Error'),
-              content: Text(
-                  'The entered KM must be greater than or equal to the last logged KM.\nLast km: $_lastKm'),
+              title: const Text('Login Failed'),
+              content: const Text(
+                  'There was an error logging in the vehicle. The vehicle data will now be reset.'),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DriverPage(),
+                      ),
+                    );
                   },
                   child: const Text('OK'),
                 ),
@@ -474,68 +515,31 @@ class _LoginPageState extends State<LoginPage> {
             );
           },
         );
-        return;
       }
-    }
-
-    _showLoggingDialog();
-    bool loginSuccessful = await loginVehicle();
-
-    if (loginSuccessful) {
-      Workmanager().registerOneOffTask(
-        "1",
-        uploadImageTask,
-        inputData: {
-          'userId': Globals.userId.toString(),
-          'vehicleID': Globals.vehicleID.toString(),
-          'km': _kmController.text,
-          'image1': Globals.image1?.path,
-          'image2': Globals.image2?.path,
-          'image3': Globals.image3?.path,
-          'image4': Globals.image4?.path,
-          'image5': Globals.image5?.path,
-          'image6': Globals.parcursIn?.path
-        },
-      );
-
+    } catch (e) {
       _hideLoggingDialog();
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DriverPage(),
-        ),
-      );
-    } else {
-      _hideLoggingDialog();
-
-      // Show an error message to the user
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Login Failed'),
-            content: const Text(
-                'There was an error logging in the vehicle. The vehicle data will now be reset.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  //_resetVehicleData(); // Reset vehicle-related data only
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DriverPage(),
-                    ),
-                  );
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      await _showErrorDialog('An unexpected error occurred: ${e.toString()}');
     }
+  }
+
+  Future<void> _showErrorDialog(String message) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

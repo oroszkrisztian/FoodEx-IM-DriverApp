@@ -54,7 +54,6 @@ class _MyRoutesPageState extends State<MyRoutesPage>
   bool isFiltered = false;
   String? errorMessage;
 
-
   List<bool> expandedStates = [];
   List<AnimationController> animationControllers = [];
   List<Animation<double>> animations = [];
@@ -74,10 +73,17 @@ class _MyRoutesPageState extends State<MyRoutesPage>
       errorMessage = null;
     });
 
+    DateTime fromDate = widget.startDate;
+    DateTime toDate = widget.endDate;
+
+    // Format the dates to only include 'yyyy-MM-dd'
+    String formattedFromDate = DateFormat('yyyy-MM-dd').format(fromDate);
+    String formattedToDate = DateFormat('yyyy-MM-dd').format(toDate);
+
     try {
-      await _orderService.fetchOrders(
-        fromDate: widget.startDate,
-        toDate: widget.endDate,
+      await _orderService.fetchAllOrders(
+        fromDate: formattedFromDate,
+        toDate: formattedToDate,
       );
       setState(() {
         isLoading = false;
@@ -108,8 +114,6 @@ class _MyRoutesPageState extends State<MyRoutesPage>
 
     final hasPalettes = palletteTable.children.length > 1;
     final hasCrates = crateTable.children.length > 1;
-
-    
 
     if (!hasPalettes && !hasCrates) {
       return const SizedBox.shrink();
@@ -292,7 +296,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
     expandedStates.clear();
 
     // Create new controllers and animations for each order
-    for (var _ in _orderService.orders) {
+    for (var _ in _orderService.allOrders) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 300),
         vsync: this,
@@ -475,11 +479,11 @@ class _MyRoutesPageState extends State<MyRoutesPage>
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: fetchInitialOrders,
           ),
-        ],// Change back button color to white
+        ], // Change back button color to white
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null || _orderService.orders.isEmpty
+          : errorMessage != null || _orderService.allOrders.isEmpty
               ? Center(
                   child: Text(
                     errorMessage != null
@@ -495,9 +499,9 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                   ),
                 )
               : ListView.builder(
-                  itemCount: _orderService.orders.length,
+                  itemCount: _orderService.allOrders.length,
                   itemBuilder: (context, index) {
-                    final order = _orderService.orders[index];
+                    final order = _orderService.allOrders[index];
 
                     final pickupWarehouse = order.warehouses.firstWhere(
                         (wh) => wh.type == 'pickup',
@@ -523,7 +527,6 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                     return GestureDetector(
                       onTap: () {
                         toggleCard(index);
-                        print(index);
                       },
                       child: Card(
                         elevation: 4.0,
@@ -990,8 +993,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                 Padding(
                                                   padding:
                                                       const EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                      'Weight(KG)'),
+                                                  child: Text('Weight(KG)'),
                                                 ),
                                               ],
                                             );
@@ -999,7 +1001,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                         ],
                                       ),
                                     ),
-                                    
+
                                     const SizedBox(height: 12.0),
                                     if (buildProductsTable(
                                                 order.products, 'palette')
@@ -1025,20 +1027,47 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(
-                                      width: 10), // Adds spacing for clarity
                                   GestureDetector(
-                                    onTap: order.uitEkr.isNotEmpty
+                                    onTap: order.uit.isNotEmpty
                                         ? () {
                                             // Handle tap for EKR
-                                            ShowEkr(context, order.uitEkr);
+                                            ShowEkr(context, order.uit);
                                           }
                                         : null, // Disable tap if not green
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: order.uitEkr.isNotEmpty
+                                        color: order.uit.isNotEmpty
+                                            ? Colors.green
+                                            : Colors.red,
+                                        borderRadius: BorderRadius.circular(
+                                            8), // Rounded rectangle
+                                      ),
+                                      child: const Text(
+                                        'UIT',
+                                        style: TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white, // Text color
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width: 10), // Adds spacing for clarity
+                                  GestureDetector(
+                                    onTap: order.ekr.isNotEmpty
+                                        ? () {
+                                            // Handle tap for EKR
+                                            ShowEkr(context, order.ekr);
+                                          }
+                                        : null, // Disable tap if not green
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: order.ekr.isNotEmpty
                                             ? Colors.green
                                             : Colors.red,
                                         borderRadius: BorderRadius.circular(

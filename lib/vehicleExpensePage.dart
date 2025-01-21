@@ -6,6 +6,7 @@ import 'package:foodex/driverPage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http; // Import the http package
 import 'globals.dart';
+import 'package:path/path.dart' as path;
 
 // Define the constant for the expense upload task
 const String uploadExpenseTask = "uploadExpenseTask";
@@ -20,9 +21,9 @@ class VehicleExpensePage extends StatefulWidget {
 class _VehicleExpensePageState extends State<VehicleExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _kmController = TextEditingController();
-  final TextEditingController _remarksController = TextEditingController();
+  final TextEditingController? _remarksController = TextEditingController();
   final TextEditingController _costController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController? _amountController = TextEditingController();
   String? _selectedType;
   File? _image;
   final ImagePicker _picker = ImagePicker();
@@ -30,6 +31,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   bool _isFuelSelected = false;
   String? _errorMessage;
   int? _lastKm;
+
+  String _selectedCurrency = 'RON'; // Default currency
 
   final List<String> _expenseTypes = ['Fuel', 'Wash', 'Others'];
 
@@ -127,113 +130,83 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   }
 
   /// Submit the expense data
-  Future<void> _submitExpense() async {
-    if (_formKey.currentState!.validate() && _image != null) {
-      setState(() {
-        _isSubmitting = true;
-      });
-
-      // Gather form data
-      Map<String, String> inputData = {
-        'driver': Globals.userId.toString(),
-        'vehicle': Globals.vehicleID.toString(),
-        'km': _kmController.text,
-        'type': _selectedType!,
-        'remarks': _remarksController.text,
-        'cost': _costController.text,
-        'amount': _amountController.text,
-        // Remove image path from form data; handled separately
-      };
-
-      // Backend URL
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
-      );
-
-      // Populate the fields according to your backend's API documentation
-      request.fields['action'] = 'vehicle-expense';
-      request.fields['driver'] = inputData['driver'] ?? '';
-      request.fields['vehicle'] = inputData['vehicle'] ?? '';
-      request.fields['km'] = inputData['km'] ?? '';
-      request.fields['type'] = inputData['type'] ?? '';
-      request.fields['remarks'] = inputData['remarks'] ?? '';
-      request.fields['cost'] = inputData['cost'] ?? '';
-      request.fields['amount'] = inputData['amount'] ?? '';
-
-      // Print the fields to the console (for debugging)
-      print('Action: ${request.fields['action']}');
-      print('Driver ID: ${request.fields['driver']}');
-      print('Vehicle ID: ${request.fields['vehicle']}');
-      print('KM: ${request.fields['km']}');
-      print('Expense Type: ${request.fields['type']}');
-      print('Remarks: ${request.fields['remarks']}');
-      print('Cost: ${request.fields['cost']}');
-      print('Amount: ${request.fields['amount']}');
-
-      // Add the image file if it exists
-      String? imagePath = _image?.path;
-      if (imagePath != null && imagePath.isNotEmpty) {
-        request.files.add(
-          await http.MultipartFile.fromPath('photo', imagePath),
-        );
-      }
-
-      try {
-        var response =
-            await request.send().timeout(const Duration(seconds: 30));
-
-        if (response.statusCode == 200) {
-          var responseBody = await response.stream.bytesToString();
-          print('Response body: $responseBody'); // Log response body
-
-          try {
-            var jsonResponse = json.decode(responseBody);
-            if (jsonResponse['success']) {
-              print('Expense uploaded successfully: $jsonResponse');
-              _showSuccessDialog();
-              _resetForm();
-            } else {
-              print('Failed to upload expense: ${jsonResponse['message']}');
-              _showErrorDialog(jsonResponse['message']);
-            }
-          } catch (e) {
-            print('Failed to decode JSON: $e');
-            _showErrorDialog('Invalid response from server.');
-          }
-        } else {
-          print('Failed to upload expense: HTTP ${response.statusCode}');
-          _showErrorDialog('Failed to upload expense. Please try again.');
-        }
-      } on SocketException {
-        print(
-            'No Internet connection. Please check your network settings and try again.');
-        _showErrorDialog('No Internet connection.');
-      } on http.ClientException catch (e) {
-        print('ClientException occurred: $e');
-        _showErrorDialog('ClientException occurred.');
-      } on TimeoutException {
-        print('The request timed out. Please try again later.');
-        _showErrorDialog('The request timed out.');
-      } catch (e) {
-        print('Error uploading expense: $e');
-        _showErrorDialog('An unexpected error occurred.');
-      } finally {
-        setState(() {
-          _isSubmitting = false;
-        });
+  Future<bool> _submitExpense() async {
+  if (!_formKey.currentState!.validate()) {
+    print("Invalid form data for expense upload");
+    return false;
+  }
+  
+  setState(() {
+    _isSubmitting = true;
+  });
+  
+  try {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+    );
+    
+    // Set up the basic fields from form controllers
+    request.fields['action'] = 'vehicle-expense';
+    request.fields['driver'] = Globals.userId.toString();
+    request.fields['vehicle'] = Globals.vehicleID.toString();
+    request.fields['km'] = _kmController.text;
+    request.fields['type'] = (_selectedType ?? '').toLowerCase();
+    request.fields['remarks'] = (_remarksController?.text ?? '').toLowerCase();
+    request.fields['cost'] = _costController.text;
+    request.fields['amount'] = _amountController!.text;
+    request.fields['currency'] = _selectedCurrency;
+    
+    // Add expense photo if exists
+    if (_image != null && _image!.path.isNotEmpty) {
+      print('Adding photo: ${_image!.path}');
+      request.files.add(await http.MultipartFile.fromPath('photo', _image!.path));
+    } else {
+      print('No photo path provided');
+    }
+    
+    print("Sending expense request...");
+    print("Request fields: ${request.fields}");
+    
+    final response = await request.send();
+    final responseData = await response.stream.bytesToString();
+    
+    print("Response status code: ${response.statusCode}");
+    print("Response data: $responseData");
+    
+    if (response.statusCode == 200) {
+      var data = json.decode(responseData);
+      if (data['success'] == true) {
+        _showSuccessDialog();
+        _resetForm();
+        return true;
       }
     }
+    
+    _showErrorDialog(response.statusCode == 200 
+      ? (json.decode(responseData)['message'] ?? 'Failed to submit expense')
+      : 'Server error: ${response.statusCode}');
+    return false;
+    
+  } catch (e) {
+    print('Error uploading expense: $e');
+    _showErrorDialog('Error submitting expense: $e');
+    return false;
+  } finally {
+    setState(() {
+      _isSubmitting = false;
+    });
   }
+}
 
   /// Reset the form to its initial state
   void _resetForm() {
     setState(() {
       _formKey.currentState!.reset(); // Reset all form fields
       _kmController.clear();
-      _remarksController.clear();
+      _remarksController?.clear();
       _costController.clear();
-      _amountController.clear();
+      _amountController?.clear();
       _selectedType = null; // Reset the dropdown to its initial state
       _image = null;
       _isFuelSelected = false;
@@ -377,9 +350,9 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   @override
   void dispose() {
     _kmController.dispose();
-    _remarksController.dispose();
+    _remarksController?.dispose();
     _costController.dispose();
-    _amountController.dispose();
+    _amountController?.dispose();
     super.dispose();
   }
 
@@ -502,6 +475,30 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                                 return null;
                               },
                             ),
+                          // Add this just before _buildImageContainer call
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Currency',
+                            ),
+                            value: _selectedCurrency,
+                            items: ['RON', 'HUF', 'EUR'].map((String currency) {
+                              return DropdownMenuItem<String>(
+                                value: currency,
+                                child: Text(currency,
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedCurrency = newValue;
+                                });
+                              }
+                            },
+                          ),
+
                           const SizedBox(height: 16.0),
                           _buildImageContainer('Expense Image', _image),
                           if (_image == null)

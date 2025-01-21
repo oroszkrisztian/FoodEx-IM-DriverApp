@@ -1,27 +1,30 @@
-// lib/services/order_service.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodex/globals.dart';
 import 'package:http/http.dart' as http;
-import '../models/order.dart'; // Adjust import paths as needed
-
-// Import models
+import '../models/order.dart';
 
 class OrderService {
-  List<Order> _orders = [];
+  // Separate lists for different order types
+  List<Order> _activeOrders = [];
+  List<Order> _inactiveOrders = [];
+  
+  // Getters to access orders
+  List<Order> get activeOrders => _activeOrders;
+  List<Order> get inactiveOrders => _inactiveOrders;
+  List<Order> get allOrders => [..._activeOrders, ..._inactiveOrders];
 
-  List<Order> get orders => _orders;
-
-  Future<void> fetchOrders({DateTime? fromDate, DateTime? toDate}) async {
-    Globals.ordersNumber = 0;
+  // Helper method to process a single order status response
+  Future<List<Order>> _processOrderStatus(String status, {String? fromDate, String? toDate}) async {
     try {
       final body = {
         'action': 'show-orders-flutter',
-        if (fromDate != null) 'data-from': fromDate.toString().split(' ')[0],
-        if (toDate != null) 'data-to': toDate.toString().split(' ')[0],
-        'order-status': 'active',
+        'order-status': status,
         'driver': Globals.userId.toString()
       };
+
+      if (fromDate != null) body['from_date'] = fromDate;
+      if (toDate != null) body['to_date'] = toDate;
 
       final response = await http.post(
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
@@ -33,51 +36,146 @@ class OrderService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('Response body: ${response.body}');
+        debugPrint('Response body for $status orders: ${response.body}');
+        
         if (data['success']) {
-          _orders = (data['data'] as List).map((orderJson) {
-            final orderDetails = json.decode(orderJson['order_details']);
-
-            return Order.fromJson({
-              ...orderDetails,
-              'companies': json.decode(orderJson['companies'] ?? '[]'),
-              'warehouses': json.decode(orderJson['warehouses'] ?? '[]'),
-              'products': json.decode(orderJson['products'] ?? '[]'),
-              'contact_people': orderJson['contact_people'] is String &&
-                      orderJson['contact_people'] != 'null'
-                  ? json.decode(orderJson['contact_people'])
-                  : [],
-            });
-          }).toList();
-          // Sort orders by date ascending
-          _orders.sort((a, b) => a.pickupTime.compareTo(b.pickupTime));
-          print('Total orders fetched: ${_orders.length}');
-          Globals.ordersNumber = _orders.length;
-
-          // Print total quantity for each order
-          for (var order in _orders) {
-            print(
-                'Order ID: ${order.orderId}, Total Product Quantity: ${order.getTotalQuantity()}');
+          // Handle empty data cases
+          if (data['data'] == null || data['data'].isEmpty) {
+            debugPrint('No $status orders found - empty data array');
+            return [];
           }
 
-          // Print total quantity and notes for each order
-          for (var order in _orders) {
-            print('Order ID: ${order.orderId}');
-            print('Contact People:');
-            for (var contact in order.contactPeople) {
-              print(
-                  'Name: ${contact.name}, Telephone: ${contact.telephone}, Type: ${contact.type}');
+          // Handle single null order case
+          if (data['data'].length == 1) {
+            final firstOrder = data['data'][0];
+            if (firstOrder['order_number'] == null && 
+                (firstOrder['order_details'] == null || 
+                 json.decode(firstOrder['order_details'])['order_id'] == null)) {
+              debugPrint('No $status orders found - null order received');
+              return [];
             }
           }
+
+          // Process valid orders
+          List<Order> orders = (data['data'] as List).map((orderJson) {
+            Map<String, dynamic> orderDetails = {};
+            if (orderJson['order_details'] != null) {
+              try {
+                orderDetails = json.decode(orderJson['order_details']);
+              } catch (e) {
+                debugPrint('Error decoding order_details: $e');
+                return null;
+              }
+            }
+
+            // Skip invalid orders
+            if (orderDetails['order_id'] == null) return null;
+
+            // Decode additional fields
+            List companies = [];
+            List warehouses = [];
+            List products = [];
+            List contactPeople = [];
+
+            try {
+              companies = json.decode(orderJson['companies'] ?? '[]');
+              warehouses = json.decode(orderJson['warehouses'] ?? '[]');
+              products = json.decode(orderJson['products'] ?? '[]');
+              if (orderJson['contact_people'] != null && 
+                  orderJson['contact_people'] != 'null') {
+                contactPeople = json.decode(orderJson['contact_people']);
+              }
+            } catch (e) {
+              debugPrint('Error decoding order data: $e');
+            }
+
+            try {
+              return Order.fromJson({
+                ...orderDetails,
+                'companies': companies,
+                'warehouses': warehouses,
+                'products': products,
+                'contact_people': contactPeople,
+              });
+            } catch (e) {
+              debugPrint('Error creating Order object: $e');
+              return null;
+            }
+          })
+          .where((order) => order != null)
+          .cast<Order>()
+          .toList();
+
+          // Sort orders by pickup time
+          orders.sort((a, b) => a.pickupTime.compareTo(b.pickupTime));
+          debugPrint('Total $status orders fetched: ${orders.length}');
+          
+          return orders;
         } else {
-          throw Exception('Failed to load orders: ${data['message']}');
+          throw Exception('Failed to load $status orders: ${data['message']}');
         }
       } else {
-        throw Exception('Failed to load orders');
+        throw Exception('Failed to load $status orders: HTTP ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching orders: $e');
+      debugPrint('Error fetching $status orders: $e');
       throw e;
+    }
+  }
+
+  // Fetch active orders only
+  Future<void> fetchActiveOrders({String? fromDate, String? toDate}) async {
+    _activeOrders = await _processOrderStatus('active', fromDate: fromDate, toDate: toDate);
+    Globals.ordersNumber = _activeOrders.length;
+    _debugPrintOrderInfo(_activeOrders, 'active');
+  }
+
+  // Fetch inactive orders only
+  Future<void> fetchInactiveOrders({String? fromDate, String? toDate}) async {
+    _inactiveOrders = await _processOrderStatus('inactive', fromDate: fromDate, toDate: toDate);
+    _debugPrintOrderInfo(_inactiveOrders, 'inactive');
+  }
+
+  // Fetch both active and inactive orders
+  Future<void> fetchAllOrders({String? fromDate, String? toDate}) async {
+    try {
+      // Reset the counter before fetching
+      Globals.ordersNumber = 0;
+
+      // Fetch both types concurrently
+      final results = await Future.wait([
+        _processOrderStatus('active', fromDate: fromDate, toDate: toDate),
+        _processOrderStatus('inactive', fromDate: fromDate, toDate: toDate)
+      ]);
+
+      // Update the stored orders
+      _activeOrders = results[0];
+      _inactiveOrders = results[1];
+
+      // Update global counter with total
+      Globals.ordersNumber = _activeOrders.length + _inactiveOrders.length;
+
+      // Debug logging
+      debugPrint('StartDate: $fromDate');
+      debugPrint('EndDate: $toDate');
+      _debugPrintOrderInfo(_activeOrders, 'active');
+      _debugPrintOrderInfo(_inactiveOrders, 'inactive');
+    } catch (e) {
+      debugPrint('Error fetching all orders: $e');
+      throw e;
+    }
+  }
+
+  // Helper method for debug logging
+  void _debugPrintOrderInfo(List<Order> orders, String type) {
+    debugPrint('Total $type orders: ${orders.length}');
+    for (var order in orders) {
+      debugPrint('$type Order ID: ${order.orderId}, '
+          'Total Product Quantity: ${order.getTotalQuantity()}');
+      for (var contact in order.contactPeople) {
+        debugPrint('Contact for $type order ${order.orderId}: '
+            'Name: ${contact.name}, Tel: ${contact.telephone}, Type: ${contact.type}');
+      }
     }
   }
 
@@ -105,7 +203,6 @@ class OrderService {
           final vehicleId = vehicleData['vehicle_id'];
 
           if (vehicleId != null) {
-            // Convert to int, handling both string and int inputs
             int? parsedVehicleId;
             if (vehicleId is String) {
               parsedVehicleId = int.tryParse(vehicleId);
@@ -117,11 +214,9 @@ class OrderService {
               Globals.vehicleID = parsedVehicleId;
               debugPrint('Successfully stored vehicle ID: $parsedVehicleId');
 
-              // Also store photos if needed
               if (vehicleData['photos'] != null) {
                 final List<dynamic> photos = json.decode(vehicleData['photos']);
                 debugPrint('Found ${photos.length} photos');
-                // Handle photos if needed
               }
 
               return parsedVehicleId;
@@ -130,15 +225,14 @@ class OrderService {
 
           debugPrint('No valid vehicle ID found in response');
           return null;
-        } else {
-          debugPrint(
-              'Response indicates failure or missing data: ${data['message']}');
-          return null;
         }
-      } else {
-        debugPrint('HTTP Error: ${response.statusCode}');
+        
+        debugPrint('Response indicates failure or missing data: ${data['message']}');
         return null;
       }
+      
+      debugPrint('HTTP Error: ${response.statusCode}');
+      return null;
     } catch (e) {
       debugPrint('Error in checkVehicleLogin: $e');
       return null;
@@ -146,7 +240,6 @@ class OrderService {
   }
 
   bool isOrderDelivered(Order order) {
-    // Check if the 'delivered' field is not equal to '0000-00-00 00:00:00'
     return order.delivered != '0000-00-00 00:00:00';
   }
 }

@@ -12,6 +12,7 @@ import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/services/delivery_service.dart';
 import 'package:foodex/services/order_services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -111,7 +112,65 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     }
   }
 
-  void ShowEkr(BuildContext context, String uitEkr) {
+  void ShowUit(BuildContext context, String uit) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(12), // Rounded corners for the dialog
+          ),
+          title: const Text(
+            'Uit Details',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize
+                .min, // Ensures dialog doesn't take up too much space
+            children: [
+              Text(
+                'Uit Number:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700], // Subtle text color
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                uit,
+                style: const TextStyle(
+                  fontSize: 32, // Larger font for better visibility
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue, // Blue OK button
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void ShowEkr(BuildContext context, String ekr) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -140,7 +199,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 10),
               Text(
-                uitEkr,
+                ekr,
                 style: const TextStyle(
                   fontSize: 32, // Larger font for better visibility
                   fontWeight: FontWeight.bold,
@@ -468,7 +527,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     expandedStates.clear();
 
     // Create new controllers and animations for each card
-    for (var _ in _orderService.orders) {
+    for (var _ in _orderService.activeOrders) {
       final controller = AnimationController(
         duration: const Duration(seconds: 1),
         vsync: this,
@@ -509,18 +568,22 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     DateTime pastDate = DateTime(today.year, today.month, today.day, 0, 1);
 
     // Future date as 30 days from now
-    DateTime futureDate = now.add(const Duration(days: 30));
+    DateTime futureDate = now.add(const Duration(days: 1));
+
+    String formattedPastDate = DateFormat('yyyy-MM-dd').format(pastDate);
+    String formattedFutureDate = DateFormat('yyyy-MM-dd').format(futureDate);
 
     try {
-      await _orderService.fetchOrders(fromDate: pastDate, toDate: futureDate);
+      await _orderService.fetchActiveOrders(
+          fromDate: formattedPastDate, toDate: formattedPastDate);
 
       setState(() {
-        hasOrders = _orderService.orders.isNotEmpty;
+        hasOrders = _orderService.activeOrders.isNotEmpty;
         if (hasOrders) {
           buttonLabels =
-              List.generate(_orderService.orders.length, (_) => 'Pick Up');
+              List.generate(_orderService.activeOrders.length, (_) => 'Pick Up');
           isButtonVisible =
-              List.generate(_orderService.orders.length, (_) => true);
+              List.generate(_orderService.activeOrders.length, (_) => true);
           initializeAnimations();
         } else {
           errorMessage = 'No orders found for today.';
@@ -634,7 +697,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 
   Future<void> handleButtonPress(int orderId, int index) async {
     Order order =
-        _orderService.orders.firstWhere((order) => order.orderId == orderId);
+        _orderService.activeOrders.firstWhere((order) => order.orderId == orderId);
 
     bool confirmed = await _showConfirmationDialog(
         order.pickedUp == '0000-00-00 00:00:00'
@@ -645,7 +708,8 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
       try {
         Map<String, dynamic>? options = await _showOptionDialog(
           order.products,
-          order.uitEkr,
+          order.uit,
+          order.ekr,
           order.invoice,
           order.cmr,
           orderId,
@@ -669,7 +733,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             await deliveryService.handleOrderUpdates(orderId, options);
             await _refreshOrderData();
             order =
-                _orderService.orders.firstWhere((o) => o.orderId == orderId);
+                _orderService.activeOrders.firstWhere((o) => o.orderId == orderId);
           } catch (e) {
             if (mounted) {
               Navigator.of(context).pop(); // Remove loading indicator
@@ -754,7 +818,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
 // Function to show the dialog with checkboxes and dropdowns for 'Pallet' and 'Case'
 
   Future<Map<String, dynamic>?> _showOptionDialog(List<Product> products,
-      String? uitEkr, String? invoice, String? cmr, int orderId) async {
+      String? uit,String? ekr, String? invoice, String? cmr, int orderId) async {
     final imagePicker = ImagePicker();
 
     // Initialize state variables
@@ -765,12 +829,14 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     int palletAmount = 0;
     int caseAmount = 0;
 
-    final uitEkrController = TextEditingController(text: uitEkr);
+    final uitController = TextEditingController(text: uit);
+    final ekrController = TextEditingController(text: ekr);
     File? invoiceImage;
     File? cmrImage;
 
     // Check for existing values
-    bool hasUitEkr = uitEkr?.isNotEmpty ?? false;
+    bool hasUit = uit?.isNotEmpty ?? false;
+    bool hasEkr = ekr?.isNotEmpty ?? false;
     bool hasInvoice = invoice?.isNotEmpty ?? false;
     bool hasCmr = cmr?.isNotEmpty ?? false;
     bool hasPaletteProducts =
@@ -858,16 +924,16 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                             // UitEkr Input Card
                             _buildDocumentCard(
                               context,
-                              'UitEkr Reference',
-                              'Enter the reference number',
+                              'Uit Reference',
+                              '',
                               Icons.numbers,
-                              hasValue: hasUitEkr,
-                              child: !hasUitEkr
+                              hasValue: hasUit,
+                              child: !hasUit
                                   ? Padding(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 8),
                                       child: TextField(
-                                        controller: uitEkrController,
+                                        controller: uitController,
                                         decoration: InputDecoration(
                                           filled: true,
                                           fillColor: Colors.grey[100],
@@ -876,8 +942,35 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                                 BorderRadius.circular(12),
                                             borderSide: BorderSide.none,
                                           ),
-                                          hintText:
-                                              'Enter UitEkr reference number',
+                                          hintText: 'Enter number',
+                                          prefixIcon: const Icon(Icons.tag),
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildDocumentCard(
+                              context,
+                              'Ekr Reference',
+                              '',
+                              Icons.numbers,
+                              hasValue: hasEkr,
+                              child: !hasEkr
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      child: TextField(
+                                        controller: ekrController,
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: Colors.grey[100],
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          hintText: 'Enter number',
                                           prefixIcon: const Icon(Icons.tag),
                                         ),
                                       ),
@@ -939,7 +1032,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                             // Container Options
                             _buildContainerCard(
                               context,
-                              'Pallet Management',
+                              'Palet',
                               isPalletChecked,
                               palletSubOption,
                               palletAmount,
@@ -957,14 +1050,19 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                   setState(() => palletSubOption = value),
                               (value) => setState(() => palletAmount = value),
                               hasExisting: hasPaletteProducts,
-                              icon: Icons.palette,
+                              icon: Image.asset(
+                                'lib/assets/images/palet.jpg',
+                                width: 24, // Match typical icon size
+                                height: 24,
+                                fit: BoxFit.contain,
+                              ),
                             ),
 
                             const SizedBox(height: 16),
 
                             _buildContainerCard(
                               context,
-                              'Crate Management',
+                              'Crate',
                               isCaseChecked,
                               caseSubOption,
                               caseAmount,
@@ -981,7 +1079,12 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                               (value) => setState(() => caseSubOption = value),
                               (value) => setState(() => caseAmount = value),
                               hasExisting: hasCrateProducts,
-                              icon: Icons.category,
+                              icon: Image.asset(
+                                'lib/assets/images/crate.jpg',
+                                width: 24, // Match typical icon size
+                                height: 24,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ],
                         ),
@@ -1019,17 +1122,22 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                             onPressed: () {
                               final result = <String, dynamic>{};
 
-                              if (uitEkrController.text.trim().isNotEmpty &&
-                                  uitEkrController.text.trim() != uitEkr) {
-                                result['UitEkr'] = uitEkrController.text.trim();
+                              if (uitController.text.trim().isNotEmpty &&
+                                  uitController.text.trim() != uit) {
+                                result['uit'] = uitController.text.trim();
+                              }
+
+                              if (ekrController.text.trim().isNotEmpty &&
+                                  ekrController.text.trim() != ekr) {
+                                result['ekr'] = ekrController.text.trim();
                               }
 
                               if (invoiceImage != null) {
-                                result['Invoice'] = invoiceImage!.path;
+                                result['invoice'] = invoiceImage!.path;
                               }
 
                               if (cmrImage != null) {
-                                result['CMR'] = cmrImage!.path;
+                                result['cmr'] = cmrImage!.path;
                               }
 
                               Map<String, dynamic> containers = {};
@@ -1037,7 +1145,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                               if (isPalletChecked &&
                                   palletSubOption != null &&
                                   palletAmount > 0) {
-                                containers['Pallet'] = {
+                                containers['pallet'] = {
                                   'type': palletSubOption,
                                   'amount': palletAmount,
                                 };
@@ -1046,14 +1154,14 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                               if (isCaseChecked &&
                                   caseSubOption != null &&
                                   caseAmount > 0) {
-                                containers['Case'] = {
+                                containers['case'] = {
                                   'type': caseSubOption,
                                   'amount': caseAmount,
                                 };
                               }
 
                               if (containers.isNotEmpty) {
-                                result['Containers'] = containers;
+                                result['containers'] = containers;
                               }
 
                               Navigator.of(context).pop(result);
@@ -1071,6 +1179,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -1225,55 +1334,48 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                 ],
               ],
             ),
-            if (!hasExisting) ...[
-              const SizedBox(height: 12),
-              if (selectedFile != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.file_present, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          selectedFile.path.split('/').last,
-                          style: const TextStyle(fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+            const SizedBox(height: 12),
+            if (selectedFile != null) ...[
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.file_present, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        selectedFile.path.split('/').last,
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              OutlinedButton.icon(
-                onPressed: onUpload,
-                icon: Icon(
-                  selectedFile != null ? Icons.refresh : Icons.upload,
-                  size: 20,
-                ),
-                label: Text(
-                  selectedFile != null
-                      ? 'Change File'
-                      : hasExisting
-                          ? 'Update File'
-                          : 'Upload File',
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).primaryColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  minimumSize: const Size(double.infinity, 45),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 8),
             ],
+            OutlinedButton.icon(
+              onPressed: onUpload,
+              icon: Icon(
+                selectedFile != null ? Icons.refresh : Icons.upload,
+                size: 20,
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).primaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                minimumSize: const Size(double.infinity, 45),
+              ),
+              label: const SizedBox
+                  .shrink(), // Empty label to satisfy icon button requirement
+            ),
           ],
         ),
       ),
@@ -1293,7 +1395,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
     Function(String?) onOptionChanged,
     Function(int) onAmountChanged, {
     bool hasExisting = false,
-    required IconData icon,
+    required Widget icon, // Changed from IconData to Widget
   }) {
     return Card(
       elevation: 0,
@@ -1309,7 +1411,7 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
             // Title row with switch
             Row(
               children: [
-                Icon(icon, color: Theme.of(context).primaryColor),
+                icon,
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -1325,14 +1427,6 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                     Icons.check_circle,
                     color: Colors.green,
                     size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '(Added)',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
                   ),
                 ],
                 const SizedBox(width: 8),
@@ -1643,9 +1737,9 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _orderService.orders.length,
+                        itemCount: _orderService.activeOrders.length,
                         itemBuilder: (context, index) {
-                          final order = _orderService.orders[index];
+                          final order = _orderService.activeOrders[index];
 
                           final pickupWarehouse = order.warehouses.firstWhere(
                               (wh) => wh.type == 'pickup',
@@ -2246,18 +2340,49 @@ class _DriverPageState extends State<DriverPage> with TickerProviderStateMixin {
                                             width:
                                                 10), // Adds spacing for clarity
                                         GestureDetector(
-                                          onTap: order.uitEkr.isNotEmpty
+                                          onTap: order.uit.isNotEmpty
                                               ? () {
                                                   // Handle tap for EKR
-                                                  ShowEkr(
-                                                      context, order.uitEkr);
+                                                  ShowUit(context, order.uit);
                                                 }
                                               : null, // Disable tap if not green
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: order.uitEkr.isNotEmpty
+                                              color: order.uit.isNotEmpty
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      8), // Rounded rectangle
+                                            ),
+                                            child: const Text(
+                                              'UIT',
+                                              style: TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    Colors.white, // Text color
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                            width:
+                                                10), // Adds spacing for clarity
+                                        GestureDetector(
+                                          onTap: order.ekr.isNotEmpty
+                                              ? () {
+                                                  // Handle tap for EKR
+                                                  ShowEkr(context, order.ekr);
+                                                }
+                                              : null, // Disable tap if not green
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: order.ekr.isNotEmpty
                                                   ? Colors.green
                                                   : Colors.red,
                                               borderRadius:
