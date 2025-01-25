@@ -4,6 +4,7 @@ import 'package:foodex/deliveryInfo.dart';
 import 'package:foodex/expense_log_page.dart';
 import 'package:foodex/loginPage.dart';
 import 'package:foodex/logoutPage.dart';
+import 'package:foodex/main.dart';
 import 'package:foodex/models/company.dart';
 import 'package:foodex/models/contact_person.dart';
 import 'package:foodex/models/warehouse.dart';
@@ -130,6 +131,55 @@ class _DriverPageState extends State<DriverPage> {
     }
   }
 
+  Future<void> _refreshOrderData() async {
+    try {
+      // Show loading state if needed
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Refresh orders
+      await fetchInitialOrders();
+
+      // Update loading state
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // Handle any errors during refresh
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error refreshing data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _logoutUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    setState(() {
+      _isLoggedIn = false;
+      _vehicleLoggedIn = false;
+    });
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MyHomePage(),
+      ),
+    );
+  }
+
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -148,6 +198,14 @@ class _DriverPageState extends State<DriverPage> {
       appBar: AppBar(
         title: const Text('Driver Page', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+        actions: [
+          if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _refreshOrderData,
+              tooltip: 'Refresh Orders',
+            ),
+        ],
         iconTheme:
             const IconThemeData(color: Colors.white), // For hamburger icon
       ),
@@ -821,6 +879,31 @@ class _DriverPageState extends State<DriverPage> {
               );
             },
           ),
+          const Divider(),
+          FutureBuilder<SharedPreferences>(
+            future: SharedPreferences.getInstance(),
+            builder: (context, snapshot) {
+              int? userId = Globals.userId;
+              String label =
+                  userId != null ? 'Logout Account' : 'Login Account';
+              IconData icon = userId != null ? Icons.person_off : Icons.person;
+
+              return ListTile(
+                leading:
+                    Icon(icon, color: const Color.fromARGB(255, 1, 160, 226)),
+                title: Text(label),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyHomePage(),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const Divider(),
         ],
       ),
     );
