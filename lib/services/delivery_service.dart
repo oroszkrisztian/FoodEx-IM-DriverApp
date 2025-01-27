@@ -154,42 +154,60 @@ class DeliveryService {
   }
 
   Future<void> updateCrates(int orderId, int quantity, String type) async {
+    final body = {
+      'action': 'update-order',
+      'type': 'container',
+      'order-id': orderId.toString(),
+      'crate': quantity.toString(),
+      'crate-type': type.toLowerCase(),
+      'pallet': '0',
+      'pallet-type': '0'
+    };
+    print('Sending update crates request: $body');
+
     final response = await http.post(
-      Uri.parse('$baseUrl/update-order.php'),
-      body: {
-        'action': 'update-order',
-        'type': 'container',
-        'order-id': orderId.toString(),
-        'crate': quantity.toString(),
-        'crate-type': type,
-        'pallet': '0',
-        'pallet-type': ''
-      },
+      Uri.parse(baseUrl),
+      body: body,
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update crates');
+    if (response.statusCode == 200) {
+      print('Successfully updated crates. Response: ${response.body}');
+    } else {
+      throw Exception(
+          'Failed to update crates: ${response.statusCode} - ${response.body}');
+    }
+
+    final responseData = jsonDecode(response.body);
+    if (!responseData['success']) {
+      throw Exception('Failed to update crates: ${responseData['message']}');
     }
   }
 
-  Future<void> updatePalets(int orderId, int quantity, String type) async {
+  Future<void> updatePallets(int orderId, int quantity, String type) async {
+    final body = {
+      'action': 'update-order',
+      'type': 'container',
+      'order-id': orderId.toString(),
+      'pallet': quantity.toString(),
+      'pallet-type': type.toLowerCase(),
+      'crate': '0',
+      'crate-type': '0'
+    };
+    print("Url $baseUrl");
+    print('Sending update pallets request: $body');
+
     final response = await http.post(
-      Uri.parse('$baseUrl/update-order.php'),
-      body: {
-        'action': 'update-order',
-        'type': 'container',
-        'order-id': orderId.toString(),
-        'pallet': quantity.toString(),
-        'pallet-type': type,
-        'crate': '0',
-        'crate-type': ''
-      },
+      Uri.parse(baseUrl),
+      body: body,
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update palets');
+    if (response.statusCode == 200) {
+      print('Successfully updated pallets. Response: ${response.body}');
+    } else {
+      throw Exception('Failed to update pallets');
     }
   }
+
 // Helper method to handle all updates from dialog
   // Future<void> handleOrderUpdates(
   //     int orderId, Map<String, dynamic> updates) async {

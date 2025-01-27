@@ -189,7 +189,6 @@ class _DriverPageState extends State<DriverPage> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
@@ -258,7 +257,7 @@ class _DriverPageState extends State<DriverPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      DeliveryInfo(order: order),
+                                      DeliveryInfo(orderId: order.orderId),
                                 ),
                               );
                             },
@@ -636,6 +635,7 @@ class _DriverPageState extends State<DriverPage> {
                                           crossAxisAlignment:
                                               WrapCrossAlignment.center,
                                           children: [
+                                            
                                             Text(
                                               'Quantity: ${order.getTotalWeight()} kg',
                                               style: const TextStyle(
@@ -880,29 +880,32 @@ class _DriverPageState extends State<DriverPage> {
             },
           ),
           const Divider(),
-          FutureBuilder<SharedPreferences>(
-            future: SharedPreferences.getInstance(),
-            builder: (context, snapshot) {
-              int? userId = Globals.userId;
-              String label =
-                  userId != null ? 'Logout Account' : 'Login Account';
-              IconData icon = userId != null ? Icons.person_off : Icons.person;
+          if (!_vehicleLoggedIn) ...[
+            FutureBuilder<SharedPreferences>(
+              future: SharedPreferences.getInstance(),
+              builder: (context, snapshot) {
+                int? userId = Globals.userId;
+                String label =
+                    userId != null ? 'Logout Account' : 'Login Account';
+                IconData icon =
+                    userId != null ? Icons.person_off : Icons.person;
 
-              return ListTile(
-                leading:
-                    Icon(icon, color: const Color.fromARGB(255, 1, 160, 226)),
-                title: Text(label),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MyHomePage(),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+                return ListTile(
+                  leading:
+                      Icon(icon, color: const Color.fromARGB(255, 1, 160, 226)),
+                  title: Text(label),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyHomePage(),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
           const Divider(),
         ],
       ),

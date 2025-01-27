@@ -83,7 +83,8 @@ class Order {
     }
 
     try {
-      safeContactPeople = (json['contact_people'] is List) ? json['contact_people'] : [];
+      safeContactPeople =
+          (json['contact_people'] is List) ? json['contact_people'] : [];
     } catch (e) {
       print('Error parsing contact_people: $e');
     }
@@ -102,10 +103,18 @@ class Order {
       ekr: json['ekr']?.toString() ?? '',
       invoice: json['invoice']?.toString() ?? '',
       cmr: json['cmr']?.toString() ?? '',
-      companies: safeCompanies.map((companyJson) => Company.fromJson(companyJson)).toList(),
-      warehouses: safeWarehouses.map((warehouseJson) => Warehouse.fromJson(warehouseJson)).toList(),
-      products: safeProducts.map((productJson) => Product.fromJson(productJson)).toList(),
-      contactPeople: safeContactPeople.map((contactJson) => ContactPerson.fromJson(contactJson)).toList(),
+      companies: safeCompanies
+          .map((companyJson) => Company.fromJson(companyJson))
+          .toList(),
+      warehouses: safeWarehouses
+          .map((warehouseJson) => Warehouse.fromJson(warehouseJson))
+          .toList(),
+      products: safeProducts
+          .map((productJson) => Product.fromJson(productJson))
+          .toList(),
+      contactPeople: safeContactPeople
+          .map((contactJson) => ContactPerson.fromJson(contactJson))
+          .toList(),
     );
   }
 
@@ -114,9 +123,33 @@ class Order {
     return products.fold<int>(0, (total, product) => total + product.quantity);
   }
 
+  //get order by id
+
   // Calculate total weight
   double getTotalWeight() {
-    return products.fold<double>(
-        0.0, (total, product) => total + (product.quantity * product.productWeight));
+    return products.fold<double>(0.0,
+        (total, product) => total + (product.quantity * product.productWeight));
+  }
+
+  static Order empty() {
+    return Order(
+      orderId: 0,
+      driver: '',
+      vehicle: '',
+      pickupTime: '0000-00-00 00:00:00',
+      deliveryTime: '0000-00-00 00:00:00',
+      pickedUp: '0000-00-00 00:00:00',
+      delivered: '0000-00-00 00:00:00',
+      upNotes: '',
+      downNotes: '',
+      uit: '',
+      ekr: '',
+      invoice: '',
+      cmr: '',
+      companies: [], // empty list
+      warehouses: [], // empty list
+      products: [], // empty list
+      contactPeople: [], // empty list
+    );
   }
 }
