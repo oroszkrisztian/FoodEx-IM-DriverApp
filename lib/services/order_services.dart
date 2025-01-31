@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodex/globals.dart';
@@ -5,12 +6,22 @@ import 'package:http/http.dart' as http;
 import '../models/order.dart';
 
 class OrderService {
+  final _ordersController = StreamController<List<Order>>.broadcast();
+
+  // Getter for the stream
+  Stream<List<Order>> get ordersStream => _ordersController.stream;
+
   List<Order> _activeOrders = [];
   List<Order> _inactiveOrders = [];
 
+  // Update your existing getters to also notify the stream
   List<Order> get activeOrders => _activeOrders;
   List<Order> get inactiveOrders => _inactiveOrders;
-  List<Order> get allOrders => [..._activeOrders, ..._inactiveOrders];
+  List<Order> get allOrders {
+    final orders = [..._activeOrders, ..._inactiveOrders];
+    _ordersController.add(orders); // Notify listeners
+    return orders;
+  }
 
   Future<List<Order>> _processOrderStatus(String status,
       {String? fromDate, String? toDate}) async {
@@ -131,8 +142,6 @@ class OrderService {
 
   Future<void> fetchAllOrders({String? fromDate, String? toDate}) async {
     try {
-      Globals.ordersNumber = 0;
-
       final results = await Future.wait([
         _processOrderStatus('active', fromDate: fromDate, toDate: toDate),
         _processOrderStatus('inactive', fromDate: fromDate, toDate: toDate)
@@ -140,12 +149,9 @@ class OrderService {
 
       _activeOrders = results[0];
       _inactiveOrders = results[1];
-      Globals.ordersNumber = _activeOrders.length + _inactiveOrders.length;
 
-      debugPrint('Date range: $fromDate to $toDate');
-      debugPrint('Total orders: ${Globals.ordersNumber}');
-      _debugPrintOrderInfo(_activeOrders, 'active');
-      _debugPrintOrderInfo(_inactiveOrders, 'inactive');
+      // Notify stream listeners of the update
+      _ordersController.add([..._activeOrders, ..._inactiveOrders]);
     } catch (e) {
       debugPrint('Error fetching all orders: $e');
       throw e;
@@ -303,5 +309,9 @@ class OrderService {
 
   bool isOrderDelivered(Order order) {
     return order.delivered != '0000-00-00 00:00:00';
+  }
+
+  void dispose() {
+    _ordersController.close();
   }
 }

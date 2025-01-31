@@ -493,7 +493,12 @@ class _LogoutPageState extends State<LogoutPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text("Logout My Car"),
+        title: const Text(
+          "Logout My Car",
+          style: TextStyle(
+            color: Colors.white
+          ),
+        ),
         centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
       ),

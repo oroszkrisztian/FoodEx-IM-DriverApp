@@ -7,13 +7,18 @@ import 'package:foodex/driverPage.dart';
 import 'package:foodex/globals.dart';
 import 'package:foodex/models/company.dart';
 import 'package:foodex/models/contact_person.dart';
+import 'package:foodex/models/order.dart';
 import 'package:foodex/models/product.dart';
 import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/services/order_services.dart';
+import 'package:foodex/shiftsPage.dart';
+import 'package:foodex/widgets/shared_indicators.dart';
 import 'package:intl/intl.dart'; // To format dates
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+enum OrderFilter { all, active, inactive }
 
 final defaultPickupWarehouse = Warehouse(
   warehouseName: 'Unknown Pickup Warehouse',
@@ -50,9 +55,22 @@ class MyRoutesPage extends StatefulWidget {
 class _MyRoutesPageState extends State<MyRoutesPage>
     with TickerProviderStateMixin {
   final OrderService _orderService = OrderService();
+
+  OrderFilter _currentFilter = OrderFilter.all;
   bool isLoading = true;
   bool isFiltered = false;
   String? errorMessage;
+
+  List<Order> get _filteredOrders {
+    switch (_currentFilter) {
+      case OrderFilter.all:
+        return _orderService.allOrders;
+      case OrderFilter.active:
+        return _orderService.activeOrders;
+      case OrderFilter.inactive:
+        return _orderService.inactiveOrders;
+    }
+  }
 
   @override
   void initState() {
@@ -90,6 +108,35 @@ class _MyRoutesPageState extends State<MyRoutesPage>
     }
   }
 
+  Widget _filterButton(OrderFilter filter, String text) {
+    final isSelected = _currentFilter == filter;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _currentFilter = filter;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Colors.white : Colors.transparent,
+        foregroundColor:
+            isSelected ? const Color.fromARGB(255, 1, 160, 226) : Colors.white,
+        elevation: isSelected ? 2 : 0,
+        side: BorderSide(
+          color: Colors.white,
+          width: 1,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
   //listfunctions
 
   @override
@@ -104,531 +151,402 @@ class _MyRoutesPageState extends State<MyRoutesPage>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
-    return Scaffold(
-        appBar: AppBar(
-          title: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Routes', style: TextStyle(color: Colors.white)),
-              Text(
-                '${DateFormat('MMM dd').format(widget.startDate)}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ShiftsPage()),
+        );
+
+        // Prevent default back behavior since we're handling navigation
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ShiftsPage()),
+                );
+              },
+            ),
+            title: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Routes', style: TextStyle(color: Colors.white)),
+                Text(
+                  '${DateFormat('MMM dd').format(widget.startDate)}',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
                 ),
+              ],
+            ),
+            centerTitle: true,
+            backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _filterButton(OrderFilter.all, 'All'),
+                    _filterButton(OrderFilter.active, 'Active'),
+                    _filterButton(OrderFilter.inactive, 'Delivered'),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: fetchInitialOrders,
               ),
             ],
           ),
-          centerTitle: true,
-          backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: fetchInitialOrders,
-            ),
-          ], // Change back button color to white
-        ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : errorMessage != null || _orderService.allOrders.isEmpty
-                ? Center(
-                    child: Text(
-                      errorMessage != null
-                          ? 'No orders available for this interval.'
-                          : 'No orders available.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: errorMessage != null
-                            ? Colors.black
-                            : Colors.grey[600],
+          body: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null || _filteredOrders.isEmpty
+                  ? Center(
+                      child: Text(
+                        errorMessage != null
+                            ? 'No orders available for this interval.'
+                            : 'No ${_currentFilter.name} orders available.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: errorMessage != null
+                              ? Colors.black
+                              : Colors.grey[600],
+                        ),
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _orderService.activeOrders.length,
-                    itemBuilder: (context, index) {
-                      final order = _orderService.activeOrders[index];
-                      final pickupWarehouse = order.warehouses.firstWhere(
-                          (wh) => wh.type == 'pickup',
-                          orElse: () => defaultPickupWarehouse);
-                      final deliveryWarehouse = order.warehouses.firstWhere(
-                          (wh) => wh.type == 'delivery',
-                          orElse: () => defaultPickupWarehouse);
-                      final pickupCompany = order.companies.firstWhere(
-                          (comp) => comp.type == 'pickup',
-                          orElse: () => defaultCompany);
-                      final deliveryCompany = order.companies.firstWhere(
-                          (comp) => comp.type == 'delivery',
-                          orElse: () => defaultCompany);
-                      final pickupContact = order.contactPeople.firstWhere(
-                          (cp) => cp.type == 'pickup',
-                          orElse: () => defaultContactPerson);
-                      final deliveryContact = order.contactPeople.firstWhere(
-                          (cp) => cp.type == 'delivery',
-                          orElse: () => defaultContactPerson);
+                    )
+                  : Container(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        //physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = _filteredOrders[index];
+                          final pickupWarehouse = order.warehouses.firstWhere(
+                              (wh) => wh.type == 'pickup',
+                              orElse: () => defaultPickupWarehouse);
+                          final deliveryWarehouse = order.warehouses.firstWhere(
+                              (wh) => wh.type == 'delivery',
+                              orElse: () => defaultPickupWarehouse);
+                          final pickupCompany = order.companies.firstWhere(
+                              (comp) => comp.type == 'pickup',
+                              orElse: () => defaultCompany);
+                          final deliveryCompany = order.companies.firstWhere(
+                              (comp) => comp.type == 'delivery',
+                              orElse: () => defaultCompany);
+                          final pickupContact = order.contactPeople.firstWhere(
+                              (cp) => cp.type == 'pickup',
+                              orElse: () => defaultContactPerson);
+                          final deliveryContact = order.contactPeople
+                              .firstWhere((cp) => cp.type == 'delivery',
+                                  orElse: () => defaultContactPerson);
 
-                      return GestureDetector(
-                        onTap: () {
-                          Globals.startDate = widget.startDate;
-                          Globals.endDate = widget.endDate;
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DeliveryInfo(orderId: order.orderId),
+                          return GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => DeliveryInfo(
+                                        orderId: order.orderId,
+                                        myRoutesPage: true,
+                                      )),
+                            ),
+                            child: Stack(
+                              children: [
+                                Card(
+                                  elevation: 2.0,
+                                  margin: EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                    horizontal: isSmallScreen ? 2.0 : 8.0,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    side: const BorderSide(
+                                        color: Colors.black, width: 1.0),
+                                    borderRadius: BorderRadius.circular(6.0),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                        isSmallScreen ? 6.0 : 10.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Text('Partner: ',
+                                                style: TextStyle(
+                                                    fontSize: 14.0,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            Text(pickupCompany.companyName,
+                                                style: const TextStyle(
+                                                    fontSize: 14.0,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        // Pickup Info
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0, vertical: 6.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue[50],
+                                            borderRadius:
+                                                BorderRadius.circular(6.0),
+                                            border:
+                                                Border.all(color: Colors.blue),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                      pickupCompany.companyName,
+                                                      style: const TextStyle(
+                                                          fontSize: 14.0,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.blue)),
+                                                  Text(
+                                                      DateFormat('MM-dd HH:mm')
+                                                          .format(DateTime
+                                                              .parse(order
+                                                                  .pickupTime)),
+                                                      style: const TextStyle(
+                                                          fontSize: 12.0,
+                                                          fontWeight:
+                                                              FontWeight.bold)),
+                                                ],
+                                              ),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                      child: Text(
+                                                          'Address: ${pickupWarehouse.warehouseAddress}',
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize:
+                                                                      12.0))),
+                                                  Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      if (order.upNotes
+                                                          .isNotEmpty) ...[
+                                                        SharedIndicators
+                                                            .buildIcon(
+                                                                Icons
+                                                                    .note_rounded,
+                                                                Colors.amber),
+                                                        const SizedBox(
+                                                            width: 4.0),
+                                                      ],
+                                                      SharedIndicators
+                                                          .buildContactStatus(
+                                                        name:
+                                                            pickupContact.name,
+                                                        telephone: pickupContact
+                                                            .telephone,
+                                                        isSmallScreen:
+                                                            isSmallScreen,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        // Delivery Info
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0, vertical: 6.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green[50],
+                                            borderRadius:
+                                                BorderRadius.circular(6.0),
+                                            border:
+                                                Border.all(color: Colors.green),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                      deliveryCompany
+                                                          .companyName,
+                                                      style: const TextStyle(
+                                                          fontSize: 14.0,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.green)),
+                                                  Text(
+                                                      DateFormat('MM-dd HH:mm')
+                                                          .format(DateTime
+                                                              .parse(order
+                                                                  .deliveryTime)),
+                                                      style: const TextStyle(
+                                                          fontSize: 12.0,
+                                                          fontWeight:
+                                                              FontWeight.bold)),
+                                                ],
+                                              ),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                      child: Text(
+                                                          'Address: ${deliveryWarehouse.warehouseAddress}',
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize:
+                                                                      12.0))),
+                                                  Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      if (order.downNotes
+                                                          .isNotEmpty) ...[
+                                                        SharedIndicators
+                                                            .buildIcon(
+                                                                Icons
+                                                                    .note_rounded,
+                                                                Colors.amber),
+                                                        const SizedBox(
+                                                            width: 4.0),
+                                                      ],
+                                                      SharedIndicators
+                                                          .buildContactStatus(
+                                                        name: deliveryContact
+                                                            .name,
+                                                        telephone:
+                                                            deliveryContact
+                                                                .telephone,
+                                                        isSmallScreen:
+                                                            isSmallScreen,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        // Bottom indicators
+                                        Wrap(
+                                          spacing: 6.0,
+                                          runSpacing: 4.0,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    '${order.getTotalWeight()} kg',
+                                                    style: const TextStyle(
+                                                        fontSize: 14.0,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                Wrap(
+                                                  spacing:
+                                                      isSmallScreen ? 8 : 10,
+                                                  children: [
+                                                    SharedIndicators
+                                                        .buildDocumentIndicator(
+                                                            'UIT',
+                                                            order.uit
+                                                                .isNotEmpty),
+                                                    SharedIndicators
+                                                        .buildDocumentIndicator(
+                                                            'EKR',
+                                                            order.ekr
+                                                                .isNotEmpty),
+                                                    SharedIndicators
+                                                        .buildDocumentIndicator(
+                                                            'Invoice',
+                                                            order.invoice
+                                                                .isNotEmpty),
+                                                    SharedIndicators
+                                                        .buildDocumentIndicator(
+                                                            'CMR',
+                                                            order.cmr
+                                                                .isNotEmpty),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // Status Arrow
+                                if (order.delivered ==
+                                    '0000-00-00 00:00:00') ...[
+                                  Positioned(
+                                    top: 0,
+                                    right: isSmallScreen ? 4.0 : 8.0,
+                                    child: order.pickedUp ==
+                                            '0000-00-00 00:00:00'
+                                        ? Icon(Icons.keyboard_arrow_up,
+                                            color: Colors.green,
+                                            size: isSmallScreen ? 48 : 54)
+                                        : order.delivered ==
+                                                '0000-00-00 00:00:00'
+                                            ? Icon(Icons.keyboard_arrow_down,
+                                                color: Colors.red,
+                                                size: isSmallScreen ? 48 : 54)
+                                            : Container(),
+                                  ),
+                                ]else Positioned(
+                                  top: isSmallScreen ? 10:12,
+                                  right:  isSmallScreen ? 8 : 12,
+                                  child: Text(
+                                    "DELIVERED",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black
+                                    ),
+                                  )
+                                  
+                                ),
+                              ],
                             ),
                           );
                         },
-                        child: Stack(
-                          children: [
-                            Card(
-                              elevation: 4.0,
-                              margin: EdgeInsets.symmetric(
-                                vertical: 8.0,
-                                horizontal: isSmallScreen ? 4.0 : 16.0,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                side: const BorderSide(
-                                    color: Colors.black, width: 1.5),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Padding(
-                                padding:
-                                    EdgeInsets.all(isSmallScreen ? 8.0 : 16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Partner name at the top
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Partner: ',
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          pickupCompany.companyName,
-                                          style: const TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12.0),
-                                    // Pickup Info
-                                    Container(
-                                      padding: const EdgeInsets.all(12.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue[50],
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                        border: Border.all(color: Colors.blue),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                pickupCompany.companyName,
-                                                style: const TextStyle(
-                                                  fontSize: 18.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              Text(
-                                                DateFormat('MM-dd (E) HH:mm')
-                                                    .format(DateTime.parse(
-                                                        order.pickupTime)),
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8.0),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                    'Address: ${pickupWarehouse.warehouseAddress}'),
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  if (order
-                                                      .upNotes.isNotEmpty) ...[
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.amber
-                                                            .withOpacity(0.1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12.0),
-                                                        border: Border.all(
-                                                          color: Colors.amber,
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Icon(
-                                                        Icons.note_rounded,
-                                                        size: isSmallScreen
-                                                            ? 16
-                                                            : 18,
-                                                        color: Colors
-                                                            .amber.shade700,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 8.0),
-                                                  ],
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: (pickupContact.name.isNotEmpty &&
-                                                              pickupContact
-                                                                      .name !=
-                                                                  "N/A" &&
-                                                              pickupContact
-                                                                  .telephone
-                                                                  .isNotEmpty &&
-                                                              pickupContact
-                                                                      .telephone !=
-                                                                  "N/A")
-                                                          ? Colors.green
-                                                              .withOpacity(0.1)
-                                                          : Colors.red
-                                                              .withOpacity(0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12.0),
-                                                      border: Border.all(
-                                                        color: (pickupContact
-                                                                    .name
-                                                                    .isNotEmpty &&
-                                                                pickupContact
-                                                                        .name !=
-                                                                    "N/A" &&
-                                                                pickupContact
-                                                                    .telephone
-                                                                    .isNotEmpty &&
-                                                                pickupContact
-                                                                        .telephone !=
-                                                                    "N/A")
-                                                            ? Colors.green
-                                                            : Colors.red,
-                                                        width: 1.0,
-                                                      ),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.person_rounded,
-                                                      size: isSmallScreen
-                                                          ? 16
-                                                          : 18,
-                                                      color: (pickupContact.name.isNotEmpty &&
-                                                              pickupContact
-                                                                      .name !=
-                                                                  "N/A" &&
-                                                              pickupContact
-                                                                  .telephone
-                                                                  .isNotEmpty &&
-                                                              pickupContact
-                                                                      .telephone !=
-                                                                  "N/A")
-                                                          ? Colors
-                                                              .green.shade700
-                                                          : Colors.red.shade700,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12.0),
-                                    // Delivery Info
-                                    Container(
-                                      padding: const EdgeInsets.all(12.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[50],
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                        border: Border.all(color: Colors.green),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                deliveryCompany.companyName,
-                                                style: const TextStyle(
-                                                  fontSize: 18.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.green,
-                                                ),
-                                              ),
-                                              Text(
-                                                DateFormat('MM-dd (E) HH:mm')
-                                                    .format(DateTime.parse(
-                                                        order.deliveryTime)),
-                                                style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8.0),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                    'Address: ${deliveryWarehouse.warehouseAddress}'),
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  if (order.downNotes
-                                                      .isNotEmpty) ...[
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.amber
-                                                            .withOpacity(0.1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12.0),
-                                                        border: Border.all(
-                                                          color: Colors.amber,
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Icon(
-                                                        Icons.note_rounded,
-                                                        size: isSmallScreen
-                                                            ? 16
-                                                            : 18,
-                                                        color: Colors
-                                                            .amber.shade700,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 8.0),
-                                                  ],
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: (deliveryContact
-                                                                  .name
-                                                                  .isNotEmpty &&
-                                                              deliveryContact
-                                                                      .name !=
-                                                                  "N/A" &&
-                                                              deliveryContact
-                                                                  .telephone
-                                                                  .isNotEmpty &&
-                                                              deliveryContact
-                                                                      .telephone !=
-                                                                  "N/A")
-                                                          ? Colors.green
-                                                              .withOpacity(0.1)
-                                                          : Colors.red
-                                                              .withOpacity(0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12.0),
-                                                      border: Border.all(
-                                                        color: (deliveryContact
-                                                                    .name
-                                                                    .isNotEmpty &&
-                                                                deliveryContact
-                                                                        .name !=
-                                                                    "N/A" &&
-                                                                deliveryContact
-                                                                    .telephone
-                                                                    .isNotEmpty &&
-                                                                deliveryContact
-                                                                        .telephone !=
-                                                                    "N/A")
-                                                            ? Colors.green
-                                                            : Colors.red,
-                                                        width: 1.0,
-                                                      ),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.person_rounded,
-                                                      size: isSmallScreen
-                                                          ? 16
-                                                          : 18,
-                                                      color: (deliveryContact
-                                                                  .name
-                                                                  .isNotEmpty &&
-                                                              deliveryContact
-                                                                      .name !=
-                                                                  "N/A" &&
-                                                              deliveryContact
-                                                                  .telephone
-                                                                  .isNotEmpty &&
-                                                              deliveryContact
-                                                                      .telephone !=
-                                                                  "N/A")
-                                                          ? Colors
-                                                              .green.shade700
-                                                          : Colors.red.shade700,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12.0),
-                                    // Quantity and Document Indicators
-                                    Wrap(
-                                      spacing: 10.0,
-                                      runSpacing: 8.0,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Quantity: ${order.getTotalWeight()} kg',
-                                          style: const TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: order.uit.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Text(
-                                            'UIT',
-                                            style: TextStyle(
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: order.ekr.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Text(
-                                            'EKR',
-                                            style: TextStyle(
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: order.invoice.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Text(
-                                            'Invoice',
-                                            style: TextStyle(
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: order.cmr.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Text(
-                                            'CMR',
-                                            style: TextStyle(
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Status Arrow
-                            Positioned(
-                              top: 2.0,
-                              right: isSmallScreen ? 8.0 : 16.0,
-                              child: order.pickedUp == '0000-00-00 00:00:00'
-                                  ? Icon(
-                                      Icons.keyboard_arrow_up,
-                                      color: Colors.green,
-                                      size: isSmallScreen ? 56 : 62,
-                                    )
-                                  : order.delivered == '0000-00-00 00:00:00'
-                                      ? Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: Colors.red,
-                                          size: isSmallScreen ? 56 : 62,
-                                        )
-                                      : Container(),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ));
+                      ))),
+    );
   }
 }
