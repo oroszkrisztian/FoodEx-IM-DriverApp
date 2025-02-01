@@ -799,12 +799,7 @@ class _DriverPageState extends State<DriverPage> {
                       Icon(icon, color: const Color.fromARGB(255, 1, 160, 226)),
                   title: Text(label),
                   onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyHomePage(),
-                      ),
-                    );
+                    _logoutUser();
                   },
                 );
               },

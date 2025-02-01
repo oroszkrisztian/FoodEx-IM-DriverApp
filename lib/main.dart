@@ -102,7 +102,6 @@ Future<void> uploadImages(Map<String, dynamic>? inputData) async {
 
 // Function to upload expenses in the background
 
-
 // Function to handle vehicle login
 // This function should be in the page or class where it is used
 Future<bool> loginVehicle() async {
@@ -171,7 +170,6 @@ Future<void> _loadImagesFromPrefs1() async {
   String? imagePathParcursIn = prefs.getString('parcursIn');
   String? imagePathParcursOut = prefs.getString('parcursout');
 
-
   if (imagePath1 != null) Globals.image1 = File(imagePath1);
   if (imagePath2 != null) Globals.image2 = File(imagePath2);
   if (imagePath3 != null) Globals.image3 = File(imagePath3);
@@ -183,7 +181,8 @@ Future<void> _loadImagesFromPrefs1() async {
   if (imagePath9 != null) Globals.image4 = File(imagePath9);
   if (imagePath10 != null) Globals.image5 = File(imagePath10);
   if (imagePathParcursIn != null) Globals.parcursIn = File(imagePathParcursIn);
-  if (imagePathParcursOut != null) Globals.parcursIn = File(imagePathParcursOut);
+  if (imagePathParcursOut != null)
+    Globals.parcursIn = File(imagePathParcursOut);
 }
 
 class MyApp extends StatelessWidget {
@@ -319,100 +318,178 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final primaryColor = const Color.fromARGB(255, 1, 160, 226);
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-        title: const Text('Food Ex-Im Driver',
-            style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(
         child: Center(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _usernameController,
-                  cursorColor: const Color.fromARGB(255, 1, 160, 226),
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color.fromARGB(255, 1, 160, 226),
-                        width: 2.0,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(isSmallScreen ? 20.0 : 32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo and Title Section
+                  Column(
+                    children: [
+                      Icon(
+                        Icons.local_shipping_rounded,
+                        size: isSmallScreen ? 64 : 80,
+                        color: primaryColor,
                       ),
-                    ),
+                      SizedBox(height: isSmallScreen ? 16 : 24),
+                      Text(
+                        'Food Ex-Im Driver',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 24 : 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
                   ),
-                  style: const TextStyle(color: Colors.black),
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _isObscure,
-                  cursorColor: const Color.fromARGB(255, 1, 160, 226),
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: const OutlineInputBorder(),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color.fromARGB(255, 1, 160, 226),
-                        width: 2.0,
-                      ),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isObscure ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
-                      ),
-                      onPressed: _togglePasswordVisibility,
-                    ),
-                  ),
-                  style: const TextStyle(color: Colors.black),
-                ),
-                const SizedBox(height: 16.0),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 80.0,
-                      vertical: 20.0,
-                    ),
+                  SizedBox(height: isSmallScreen ? 32 : 48),
+
+                  // Login Form Card
+                  Card(
+                    elevation: 2,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Username Field
+                          TextField(
+                            controller: _usernameController,
+                            cursorColor: primaryColor,
+                            decoration: InputDecoration(
+                              labelText: 'Username',
+                              labelStyle:
+                                  TextStyle(color: Colors.grey.shade600),
+                              prefixIcon: Icon(Icons.person_outline,
+                                  color: primaryColor),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: primaryColor, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(height: isSmallScreen ? 16 : 20),
+
+                          // Password Field
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: _isObscure,
+                            cursorColor: primaryColor,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              labelStyle:
+                                  TextStyle(color: Colors.grey.shade600),
+                              prefixIcon:
+                                  Icon(Icons.lock_outline, color: primaryColor),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey.shade600,
+                                  size: 20,
+                                ),
+                                onPressed: _togglePasswordVisibility,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: primaryColor, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(height: isSmallScreen ? 24 : 32),
+
+                          // Login Button
+                          SizedBox(
+                            height: isSmallScreen ? 48 : 56,
+                            child: ElevatedButton(
+                              onPressed: login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 16 : 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  onPressed: login,
-                  child: const Text(
-                    'Login',
+
+                  // Footer Section
+                  SizedBox(height: isSmallScreen ? 24 : 32),
+                  Text(
+                    '© 2024 Food Ex-Im. All rights reserved.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.0,
+                      fontSize: isSmallScreen ? 12 : 14,
+                      color: Colors.grey.shade600,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

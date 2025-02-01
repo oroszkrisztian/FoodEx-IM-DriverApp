@@ -135,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
         },
       );
 
-      Globals.vehicleID=vehicleId;
+      Globals.vehicleID = vehicleId;
       print('Setting Vehicle ID: ${Globals.vehicleID}');
 
       if (response.statusCode == 200) {
@@ -210,25 +210,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _showImage(File? image) {
+  void _showImage(File? image, int imageNumber) {
     if (image == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('No Picture'),
-            content: const Text('There is no picture available.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      _getImage(imageNumber);
       return;
     }
     showModalBottomSheet(
@@ -246,15 +230,42 @@ class _LoginPageState extends State<LoginPage> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 8.0),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(
-                        255, 1, 160, 226), // Light blue color
-                    foregroundColor: Colors.white, // White text
-                  ),
-                  child: const Text('Close'),
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _getImage(imageNumber);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: const Text('Take New Photo'),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          side: const BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      child: const Text('Close'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -264,14 +275,14 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildImageInput(int imageNumber, File? image) {
+  Widget _buildImageInput(int imageNumber, File? image, bool isSmallScreen) {
     String label;
     switch (imageNumber) {
       case 1:
-        label = 'Dash/Műszerfal';
+        label = 'Dashboard';
         break;
       case 2:
-        label = 'Front left';
+        label = 'Front Left';
         break;
       case 3:
         label = 'Front Right';
@@ -283,80 +294,86 @@ class _LoginPageState extends State<LoginPage> {
         label = 'Rear Right';
         break;
       case 6:
-        label = 'LogBook/Menetlevél';
+        label = 'Logbook';
         break;
       default:
         label = 'Unknown';
     }
 
-    // Use MediaQuery to get the screen width
-    final double screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final containerWidth =
+        isSmallScreen ? screenWidth * 0.43 : screenWidth * 0.42;
+    final primaryColor = const Color.fromARGB(255, 1, 160, 226);
 
     return Container(
-      height: 150,
-      width: screenWidth * 0.4,
+      height: isSmallScreen ? 140 : 160,
+      width: containerWidth,
       decoration: BoxDecoration(
-        color: image != null
-            ? const Color.fromARGB(255, 1, 160, 226)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(8.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          width: 1,
-          color: Colors.black,
+          //width: 1.5,
+          color: image != null ? primaryColor : Colors.grey.shade300,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.4),
-            spreadRadius: 5,
-            blurRadius: 7,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 8 : 12,
+                vertical: isSmallScreen ? 4 : 6),
+            decoration: BoxDecoration(
+              color: image != null
+                  ? primaryColor.withOpacity(0.1)
+                  : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.black),
+                  style: TextStyle(
+                    color: image != null ? primaryColor : Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isSmallScreen ? 12 : 14,
+                  ),
                 ),
-                if (image != null) const Icon(Icons.check, color: Colors.black),
-                const SizedBox(height: 8),
+                if (image != null) ...[
+                  const SizedBox(width: 4),
+                  Icon(Icons.check_circle,
+                      color: primaryColor, size: isSmallScreen ? 14 : 16),
+                ],
               ],
             ),
-            ElevatedButton(
-              onPressed: () => _getImage(imageNumber),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                side: const BorderSide(
-                    color: Color.fromARGB(255, 1, 160, 226), width: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Text('Take a picture'),
+          ),
+          SizedBox(height: isSmallScreen ? 16 : 24),
+          ElevatedButton.icon(
+            onPressed: () => _showImage(image, imageNumber),
+            icon: Icon(
+                image != null
+                    ? Icons.remove_red_eye_outlined
+                    : Icons.camera_alt_outlined,
+                size: isSmallScreen ? 16 : 18),
+            label: Text(
+              image != null ? 'Preview' : 'Take Photo',
+              style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => _showImage(image),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                side: const BorderSide(
-                    color: Color.fromARGB(255, 1, 160, 226), width: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: primaryColor,
+              elevation: 0,
+              side: BorderSide(color: primaryColor),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
               ),
-              child: const Text('Preview'),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 8 : 10),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -544,262 +561,313 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final primaryColor = const Color.fromARGB(255, 1, 160, 226);
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text("Login in My Car",
-            style: TextStyle(color: Colors.white)),
+        elevation: 0,
+        title: Text(
+          "Vehicle Login",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: isSmallScreen ? 18 : 20,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+        backgroundColor: primaryColor,
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color.fromARGB(255, 1, 160, 226), // Light blue color
-                    ),
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading vehicles...',
+                    style: TextStyle(
+                        color: primaryColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: isSmallScreen ? 14 : 16),
                   ),
-                  SizedBox(height: 16),
-                  Text('Fetching vehicles...',
-                      style:
-                          TextStyle(color: Color.fromARGB(255, 1, 160, 226))),
                 ],
               ),
             )
           : _errorMessage != null
               ? Center(
-                  child: Text(_errorMessage!,
-                      style: const TextStyle(
-                          color: Color.fromARGB(255, 1, 160, 226))),
-                )
-              : SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.6),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                DropdownButtonFormField<int>(
-                                  value: _selectedCarId,
-                                  items: _cars.map((Car car) {
-                                    return DropdownMenuItem<int>(
-                                      value: car.id,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: Text(
-                                          '${car.make} - ${car.model} - ${car.licencePlate}',
-                                          style: const TextStyle(
-                                            color: Color.fromARGB(
-                                                255, 1, 160, 226),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (newValue) async {
-                                    setState(() {
-                                      _selectedCarId = newValue;
-                                    });
-
-                                    // Ensure you have driverId and pass the selected car ID to getLastKm
-                                    int? driverId = Globals
-                                        .userId; // Replace with the actual driver ID variable
-                                    if (_selectedCarId != null &&
-                                        driverId != null) {
-                                      bool result = await getLastKm(
-                                          driverId, _selectedCarId);
-                                      if (!result) {
-                                        // Handle error or notification if needed
-                                        print('Failed to fetch last KM');
-                                      }
-                                    }
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: 'Car',
-                                    labelStyle: const TextStyle(
-                                      color: Color.fromARGB(255, 1, 160, 226),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                        color: Color.fromARGB(255, 1, 160, 226),
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                        color: Color.fromARGB(255, 1, 160, 226),
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  style: const TextStyle(
-                                    color: Color.fromARGB(255, 1, 160, 226),
-                                  ),
-                                  dropdownColor: Colors.white,
-                                  icon: const Icon(Icons.arrow_drop_down,
-                                      color: Color.fromARGB(255, 1, 160, 226)),
-                                  isExpanded: true,
-                                  iconSize: 30.0,
-                                ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller: _kmController,
-                                  cursorColor:
-                                      const Color.fromARGB(255, 1, 160, 226),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText: 'KM',
-                                    labelStyle: const TextStyle(
-                                      color: Color.fromARGB(255, 1, 160, 226),
-                                    ),
-                                    hintText:
-                                        'Last KM: $_lastKm', // Add placeholder text here
-                                    hintStyle: TextStyle(
-                                      color: Colors.grey
-                                          .shade400, // Optional: customize the hint text color
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                        color: Color.fromARGB(255, 1, 160, 226),
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                        color: Color.fromARGB(255, 1, 160, 226),
-                                      ),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  style: const TextStyle(
-                                    color: Color.fromARGB(255, 1, 160, 226),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _buildImageInput(1, _image1),
-                                    _buildImageInput(6, parcursIn),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.6),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: [
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .center, // Center aligns the icon and text
-                                  children: [
-                                    Icon(
-                                      Icons.directions_car,
-                                      size: 24,
-                                    ),
-                                    SizedBox(
-                                        width:
-                                            8), // Space between the icon and the text
-                                    Text(
-                                      'Photos',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _buildImageInput(2, _image2),
-                                    _buildImageInput(3, _image3),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _buildImageInput(4, _image4),
-                                    _buildImageInput(5, _image5),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-                          ),
-                        ),
+                        Icon(Icons.error_outline,
+                            size: isSmallScreen ? 40 : 48, color: primaryColor),
                         const SizedBox(height: 16),
-                        SizedBox(
-                          width: 150,
-                          height: 80,
-                          child: ElevatedButton(
-                            onPressed: _submitData,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 1, 160, 226),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 20.0),
-                              textStyle: const TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            child: const Text(
-                              'Login',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                        Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: primaryColor,
+                              fontSize: isSmallScreen ? 14 : 16),
                         ),
                       ],
                     ),
                   ),
+                )
+              : SafeArea(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 12.0 : 16.0,
+                          vertical: isSmallScreen ? 12.0 : 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Vehicle Details Card
+                          _buildVehicleDetailsCard(isSmallScreen, primaryColor),
+                          SizedBox(height: isSmallScreen ? 12 : 20),
+
+                          // Documentation Card
+                          _buildDocumentationCard(isSmallScreen, primaryColor),
+                          SizedBox(height: isSmallScreen ? 12 : 20),
+
+                          // Vehicle Photos Card
+                          _buildVehiclePhotosCard(isSmallScreen, primaryColor),
+                          SizedBox(height: isSmallScreen ? 20 : 24),
+
+                          // Submit Button
+                          SizedBox(
+                            height: isSmallScreen ? 48 : 56,
+                            child: ElevatedButton(
+                              onPressed: _submitData,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: Text(
+                                'Login Vehicle',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 16 : 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: isSmallScreen ? 16 : 24),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
+    );
+  }
+
+  Widget _buildVehicleDetailsCard(bool isSmallScreen, Color primaryColor) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Vehicle Details',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 18 : 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            DropdownButtonFormField<int>(
+              value: _selectedCarId,
+              items: _cars.map((Car car) {
+                return DropdownMenuItem<int>(
+                  value: car.id,
+                  child: Text(
+                    '${car.make} ${car.model} - ${car.licencePlate}',
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 13 : 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (newValue) async {
+                setState(() {
+                  _selectedCarId = newValue;
+                });
+                int? driverId = Globals.userId;
+                if (_selectedCarId != null && driverId != null) {
+                  await getLastKm(driverId, _selectedCarId);
+                }
+              },
+              decoration: InputDecoration(
+                labelText: 'Select Vehicle',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 8 : 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            TextField(
+              controller: _kmController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: 'Current Mileage',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                hintText: _lastKm != null
+                    ? 'Last recorded: $_lastKm km'
+                    : 'Enter current mileage',
+                prefixIcon: Icon(Icons.speed, color: primaryColor),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 16,
+                  vertical: isSmallScreen ? 8 : 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentationCard(bool isSmallScreen, Color primaryColor) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.document_scanner_outlined,
+                  color: Colors.grey.shade800,
+                  size: isSmallScreen ? 20 : 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Required Documentation',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 18 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildImageInput(1, _image1, isSmallScreen),
+                _buildImageInput(6, parcursIn, isSmallScreen),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehiclePhotosCard(bool isSmallScreen, Color primaryColor) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.car_crash_outlined,
+                  color: Colors.grey.shade800,
+                  size: isSmallScreen ? 20 : 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Vehicle Condition Photos',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 18 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildImageInput(2, _image2, isSmallScreen),
+                    _buildImageInput(3, _image3, isSmallScreen),
+                  ],
+                ),
+                SizedBox(height: isSmallScreen ? 8 : 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildImageInput(4, _image4, isSmallScreen),
+                    _buildImageInput(5, _image5, isSmallScreen),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
