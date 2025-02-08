@@ -63,6 +63,7 @@ class _DriverPageState extends State<DriverPage> {
   @override
   void initState() {
     super.initState();
+    _loadSavedLanguage();
     _initializeData();
     _setupOrdersListener();
   }
@@ -78,6 +79,14 @@ class _DriverPageState extends State<DriverPage> {
       setState(() {
         hasOrders = orders.isNotEmpty;
       });
+    });
+  }
+
+  Future<void> _loadSavedLanguage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedLanguage = prefs.getString('language') ?? 'en';
+    setState(() {
+      Globals.currentLanguage = savedLanguage;
     });
   }
 
@@ -309,7 +318,7 @@ class _DriverPageState extends State<DriverPage> {
                         children: [
                           Row(
                             children: [
-                              const Text('Partner: ',
+                              Text('${Globals.getText('partner')}: ',
                                   style: TextStyle(
                                       fontSize: 14.0,
                                       fontWeight: FontWeight.bold)),
@@ -354,7 +363,7 @@ class _DriverPageState extends State<DriverPage> {
                                   children: [
                                     Expanded(
                                         child: Text(
-                                            'Address: ${pickupWarehouse.warehouseAddress}',
+                                            '${Globals.getText('address')}: ${pickupWarehouse.warehouseAddress}',
                                             style: const TextStyle(
                                                 fontSize: 12.0))),
                                     Row(
@@ -412,7 +421,7 @@ class _DriverPageState extends State<DriverPage> {
                                   children: [
                                     Expanded(
                                         child: Text(
-                                            'Address: ${deliveryWarehouse.warehouseAddress}',
+                                            '${Globals.getText('address')}: ${pickupWarehouse.warehouseAddress}',
                                             style: const TextStyle(
                                                 fontSize: 12.0))),
                                     Row(
@@ -626,7 +635,8 @@ class _DriverPageState extends State<DriverPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Driver Page', style: TextStyle(color: Colors.white)),
+        title: Text(Globals.getText('driverPage'),
+            style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
         actions: [
           if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
@@ -706,7 +716,7 @@ class _DriverPageState extends State<DriverPage> {
           ListTile(
             leading:
                 const Icon(Icons.list, color: Color.fromARGB(255, 1, 160, 226)),
-            title: const Text('My Logs'),
+            title: Text(Globals.getText('logs')),
             onTap: () {
               Navigator.pop(context); // Close drawer
               Navigator.push(
@@ -719,7 +729,7 @@ class _DriverPageState extends State<DriverPage> {
             ListTile(
               leading: const Icon(Icons.directions_car,
                   color: Color.fromARGB(255, 1, 160, 226)),
-              title: const Text('My Car'),
+              title: Text(Globals.getText("myCar")),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -732,7 +742,7 @@ class _DriverPageState extends State<DriverPage> {
             ListTile(
               leading: const Icon(Icons.attach_money,
                   color: Color.fromARGB(255, 1, 160, 226)),
-              title: const Text('Expense'),
+              title: Text(Globals.getText('expense')),
               onTap: () {
                 Navigator.pop(context);
                 _showExpenseDialog();
@@ -742,7 +752,7 @@ class _DriverPageState extends State<DriverPage> {
           ListTile(
             leading: const Icon(Icons.punch_clock_rounded,
                 color: Color.fromARGB(255, 1, 160, 226)),
-            title: const Text('Shifts'),
+            title: Text(Globals.getText('shifts')),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -756,10 +766,10 @@ class _DriverPageState extends State<DriverPage> {
             future: SharedPreferences.getInstance(),
             builder: (context, snapshot) {
               int? vehicleId = Globals.vehicleID;
-              String label =
-                  vehicleId != null ? 'Logout Vehicle' : 'Login Vehicle';
+              String label = vehicleId != null
+                  ? Globals.getText('logoutVehicle')
+                  : Globals.getText('loginVehicle');
               IconData icon = vehicleId != null ? Icons.logout : Icons.login;
-
               return ListTile(
                 leading:
                     Icon(icon, color: const Color.fromARGB(255, 1, 160, 226)),
@@ -805,8 +815,37 @@ class _DriverPageState extends State<DriverPage> {
               },
             ),
           ],
+          const Spacer(),
           //const Divider(),
-          const Spacer(), // This will push the version text to the bottom
+          // Language Selection Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    Globals.getText('selectLanguage'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 1, 160, 226),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildLanguageButton('en'),
+                    _buildLanguageButton('hu'),
+                    _buildLanguageButton('ro'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16.0),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16.0),
@@ -820,6 +859,58 @@ class _DriverPageState extends State<DriverPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageButton(String languageCode) {
+    // Flag emojis are created by combining regional indicator symbols
+    // Each country code consists of two letters that get converted to regional indicators
+    final Map<String, String> flagEmojis = {
+      'en': '🇬🇧', // UK flag for English
+      'hu': '🇭🇺', // Hungarian flag
+      'ro': '🇷🇴', // Romanian flag
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: ElevatedButton(
+        onPressed: () async {
+          // Save selected language to SharedPreferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('language', languageCode);
+
+          // Update current language in Globals
+          setState(() {
+            Globals.currentLanguage = languageCode;
+          });
+
+          debugPrint('Language changed to: $languageCode');
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Globals.currentLanguage == languageCode
+              ? const Color.fromARGB(255, 1, 160, 226)
+              : Colors.grey[300],
+          padding: const EdgeInsets.all(12.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            side: BorderSide(
+              color: Globals.currentLanguage == languageCode
+                  ? const Color.fromARGB(255, 1, 160, 226)
+                  : Colors.transparent,
+              width: 2.0,
+            ),
+          ),
+          minimumSize:
+              const Size(48, 48), // Makes buttons square and consistent size
+        ),
+        child: Text(
+          flagEmojis[languageCode] ??
+              '🏳️', // Default to white flag if language code not found
+          style: const TextStyle(
+            fontSize: 24.0, // Make flags larger
+          ),
+        ),
       ),
     );
   }

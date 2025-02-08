@@ -2,6 +2,8 @@ library my_app.globals;
 
 import 'dart:io';
 
+import 'package:foodex/translations.dart';
+
 class Globals {
   static int? userId;
   static int? vehicleID;
@@ -24,8 +26,14 @@ class Globals {
   static File? parcursOut;
   static var driver;
 
+  static String currentLanguage = 'en';
+
   static void clearRouteDates() {
     startDate = null;
     endDate = null;
+  }
+
+  static String getText(String key) {
+    return Translations.getText(key, currentLanguage);
   }
 }
