@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foodex/deliveryInfo.dart';
 import 'package:foodex/expense_log_page.dart';
 import 'package:foodex/loginPage.dart';
@@ -119,17 +121,24 @@ class _DriverPageState extends State<DriverPage> {
   }
 
   Future<void> _syncVehicleStatus() async {
-  try {
-    final vehicleId = await _orderService.checkVehicleLogin();
-    setState(() {
-      _vehicleLoggedIn = vehicleId != null;
-    });
-  } catch (e) {
-    setState(() {
-      _vehicleLoggedIn = false;
-    });
+    if (Globals.vehicleID != null) {
+      setState(() {
+        _vehicleLoggedIn = true;
+      });
+      return;
+    }
+
+    try {
+      final vehicleId = await _orderService.checkVehicleLogin();
+      setState(() {
+        _vehicleLoggedIn = vehicleId != null;
+      });
+    } catch (e) {
+      setState(() {
+        _vehicleLoggedIn = false;
+      });
+    }
   }
-}
 
   Future<void> fetchInitialOrders() async {
     setState(() {
@@ -286,7 +295,7 @@ class _DriverPageState extends State<DriverPage> {
                 orElse: () => defaultContactPerson);
 
             return GestureDetector(
-              onTap: () => Navigator.push(
+              onTap: () => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => DeliveryInfo(orderId: order.orderId)),
@@ -595,7 +604,7 @@ class _DriverPageState extends State<DriverPage> {
             SizedBox(height: isSmallScreen ? 20 : 24),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context,
+                Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => const LoginPage()));
               },
               icon: Icon(Icons.login, size: isSmallScreen ? 20 : 24),
@@ -625,43 +634,43 @@ class _DriverPageState extends State<DriverPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(Globals.getText('driverPage'),
-            style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-        actions: [
-          if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: _refreshOrderData,
-              tooltip: 'Refresh Orders',
-            ),
-        ],
-        iconTheme:
-            const IconThemeData(color: Colors.white), // For hamburger icon
-      ),
-      drawer: _buildDrawer(),
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: _buildBody()),
+
+    return  Scaffold(
+          appBar: AppBar(
+            title: Text(Globals.getText('driverPage'),
+                style: TextStyle(color: Colors.white)),
+            backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+            actions: [
+              if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: _refreshOrderData,
+                  tooltip: 'Refresh Orders',
                 ),
-              ),
             ],
-          );
-        },
-      ),
-    );
+            iconTheme:
+                const IconThemeData(color: Colors.white), // For hamburger icon
+          ),
+          drawer: _buildDrawer(),
+          body: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: _buildBody()),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
   }
 
   Widget _buildDrawer() {
@@ -712,7 +721,7 @@ class _DriverPageState extends State<DriverPage> {
             title: Text(Globals.getText('myLogs')),
             onTap: () {
               Navigator.pop(context); // Close drawer
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const MyLogPage()),
               );
@@ -725,7 +734,7 @@ class _DriverPageState extends State<DriverPage> {
               title: Text(Globals.getText("myCar")),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const VehicleDataPage()),
@@ -748,7 +757,7 @@ class _DriverPageState extends State<DriverPage> {
             title: Text(Globals.getText('shifts')),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const ShiftsPage()),
               );
@@ -770,13 +779,13 @@ class _DriverPageState extends State<DriverPage> {
                 onTap: () {
                   Navigator.pop(context);
                   if (vehicleId != null) {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const LogoutPage()),
                     );
                   } else {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const LoginPage()),
@@ -909,7 +918,7 @@ class _DriverPageState extends State<DriverPage> {
               FloatingActionButton(
                 heroTag: 'submit_expense',
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const VehicleExpensePage()),
@@ -930,7 +939,7 @@ class _DriverPageState extends State<DriverPage> {
               FloatingActionButton(
                 heroTag: 'expense_log',
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const ExpenseLogPage()),

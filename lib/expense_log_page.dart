@@ -206,6 +206,12 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
     }
   }
 
+  @override
+  void dispose() {
+    // Clean up resources here
+    super.dispose();
+  }
+
   void _showErrorDialog(String title, String message) {
     showDialog<void>(
       context: context,
@@ -474,193 +480,198 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
         onPopInvokedWithResult: (didPop, result) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DriverPage()),
+            MaterialPageRoute(
+              builder: (context) => const DriverPage(),
+            ),
           );
-
           // Prevent defaultR back behavior since we're handling navigation
         },
         child: Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DriverPage()),
-            );
-          },
-        ),
-        title: Text(
-          '${Globals.getText('expenseLog')}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 4,
-        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.grey[100]!,
-              Colors.white,
-            ],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 16.0),
-              // Filter Container
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.0),
-                  border: Border.all(
-                    width: 1,
-                    color: Colors.grey[300]!,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DriverPage(),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${Globals.getText('logsDate')}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 1, 160, 226),
+                );
+              },
+            ),
+            title: Text(
+              '${Globals.getText('expenseLog')}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            centerTitle: true,
+            elevation: 4,
+            backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.grey[100]!,
+                  Colors.white,
+                ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16.0),
+                  // Filter Container
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.all(20.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.0),
+                      border: Border.all(
+                        width: 1,
+                        color: Colors.grey[300]!,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.calendar_today, size: 18),
-                            label: Text(
-                              _startDate != null
-                                  ? DateFormat('yyyy-MM-dd').format(_startDate!)
-                                  : '${Globals.getText('logsFrom')}',
-                            ),
-                            onPressed: () => _selectStartDate(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
-                              elevation: 2,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.calendar_today, size: 18),
-                            label: Text(
-                              _endDate != null
-                                  ? DateFormat('yyyy-MM-dd').format(_endDate!)
-                                  : '${Globals.getText('logsTo')}',
-                            ),
-                            onPressed: () => _selectEndDate(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
-                              elevation: 2,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                            ),
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          '${Globals.getText('vehicleDataType')}',
+                          '${Globals.getText('logsDate')}',
                           style: const TextStyle(
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
+                            color: Color.fromARGB(255, 1, 160, 226),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        buildTypeDropdown()
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon:
+                                    const Icon(Icons.calendar_today, size: 18),
+                                label: Text(
+                                  _startDate != null
+                                      ? DateFormat('yyyy-MM-dd')
+                                          .format(_startDate!)
+                                      : '${Globals.getText('logsFrom')}',
+                                ),
+                                onPressed: () => _selectStartDate(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Colors.black87,
+                                  elevation: 2,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon:
+                                    const Icon(Icons.calendar_today, size: 18),
+                                label: Text(
+                                  _endDate != null
+                                      ? DateFormat('yyyy-MM-dd')
+                                          .format(_endDate!)
+                                      : '${Globals.getText('logsTo')}',
+                                ),
+                                onPressed: () => _selectEndDate(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Colors.black87,
+                                  elevation: 2,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${Globals.getText('vehicleDataType')}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            buildTypeDropdown()
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _applyFilters,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 1, 160, 226),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 3,
+                            ),
+                            child: Text(
+                              '${Globals.getText('logsApply')}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _applyFilters,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                        ),
-                        child: Text(
-                          '${Globals.getText('logsApply')}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Data Table Container
+                  _buildDataTable()
+                ],
               ),
-              const SizedBox(height: 16.0),
-              // Data Table Container
-              _buildDataTable()
-            ],
+            ),
           ),
-        ),
-      ),
-    )
-    );
-    
+        ));
   }
 
   Widget _buildDataTable() {

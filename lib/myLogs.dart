@@ -248,6 +248,12 @@ class _MyLogPageState extends State<MyLogPage> {
     });
   }
 
+  @override
+  void dispose() {
+    // Clean up resources here
+    super.dispose();
+  }
+
   void _showErrorDialog(String title, String message) {
     showDialog<void>(
       context: context,
@@ -421,7 +427,9 @@ class _MyLogPageState extends State<MyLogPage> {
       onPopInvokedWithResult: (didPop, result) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DriverPage()),
+          MaterialPageRoute(
+            builder: (context) => const DriverPage(),
+          ),
         );
       },
       child: Scaffold(
@@ -431,7 +439,9 @@ class _MyLogPageState extends State<MyLogPage> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const DriverPage()),
+                MaterialPageRoute(
+                  builder: (context) => const DriverPage(),
+                ),
               );
             },
           ),

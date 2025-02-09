@@ -507,11 +507,11 @@ class _LoginPageState extends State<LoginPage> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.pushAndRemoveUntil(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const DriverPage()),
-                      (route) => false,
+                        builder: (context) => const DriverPage(),
+                      ),
                     );
                   },
                   child: const Text('OK'),
@@ -556,17 +556,14 @@ class _LoginPageState extends State<LoginPage> {
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
-          print("vehcile id set to null");
-
           Globals.vehicleID = null;
-          print(Globals.vehicleID);
-          Navigator.pushAndRemoveUntil(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DriverPage()),
-            (route) => false,
+            MaterialPageRoute(
+              builder: (context) => const DriverPage(),
+            ),
           );
-
-          // Prevent default back behavior since we're handling navigation
+          // Prevent defaultR back behavior since we're handling navigation
         },
         child: Scaffold(
           backgroundColor: Colors.grey.shade50,
@@ -574,13 +571,12 @@ class _LoginPageState extends State<LoginPage> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                print("vehcile id set to null");
                 Globals.vehicleID = null;
-                print(Globals.vehicleID);
-                Navigator.pushAndRemoveUntil(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const DriverPage()),
-                  (route) => false,
+                  MaterialPageRoute(
+                    builder: (context) => const DriverPage(),
+                  ),
                 );
               },
             ),

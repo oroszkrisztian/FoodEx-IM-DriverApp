@@ -113,7 +113,9 @@ class _ShiftsPageState extends State<ShiftsPage> {
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const DriverPage()),
+            MaterialPageRoute(
+              builder: (context) => const DriverPage(),
+            ),
           );
         }
 
@@ -141,7 +143,9 @@ class _ShiftsPageState extends State<ShiftsPage> {
               } else {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const DriverPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const DriverPage(),
+                  ),
                 );
               }
             },
@@ -149,7 +153,8 @@ class _ShiftsPageState extends State<ShiftsPage> {
           title: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('${Globals.getText('shiftTitle')}', style: TextStyle(color: Colors.white)),
+              Text('${Globals.getText('shiftTitle')}',
+                  style: TextStyle(color: Colors.white)),
               Text(
                 '${DateFormat('MMM dd').format(_startDate)} - ${DateFormat('MMM dd').format(_endDate)}',
                 style: const TextStyle(
@@ -171,6 +176,12 @@ class _ShiftsPageState extends State<ShiftsPage> {
         body: _buildBody(_startDate, _endDate),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up resources here
+    super.dispose();
   }
 
   Widget _buildBody(DateTime start, DateTime end) {

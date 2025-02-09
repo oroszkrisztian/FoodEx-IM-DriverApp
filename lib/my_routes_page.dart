@@ -255,7 +255,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                   orElse: () => defaultContactPerson);
 
                           return GestureDetector(
-                            onTap: () => Navigator.push(
+                            onTap: () => Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => DeliveryInfo(

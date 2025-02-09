@@ -482,7 +482,7 @@ class _LogoutPageState extends State<LogoutPage> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  //Navigator.of(context).pop();
                   //_resetVehicleData(); // Reset vehicle-related data only
                   Navigator.pushReplacement(
                     context,
@@ -505,283 +505,306 @@ class _LogoutPageState extends State<LogoutPage> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
     final primaryColor = const Color.fromARGB(255, 1, 160, 226);
-
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DriverPage()),
-            );
-          },
-        ),
-        elevation: 0,
-        title: Text(
-          "${Globals.getText('logoutVehicleTitle')}",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: isSmallScreen ? 18 : 20,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: primaryColor,
-      ),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor)),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Loading vehicle details...',
-                    style: TextStyle(
-                        color: primaryColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: isSmallScreen ? 14 : 16),
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DriverPage(),
+            ),
+          );
+          // Prevent defaultR back behavior since we're handling navigation
+        },
+        child: Scaffold(
+          backgroundColor: Colors.grey.shade50,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DriverPage(),
                   ),
-                ],
+                );
+              },
+            ),
+            elevation: 0,
+            title: Text(
+              "${Globals.getText('logoutVehicleTitle')}",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: isSmallScreen ? 18 : 20,
+                color: Colors.white,
               ),
-            )
-          : _errorMessage != null
+            ),
+            centerTitle: true,
+            backgroundColor: primaryColor,
+          ),
+          body: _isLoading
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: isSmallScreen ? 40 : 48, color: primaryColor),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: primaryColor,
-                              fontSize: isSmallScreen ? 14 : 16),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(primaryColor)),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Loading vehicle details...',
+                        style: TextStyle(
+                            color: primaryColor,
+                            fontWeight: FontWeight.w500,
+                            fontSize: isSmallScreen ? 14 : 16),
+                      ),
+                    ],
                   ),
                 )
-              : SafeArea(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: isSmallScreen ? 12.0 : 16.0,
-                          vertical: isSmallScreen ? 12.0 : 20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Vehicle Details Card
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+              : _errorMessage != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline,
+                                size: isSmallScreen ? 40 : 48,
+                                color: primaryColor),
+                            const SizedBox(height: 16),
+                            Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: primaryColor,
+                                  fontSize: isSmallScreen ? 14 : 16),
                             ),
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Vehicle Details',
-                                    style: TextStyle(
-                                      fontSize: isSmallScreen ? 18 : 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade800,
-                                    ),
-                                  ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
-                                  TextField(
-                                    controller: _kmController,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    decoration: InputDecoration(
-                                      labelText:
-                                          '${Globals.getText('loginVehicleMileage')}',
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.always,
-                                      hintText: _lastKm != null
-                                          ? '${Globals.getText('loginVehicleLast')} $_lastKm km'
-                                          : 'Enter current mileage',
-                                      prefixIcon: Icon(Icons.speed,
-                                          color: primaryColor),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: isSmallScreen ? 12 : 16,
-                                        vertical: isSmallScreen ? 8 : 12,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                            color: primaryColor, width: 2),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isSmallScreen ? 12 : 20),
-
-                          // Documentation Card
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.document_scanner_outlined,
-                                        color: Colors.grey.shade800,
-                                        size: isSmallScreen ? 20 : 24,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${Globals.getText('loginVehicleDocumentation')}',
-                                        style: TextStyle(
-                                          fontSize: isSmallScreen ? 18 : 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      _buildImageInput(
-                                          1, _image6, isSmallScreen),
-                                      _buildImageInput(
-                                          6, parcursOut, isSmallScreen),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isSmallScreen ? 12 : 20),
-
-                          // Vehicle Photos Card
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.car_crash_outlined,
-                                        color: Colors.grey.shade800,
-                                        size: isSmallScreen ? 20 : 24,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${Globals.getText('loginVehicleCondition')}',
-                                        style: TextStyle(
-                                          fontSize: isSmallScreen ? 18 : 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
-                                  Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          _buildImageInput(
-                                              2, _image7, isSmallScreen),
-                                          _buildImageInput(
-                                              3, _image8, isSmallScreen),
-                                        ],
-                                      ),
-                                      SizedBox(height: isSmallScreen ? 8 : 16),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          _buildImageInput(
-                                              4, _image9, isSmallScreen),
-                                          _buildImageInput(
-                                              5, _image10, isSmallScreen),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isSmallScreen ? 20 : 24),
-
-                          // Submit Button
-                          SizedBox(
-                            height: isSmallScreen ? 48 : 56,
-                            child: ElevatedButton(
-                              onPressed: _submitData,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SafeArea(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 12.0 : 16.0,
+                              vertical: isSmallScreen ? 12.0 : 20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Vehicle Details Card
+                              Card(
                                 elevation: 2,
-                              ),
-                              child: Text(
-                                '${Globals.getText('logoutVehicleBottomButton')}',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 16 : 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(
+                                      isSmallScreen ? 12.0 : 16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Vehicle Details',
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 18 : 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade800,
+                                        ),
+                                      ),
+                                      SizedBox(height: isSmallScreen ? 12 : 16),
+                                      TextField(
+                                        controller: _kmController,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly
+                                        ],
+                                        decoration: InputDecoration(
+                                          labelText:
+                                              '${Globals.getText('loginVehicleMileage')}',
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.always,
+                                          hintText: _lastKm != null
+                                              ? '${Globals.getText('loginVehicleLast')} $_lastKm km'
+                                              : 'Enter current mileage',
+                                          prefixIcon: Icon(Icons.speed,
+                                              color: primaryColor),
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: isSmallScreen ? 12 : 16,
+                                            vertical: isSmallScreen ? 8 : 12,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                                color: Colors.grey.shade300),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                                color: Colors.grey.shade300),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                                color: primaryColor, width: 2),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
+                              SizedBox(height: isSmallScreen ? 12 : 20),
+
+                              // Documentation Card
+                              Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(
+                                      isSmallScreen ? 12.0 : 16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.document_scanner_outlined,
+                                            color: Colors.grey.shade800,
+                                            size: isSmallScreen ? 20 : 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '${Globals.getText('loginVehicleDocumentation')}',
+                                            style: TextStyle(
+                                              fontSize: isSmallScreen ? 18 : 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey.shade800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: isSmallScreen ? 12 : 16),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _buildImageInput(
+                                              1, _image6, isSmallScreen),
+                                          _buildImageInput(
+                                              6, parcursOut, isSmallScreen),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 12 : 20),
+
+                              // Vehicle Photos Card
+                              Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(
+                                      isSmallScreen ? 12.0 : 16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.car_crash_outlined,
+                                            color: Colors.grey.shade800,
+                                            size: isSmallScreen ? 20 : 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '${Globals.getText('loginVehicleCondition')}',
+                                            style: TextStyle(
+                                              fontSize: isSmallScreen ? 18 : 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey.shade800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: isSmallScreen ? 12 : 16),
+                                      Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              _buildImageInput(
+                                                  2, _image7, isSmallScreen),
+                                              _buildImageInput(
+                                                  3, _image8, isSmallScreen),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                              height: isSmallScreen ? 8 : 16),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              _buildImageInput(
+                                                  4, _image9, isSmallScreen),
+                                              _buildImageInput(
+                                                  5, _image10, isSmallScreen),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 20 : 24),
+
+                              // Submit Button
+                              SizedBox(
+                                height: isSmallScreen ? 48 : 56,
+                                child: ElevatedButton(
+                                  onPressed: _submitData,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 2,
+                                  ),
+                                  child: Text(
+                                    '${Globals.getText('logoutVehicleBottomButton')}',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 16 : 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 16 : 24),
+                            ],
                           ),
-                          SizedBox(height: isSmallScreen ? 16 : 24),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-    );
+        ));
   }
 
   @override
