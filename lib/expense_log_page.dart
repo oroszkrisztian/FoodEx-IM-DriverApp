@@ -477,7 +477,7 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
             MaterialPageRoute(builder: (context) => const DriverPage()),
           );
 
-          // Prevent default back behavior since we're handling navigation
+          // Prevent defaultR back behavior since we're handling navigation
         },
         child: Scaffold(
       appBar: AppBar(

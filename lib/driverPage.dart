@@ -119,24 +119,17 @@ class _DriverPageState extends State<DriverPage> {
   }
 
   Future<void> _syncVehicleStatus() async {
-    if (Globals.vehicleID != null) {
-      setState(() {
-        _vehicleLoggedIn = true;
-      });
-      return;
-    }
-
-    try {
-      final vehicleId = await _orderService.checkVehicleLogin();
-      setState(() {
-        _vehicleLoggedIn = vehicleId != null;
-      });
-    } catch (e) {
-      setState(() {
-        _vehicleLoggedIn = false;
-      });
-    }
+  try {
+    final vehicleId = await _orderService.checkVehicleLogin();
+    setState(() {
+      _vehicleLoggedIn = vehicleId != null;
+    });
+  } catch (e) {
+    setState(() {
+      _vehicleLoggedIn = false;
+    });
   }
+}
 
   Future<void> fetchInitialOrders() async {
     setState(() {
