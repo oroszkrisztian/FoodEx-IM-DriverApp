@@ -276,104 +276,92 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildImageInput(int imageNumber, File? image, bool isSmallScreen) {
-    String label;
-    switch (imageNumber) {
-      case 1:
-        label = 'Dashboard';
-        break;
-      case 2:
-        label = 'Front Left';
-        break;
-      case 3:
-        label = 'Front Right';
-        break;
-      case 4:
-        label = 'Rear Left';
-        break;
-      case 5:
-        label = 'Rear Right';
-        break;
-      case 6:
-        label = 'Logbook';
-        break;
-      default:
-        label = 'Unknown';
-    }
+    final Map<int, String> labels = {
+      1: 'loginVehicleDashboard',
+      2: 'loginVehicleFrontLeft',
+      3: 'loginVehicleFrontRight',
+      4: 'loginVehicleRearLeft',
+      5: 'loginVehicleRearRight',
+      6: 'loginVehicleLogbook',
+    };
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final containerWidth =
-        isSmallScreen ? screenWidth * 0.43 : screenWidth * 0.42;
+    final totalHorizontalPadding = isSmallScreen ? 48.0 : 64.0;
+    final containerWidth = (screenWidth - totalHorizontalPadding - 24) / 2;
     final primaryColor = const Color.fromARGB(255, 1, 160, 226);
 
-    return Container(
-      height: isSmallScreen ? 140 : 160,
-      width: containerWidth,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          //width: 1.5,
-          color: image != null ? primaryColor : Colors.grey.shade300,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: isSmallScreen ? 8 : 12,
-                vertical: isSmallScreen ? 4 : 6),
-            decoration: BoxDecoration(
-              color: image != null
-                  ? primaryColor.withOpacity(0.1)
-                  : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: image != null ? primaryColor : Colors.grey.shade700,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isSmallScreen ? 12 : 14,
-                  ),
-                ),
-                if (image != null) ...[
-                  const SizedBox(width: 4),
-                  Icon(Icons.check_circle,
-                      color: primaryColor, size: isSmallScreen ? 14 : 16),
-                ],
-              ],
+    return GestureDetector(
+      onTap: () => _showImage(image, imageNumber),
+      child: SizedBox(
+        height: isSmallScreen ? 120 : 140,
+        width: containerWidth,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(
+              color: image != null ? primaryColor : Colors.grey.shade300,
             ),
           ),
-          SizedBox(height: isSmallScreen ? 16 : 24),
-          ElevatedButton.icon(
-            onPressed: () => _showImage(image, imageNumber),
-            icon: Icon(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding:
+                    EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 10),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 8 : 10,
+                    vertical: isSmallScreen ? 6 : 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: image != null
+                        ? primaryColor.withOpacity(0.1)
+                        : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '${Globals.getText(labels[imageNumber] ?? 'Unknown')}',
+                          style: TextStyle(
+                            color: image != null
+                                ? primaryColor
+                                : Colors.grey.shade700,
+                            fontWeight: FontWeight.w600,
+                            fontSize:
+                                isSmallScreen ? 13 : 15, // Increased font size
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      if (image != null) ...[
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.check_circle,
+                          color: primaryColor,
+                          size: isSmallScreen ? 14 : 16,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              Icon(
                 image != null
                     ? Icons.remove_red_eye_outlined
                     : Icons.camera_alt_outlined,
-                size: isSmallScreen ? 16 : 18),
-            label: Text(
-              image != null ? 'Preview' : 'Take Photo',
-              style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: primaryColor,
-              elevation: 0,
-              side: BorderSide(color: primaryColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                size: isSmallScreen ? 28 : 32, // Increased icon size
+                color: primaryColor,
               ),
-              padding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 12 : 16,
-                  vertical: isSmallScreen ? 8 : 10),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -568,9 +556,20 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const DriverPage()),
+                (route) => false // This removes all previous routes
+                );
+            Globals.vehicleID = null;
+          },
+        ),
         elevation: 0,
         title: Text(
-          "Vehicle Login",
+          "${Globals.getText('loginVehicleTitle')}",
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: isSmallScreen ? 18 : 20,
@@ -653,7 +652,7 @@ class _LoginPageState extends State<LoginPage> {
                                 elevation: 2,
                               ),
                               child: Text(
-                                'Login Vehicle',
+                                '${Globals.getText('loginVehicleBottomButton')}',
                                 style: TextStyle(
                                   fontSize: isSmallScreen ? 16 : 18,
                                   fontWeight: FontWeight.w600,
@@ -683,7 +682,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Vehicle Details',
+              '${Globals.getText('loginVehicleDetails')}',
               style: TextStyle(
                 fontSize: isSmallScreen ? 18 : 20,
                 fontWeight: FontWeight.bold,
@@ -715,7 +714,7 @@ class _LoginPageState extends State<LoginPage> {
                 }
               },
               decoration: InputDecoration(
-                labelText: 'Select Vehicle',
+                labelText: '${Globals.getText('loginVehicleSelect')}',
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 12 : 16,
@@ -741,10 +740,10 @@ class _LoginPageState extends State<LoginPage> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: 'Current Mileage',
+                labelText: '${Globals.getText('loginVehicleMileage')}',
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintText: _lastKm != null
-                    ? 'Last recorded: $_lastKm km'
+                    ? '${Globals.getText('loginVehicleLast')} $_lastKm km'
                     : 'Enter current mileage',
                 prefixIcon: Icon(Icons.speed, color: primaryColor),
                 contentPadding: EdgeInsets.symmetric(
@@ -792,7 +791,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Required Documentation',
+                  '${Globals.getText('loginVehicleDocumentation')}',
                   style: TextStyle(
                     fontSize: isSmallScreen ? 18 : 20,
                     fontWeight: FontWeight.bold,
@@ -836,7 +835,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Vehicle Condition Photos',
+                  '${Globals.getText('loginVehicleCondition')}',
                   style: TextStyle(
                     fontSize: isSmallScreen ? 18 : 20,
                     fontWeight: FontWeight.bold,

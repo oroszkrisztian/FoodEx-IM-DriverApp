@@ -149,7 +149,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
           title: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Shifts', style: TextStyle(color: Colors.white)),
+              Text('${Globals.getText('shiftTitle')}', style: TextStyle(color: Colors.white)),
               Text(
                 '${DateFormat('MMM dd').format(_startDate)} - ${DateFormat('MMM dd').format(_endDate)}',
                 style: const TextStyle(
@@ -228,7 +228,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                     buildDateRange(),
                     SizedBox(height: isSmallScreen ? 12 : 16),
                     Text(
-                      'No Future Shifts Found',
+                      '${Globals.getText('shiftNoFuture')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 18 : 20,
                         fontWeight: FontWeight.bold,
@@ -244,7 +244,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 onPressed: _loadShifts,
                 icon: Icon(Icons.refresh, size: isSmallScreen ? 20 : 24),
                 label: Text(
-                  'Check Again',
+                  '${Globals.getText('checkAgain')}',
                   style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -279,7 +279,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
             buildDateRange(),
             SizedBox(height: isSmallScreen ? 12 : 16),
             Text(
-              'No Shifts Found',
+              '${Globals.getText('shiftNoFound')}',
               style: TextStyle(
                 fontSize: isSmallScreen ? 20 : 24,
                 fontWeight: FontWeight.bold,
@@ -291,7 +291,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
               padding:
                   EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 24.0),
               child: Text(
-                'There are no shifts scheduled for this time period',
+                '${Globals.getText('shiftNoScheduled')}',
                 style: TextStyle(
                   fontSize: isSmallScreen ? 14 : 16,
                   color: Colors.black87,
@@ -304,7 +304,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
               onPressed: _loadShifts,
               icon: Icon(Icons.refresh, size: isSmallScreen ? 20 : 24),
               label: Text(
-                'Check Again',
+                '${Globals.getText('checkAgain')}',
                 style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
               ),
               style: ElevatedButton.styleFrom(
@@ -419,7 +419,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                         child: Row(
                           children: [
                             Text(
-                              'Shift Duration: ',
+                              '${Globals.getText('shiftDuration')}: ',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.grey.shade600,
@@ -518,7 +518,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                                 size: 22, color: Colors.green.shade700),
                             const SizedBox(width: 8.0),
                             Text(
-                              '$totalOrders orders',
+                              '$totalOrders ${Globals.getText('shiftOrders')}',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.grey.shade800,
@@ -557,9 +557,9 @@ class _ShiftsPageState extends State<ShiftsPage> {
     final minutesPart = ((hours - hoursPart) * 60).round();
 
     if (minutesPart == 0) {
-      return '$hoursPart hours';
+      return '$hoursPart ${Globals.getText('shiftHours')}';
     } else {
-      return '$hoursPart hours $minutesPart min';
+      return '$hoursPart ${Globals.getText('shiftHours')} $minutesPart ${Globals.getText('shiftMin')}';
     }
   }
 

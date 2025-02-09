@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:foodex/driverPage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'globals.dart'; // Assuming you have a globals.dart file for global variables
@@ -346,26 +347,12 @@ class _MyLogPageState extends State<MyLogPage> {
   }
 
   void _applyFilters() {
-    _fetchLogData().then((_) {
-      setState(() {
-        _filteredLogData.sort((a, b) {
-          DateTime dateTimeA = DateFormat('yyyy-MM-dd HH:mm')
-              .parse('${a.inShiftDate} ${a.from}');
-          DateTime dateTimeB = DateFormat('yyyy-MM-dd HH:mm')
-              .parse('${b.inShiftDate} ${b.from}');
-          return dateTimeB.compareTo(dateTimeA);
-        });
-      });
-    });
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _startDate = null;
-      _endDate = null;
-      _selectedCarId = -1; // Reset to "All Vehicles"
-      _filteredLogData = _logData;
-    });
+    if (_startDate == null || _endDate == null) {
+      _showThemedDialog(
+          '${Globals.getText('error')}', '${Globals.getText('selectDate')}');
+      return;
+    }
+    _fetchLogData();
   }
 
   void _showImageDialog(List<String> photoUrls) {
@@ -429,43 +416,162 @@ class _MyLogPageState extends State<MyLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Logs', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        backgroundColor:
-            const Color.fromARGB(255, 1, 160, 226), // Blue theme color
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 16.0),
-                  DateSelectionContainer(
-                    startDate: _startDate,
-                    endDate: _endDate,
-                    cars: _cars,
-                    selectedCarId: _selectedCarId,
-                    onSelectStartDate: () => _selectStartDate(context),
-                    onSelectEndDate: () => _selectEndDate(context),
-                    onVehicleChanged: (newValue) {
-                      setState(() {
-                        _selectedCarId = newValue;
-                      });
-                    },
-                    onApplyFilters: _applyFilters,
-                  ),
-                  const SizedBox(height: 16.0),
-                  LogDataTable(
-                    logData: _filteredLogData,
-                    onImageTap: _showImageDialog,
-                  ),
-                ],
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DriverPage()),
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const DriverPage()),
+              );
+            },
+          ),
+          title: Text(
+            '${Globals.getText('logs')}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
             ),
+          ),
+          centerTitle: true,
+          elevation: 4,
+          backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+        ),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.grey[100]!,
+                Colors.white,
+              ],
+            ),
+          ),
+          child: _isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color.fromARGB(255, 1, 160, 226),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '${Globals.getText('loading')}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 16.0),
+                      DateSelectionContainer(
+                        startDate: _startDate,
+                        endDate: _endDate,
+                        cars: _cars,
+                        selectedCarId: _selectedCarId,
+                        onSelectStartDate: () => _selectStartDate(context),
+                        onSelectEndDate: () => _selectEndDate(context),
+                        onVehicleChanged: (newValue) {
+                          setState(() {
+                            _selectedCarId = newValue;
+                          });
+                        },
+                        onApplyFilters: _applyFilters,
+                      ),
+                      const SizedBox(height: 16.0),
+                      LogDataTable(
+                        logData: _filteredLogData,
+                        onImageTap: _showImageDialog,
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  void _showThemedDialog(String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 160, 226),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text('${Globals.getText('close')}'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -495,19 +601,20 @@ class DateSelectionContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
         border: Border.all(
           width: 1,
-          color: Colors.black,
+          color: Colors.grey[300]!,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
@@ -515,99 +622,136 @@ class DateSelectionContainer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text(
-            'Date',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+          Text(
+            '${Globals.getText('logsDate')}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 1, 160, 226),
+            ),
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(
-                onPressed: onSelectStartDate,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: Text(
+                    startDate == null
+                        ? '${Globals.getText('logsFrom')}'
+                        : DateFormat('yyyy-MM-dd').format(startDate!),
                   ),
-                ),
-                child: Text(
-                  startDate == null
-                      ? 'From'
-                      : DateFormat('yyyy-MM-dd').format(startDate!),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  onPressed: onSelectStartDate,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Colors.grey[300]!,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 16.0),
-              ElevatedButton(
-                onPressed: onSelectEndDate,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.calendar_today, size: 18),
+                  label: Text(
+                    endDate == null
+                        ? '${Globals.getText('logsTo')}'
+                        : DateFormat('yyyy-MM-dd').format(endDate!),
                   ),
-                ),
-                child: Text(
-                  endDate == null
-                      ? 'To'
-                      : DateFormat('yyyy-MM-dd').format(endDate!),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  onPressed: onSelectEndDate,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Colors.grey[300]!,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16.0),
-          const Text(
-            'Vehicles',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-          ),
-          const SizedBox(height: 8.0),
-          Center(
-            child: DropdownButton<int>(
-              value: selectedCarId,
-              onChanged: onVehicleChanged,
-              items: cars.map((Car cars) {
-                return DropdownMenuItem<int>(
-                  value: cars.id,
-                  child: Text(
-                    cars.id == -1
-                        ? 'All Vehicles'
-                        : '${cars.make} ${cars.model} - ${cars.licencePlate}',
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                );
-              }).toList(),
-              hint: Text(
-                selectedCarId == null
-                    ? 'Select Car'
-                    : cars.firstWhere((car) => car.id == selectedCarId).make,
+          const SizedBox(height: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${Globals.getText('logsVehicles')}',
                 style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
               ),
-              dropdownColor: Colors.white,
-              underline: Container(
-                height: 2,
-                color: Colors.white,
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                  color: Colors.white,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: DropdownButton<int>(
+                  value: selectedCarId,
+                  isExpanded: true,
+                  underline: Container(),
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Color.fromARGB(255, 1, 160, 226),
+                  ),
+                  onChanged: onVehicleChanged,
+                  items: cars.map((Car car) {
+                    return DropdownMenuItem<int>(
+                      value: car.id,
+                      child: Text(
+                        car.id == -1
+                            ? '${Globals.getText('logsVehiclesSelect')}'
+                            : '${car.make} ${car.model} - ${car.licencePlate}',
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 16.0),
-          Center(
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
             child: ElevatedButton(
               onPressed: onApplyFilters,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color.fromARGB(255, 1, 160, 226), // Blue theme color
+                backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 3,
               ),
-              child: const Text(
-                'Apply Filters',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                '${Globals.getText('logsApply')}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -640,20 +784,67 @@ class LogDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (logData.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(
+            width: 1,
+            color: Colors.grey[300]!,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${Globals.getText('noDataForDateAndType')}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
         border: Border.all(
           width: 1,
-          color: Colors.black,
+          color: Colors.grey[300]!,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
@@ -661,45 +852,35 @@ class LogDataTable extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          columnSpacing: 20,
-          columns: const [
+          headingTextStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 1, 160, 226),
+          ),
+          dataTextStyle: const TextStyle(
+            color: Colors.black87,
+            fontSize: 14,
+          ),
+          columnSpacing: 24,
+          horizontalMargin: 12,
+          columns: [
+            DataColumn(label: Text('${Globals.getText('logsTableDate')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableVehicle')}')),
+            //DataColumn(label: Text('${Globals.getText('logsTableDriver')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableFrom')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableTo')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableTime')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableStartKm')}')),
+            DataColumn(label: Text('${Globals.getText('logsTableEndKm')}')),
             DataColumn(
-                label: Text('Date',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Vehicle',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Driver',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('From',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('To',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Time',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Start KM',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('End KM',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Difference',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Photos',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
+                label: Text('${Globals.getText('logsTableDifference')}')),
+            DataColumn(label: Text('${Globals.getText('logsTablePhotos')}')),
           ],
           rows: logData.map((log) {
             return DataRow(
               cells: [
                 DataCell(Text(log.inShiftDate)),
                 DataCell(Text(log.vehicle)),
-                DataCell(Text(log.driver)),
+                //DataCell(Text(log.driver)),
                 DataCell(Text(formatDateTime(log.inShiftDate, log.from))),
                 DataCell(Text(formatDateTime(log.outShiftDate, log.to))),
                 DataCell(Text(log.totalTime)),

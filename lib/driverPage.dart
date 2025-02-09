@@ -103,7 +103,7 @@ class _DriverPageState extends State<DriverPage> {
         _user = user;
       });
       await _syncVehicleStatus();
-      if (_isLoggedIn) {
+      if (_isLoggedIn && _vehicleLoggedIn) {
         await fetchInitialOrders();
       }
     } catch (e) {
@@ -277,8 +277,7 @@ class _DriverPageState extends State<DriverPage> {
             final pickupWarehouse = order.warehouses.firstWhere(
                 (wh) => wh.type == 'pickup',
                 orElse: () => defaultPickupWarehouse);
-            final deliveryWarehouse = order.warehouses.firstWhere(
-                (wh) => wh.type == 'delivery',
+            order.warehouses.firstWhere((wh) => wh.type == 'delivery',
                 orElse: () => defaultPickupWarehouse);
             final pickupCompany = order.companies.firstWhere(
                 (comp) => comp.type == 'pickup',
@@ -467,7 +466,8 @@ class _DriverPageState extends State<DriverPage> {
                                       SharedIndicators.buildDocumentIndicator(
                                           'EKR', order.ekr.isNotEmpty),
                                       SharedIndicators.buildDocumentIndicator(
-                                          'Invoice', order.invoice.isNotEmpty),
+                                          '${Globals.getText('orderInvoice')}',
+                                          order.invoice.isNotEmpty),
                                       SharedIndicators.buildDocumentIndicator(
                                           'CMR', order.cmr.isNotEmpty),
                                     ],
@@ -588,7 +588,7 @@ class _DriverPageState extends State<DriverPage> {
                   ),
                   SizedBox(height: isSmallScreen ? 12 : 16),
                   Text(
-                    'Please log in to a vehicle',
+                    '${Globals.getText('pleaseLoginVehicle')}',
                     style: TextStyle(
                       fontSize: isSmallScreen ? 18 : 20,
                       fontWeight: FontWeight.bold,
@@ -607,7 +607,7 @@ class _DriverPageState extends State<DriverPage> {
               },
               icon: Icon(Icons.login, size: isSmallScreen ? 20 : 24),
               label: Text(
-                'Vehicle Login',
+                '${Globals.getText('loginVehicleButton')}',
                 style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
               ),
               style: ElevatedButton.styleFrom(
@@ -632,7 +632,7 @@ class _DriverPageState extends State<DriverPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(Globals.getText('driverPage'),
@@ -716,7 +716,7 @@ class _DriverPageState extends State<DriverPage> {
           ListTile(
             leading:
                 const Icon(Icons.list, color: Color.fromARGB(255, 1, 160, 226)),
-            title: Text(Globals.getText('logs')),
+            title: Text(Globals.getText('myLogs')),
             onTap: () {
               Navigator.pop(context); // Close drawer
               Navigator.push(
@@ -823,16 +823,6 @@ class _DriverPageState extends State<DriverPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    Globals.getText('selectLanguage'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 1, 160, 226),
-                    ),
-                  ),
-                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -851,10 +841,10 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.3',
+              'Version 1.3.4',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: isSmallScreen ? 20.0 : 24.0,
+                fontSize: isSmallScreen ? 16.0 : 20.0,
               ),
             ),
           ),
@@ -933,12 +923,12 @@ class _DriverPageState extends State<DriverPage> {
                   );
                 },
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.add, color: Colors.white),
                     Text(
-                      'Submit',
+                      '${Globals.getText('submit')}',
                       style: TextStyle(fontSize: 10, color: Colors.white),
                     ),
                   ],
@@ -954,12 +944,12 @@ class _DriverPageState extends State<DriverPage> {
                   );
                 },
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.list, color: Colors.white),
                     Text(
-                      'Logs',
+                      '${Globals.getText('logs')}',
                       style: TextStyle(fontSize: 10, color: Colors.white),
                     ),
                   ],

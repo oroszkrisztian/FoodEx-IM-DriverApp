@@ -59,7 +59,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Image Preview'),
+          title: Text('${Globals.getText('expensePreview')}'),
           content: Image.file(image),
           actions: <Widget>[
             TextButton(
@@ -70,7 +70,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Close'),
+              child: Text('${Globals.getText('expenseClose')}'),
             ),
           ],
         );
@@ -219,8 +219,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Completed'),
-          content: const Text('Your expense has been completed.'),
+          title: Text('${Globals.getText('expenseCompletedSuccess')}'),
+          content: Text('${Globals.getText('expenseCompletedSuccessMessage')}'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -263,7 +263,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Close'),
+              child: Text('${Globals.getText('expenseClose')}'),
             ),
           ],
         );
@@ -323,7 +323,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text('Take a picture'),
+                child: Text('${Globals.getText('expensePicture')}'),
               ),
               const SizedBox(height: 8),
               ElevatedButton(
@@ -338,7 +338,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: const Text('Preview'),
+                child: Text('${Globals.getText('expensePreview')}'),
               ),
             ],
           ),
@@ -360,7 +360,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Submit Vehicle Expense',
+        title: Text('${Globals.getText('expenseTitle')}',
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
       ),
@@ -396,8 +396,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                       child: Column(
                         children: [
                           DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                                labelText: 'Expense Type'),
+                            decoration: InputDecoration(
+                                labelText: '${Globals.getText('expenseSelectType')}'),
                             items: _expenseTypes.map((String type) {
                               return DropdownMenuItem<String>(
                                 value: type,
@@ -441,7 +441,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                             controller: _remarksController,
                             keyboardType: TextInputType.text,
                             decoration:
-                                const InputDecoration(labelText: 'Remarks'),
+                                InputDecoration(labelText: '${Globals.getText('expenseSelectRemarks')}'),
                             validator: (value) {
                               // No longer mandatory, so return null to indicate it's valid
                               return null;
@@ -452,7 +452,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                             controller: _costController,
                             keyboardType: TextInputType.number,
                             decoration:
-                                const InputDecoration(labelText: 'Cost'),
+                                InputDecoration(labelText: '${Globals.getText('expenseSelectCost')}'),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter cost';
@@ -478,8 +478,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                           // Add this just before _buildImageContainer call
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            decoration: const InputDecoration(
-                              labelText: 'Currency',
+                            decoration: InputDecoration(
+                              labelText: '${Globals.getText('expenseSelectCurrency')}',
                             ),
                             value: _selectedCurrency,
                             items: ['RON', 'HUF', 'EUR'].map((String currency) {
@@ -500,7 +500,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                           ),
 
                           const SizedBox(height: 16.0),
-                          _buildImageContainer('Expense Image', _image),
+                          _buildImageContainer('${Globals.getText('expenseImage')}', _image),
                           if (_image == null)
                             const Padding(
                               padding: EdgeInsets.only(top: 8.0),
@@ -548,8 +548,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: const Text(
-            'Submit Expense',
+          child: Text(
+            '${Globals.getText('expenseSubmit')}',
             style: TextStyle(color: Colors.white),
           ),
         ),

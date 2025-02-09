@@ -207,105 +207,92 @@ class _LogoutPageState extends State<LogoutPage> {
   }
 
   Widget _buildImageInput(int imageNumber, File? image, bool isSmallScreen) {
-    String label;
-    switch (imageNumber) {
-      case 1:
-        label = 'Dashboard';
-        break;
-      case 2:
-        label = 'Front Left';
-        break;
-      case 3:
-        label = 'Front Right';
-        break;
-      case 4:
-        label = 'Rear Left';
-        break;
-      case 5:
-        label = 'Rear Right';
-        break;
-      case 6:
-        label = 'Logbook';
-        break;
-      default:
-        label = 'Unknown';
-    }
+    final Map<int, String> labels = {
+      1: 'loginVehicleDashboard',
+      2: 'loginVehicleFrontLeft',
+      3: 'loginVehicleFrontRight',
+      4: 'loginVehicleRearLeft',
+      5: 'loginVehicleRearRight',
+      6: 'loginVehicleLogbook',
+    };
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final containerWidth =
-        isSmallScreen ? screenWidth * 0.43 : screenWidth * 0.42;
+    final totalHorizontalPadding = isSmallScreen ? 48.0 : 64.0;
+    final containerWidth = (screenWidth - totalHorizontalPadding - 24) / 2;
     final primaryColor = const Color.fromARGB(255, 1, 160, 226);
 
-    return Container(
-      height: isSmallScreen ? 140 : 160,
-      width: containerWidth,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          //width: 1.5,
-          color: image != null ? primaryColor : Colors.grey.shade300,
-        ),
-        
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: isSmallScreen ? 8 : 12,
-                vertical: isSmallScreen ? 4 : 6),
-            decoration: BoxDecoration(
-              color: image != null
-                  ? primaryColor.withOpacity(0.1)
-                  : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: image != null ? primaryColor : Colors.grey.shade700,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isSmallScreen ? 12 : 14,
-                  ),
-                ),
-                if (image != null) ...[
-                  const SizedBox(width: 4),
-                  Icon(Icons.check_circle,
-                      color: primaryColor, size: isSmallScreen ? 14 : 16),
-                ],
-              ],
+    return GestureDetector(
+      onTap: () => _showImage(image, imageNumber),
+      child: SizedBox(
+        height: isSmallScreen ? 120 : 140,
+        width: containerWidth,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(
+              color: image != null ? primaryColor : Colors.grey.shade300,
             ),
           ),
-          SizedBox(height: isSmallScreen ? 16 : 24),
-          ElevatedButton.icon(
-            onPressed: () => _showImage(image, imageNumber),
-            icon: Icon(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding:
+                    EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 10),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 8 : 10,
+                    vertical: isSmallScreen ? 6 : 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: image != null
+                        ? primaryColor.withOpacity(0.1)
+                        : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '${Globals.getText(labels[imageNumber] ?? 'Unknown')}',
+                          style: TextStyle(
+                            color: image != null
+                                ? primaryColor
+                                : Colors.grey.shade700,
+                            fontWeight: FontWeight.w600,
+                            fontSize:
+                                isSmallScreen ? 13 : 15, // Increased font size
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      if (image != null) ...[
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.check_circle,
+                          color: primaryColor,
+                          size: isSmallScreen ? 14 : 16,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              Icon(
                 image != null
                     ? Icons.remove_red_eye_outlined
                     : Icons.camera_alt_outlined,
-                size: isSmallScreen ? 16 : 18),
-            label: Text(
-              image != null ? 'Preview' : 'Take Photo',
-              style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: primaryColor,
-              elevation: 0,
-              side: BorderSide(color: primaryColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                size: isSmallScreen ? 28 : 32, // Increased icon size
+                color: primaryColor,
               ),
-              padding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 12 : 16,
-                  vertical: isSmallScreen ? 8 : 10),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -514,162 +501,6 @@ class _LogoutPageState extends State<LogoutPage> {
   }
 
   @override
-  Widget _buildVehicleDetailsCard(bool isSmallScreen, Color primaryColor) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Vehicle Details',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 18 : 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            SizedBox(height: isSmallScreen ? 12 : 16),
-            TextField(
-              controller: _kmController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                labelText: 'Current Mileage',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-                hintText: _lastKm != null
-                    ? 'Last recorded: $_lastKm km'
-                    : 'Enter current mileage',
-                prefixIcon: Icon(Icons.speed, color: primaryColor),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 12 : 16,
-                  vertical: isSmallScreen ? 8 : 12,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDocumentationCard(bool isSmallScreen, Color primaryColor) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.document_scanner_outlined,
-                  color: Colors.grey.shade800,
-                  size: isSmallScreen ? 20 : 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Required Documentation',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: isSmallScreen ? 12 : 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildImageInput(1, _image6, isSmallScreen),
-                _buildImageInput(6, parcursOut, isSmallScreen),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVehiclePhotosCard(bool isSmallScreen, Color primaryColor) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.car_crash_outlined,
-                  color: Colors.grey.shade800,
-                  size: isSmallScreen ? 20 : 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Vehicle Condition Photos',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: isSmallScreen ? 12 : 16),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildImageInput(2, _image7, isSmallScreen),
-                    _buildImageInput(3, _image8, isSmallScreen),
-                  ],
-                ),
-                SizedBox(height: isSmallScreen ? 8 : 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildImageInput(4, _image9, isSmallScreen),
-                    _buildImageInput(5, _image10, isSmallScreen),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
@@ -678,9 +509,18 @@ class _LogoutPageState extends State<LogoutPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DriverPage()),
+            );
+          },
+        ),
         elevation: 0,
         title: Text(
-          "Vehicle Logout",
+          "${Globals.getText('logoutVehicleTitle')}",
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: isSmallScreen ? 18 : 20,
@@ -766,11 +606,12 @@ class _LogoutPageState extends State<LogoutPage> {
                                       FilteringTextInputFormatter.digitsOnly
                                     ],
                                     decoration: InputDecoration(
-                                      labelText: 'Current Mileage',
+                                      labelText:
+                                          '${Globals.getText('loginVehicleMileage')}',
                                       floatingLabelBehavior:
                                           FloatingLabelBehavior.always,
                                       hintText: _lastKm != null
-                                          ? 'Last recorded: $_lastKm km'
+                                          ? '${Globals.getText('loginVehicleLast')} $_lastKm km'
                                           : 'Enter current mileage',
                                       prefixIcon: Icon(Icons.speed,
                                           color: primaryColor),
@@ -823,7 +664,7 @@ class _LogoutPageState extends State<LogoutPage> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Required Documentation',
+                                        '${Globals.getText('loginVehicleDocumentation')}',
                                         style: TextStyle(
                                           fontSize: isSmallScreen ? 18 : 20,
                                           fontWeight: FontWeight.bold,
@@ -871,7 +712,7 @@ class _LogoutPageState extends State<LogoutPage> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Vehicle Condition Photos',
+                                        '${Globals.getText('loginVehicleCondition')}',
                                         style: TextStyle(
                                           fontSize: isSmallScreen ? 18 : 20,
                                           fontWeight: FontWeight.bold,
@@ -925,7 +766,7 @@ class _LogoutPageState extends State<LogoutPage> {
                                 elevation: 2,
                               ),
                               child: Text(
-                                'Logout Vehicle',
+                                '${Globals.getText('logoutVehicleBottomButton')}',
                                 style: TextStyle(
                                   fontSize: isSmallScreen ? 16 : 18,
                                   fontWeight: FontWeight.w600,

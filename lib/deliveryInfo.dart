@@ -115,7 +115,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 DataColumn(
                   label: Expanded(
                     child: Text(
-                      'Product Name',
+                      '${Globals.getText('orderName')}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.grey.shade800,
@@ -126,7 +126,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 ),
                 DataColumn(
                   label: Text(
-                    'Weight (kg)',
+                    '${Globals.getText('orderWeight')} (kg)',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey.shade800,
@@ -137,7 +137,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 ),
                 DataColumn(
                   label: Text(
-                    'Price (RON)',
+                    '${Globals.getText('orderPrice')} (RON)',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey.shade800,
@@ -251,7 +251,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 DataColumn(
                   label: Expanded(
                     child: Text(
-                      'Container Type',
+                      '${Globals.getText('orderContainer')}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.grey.shade800,
@@ -262,7 +262,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 ),
                 DataColumn(
                   label: Text(
-                    'Weight (kg)',
+                    '${Globals.getText('orderWeight')} (kg)',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey.shade800,
@@ -272,7 +272,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 ),
                 DataColumn(
                   label: Text(
-                    'Price (RON)',
+                    '${Globals.getText('orderPrice')} (RON)',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey.shade800,
@@ -354,7 +354,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Order Summary',
+                '${Globals.getText('orderSummary')}',
                 style: TextStyle(
                   fontSize: isSmallScreen ? 16.0 : 18.0,
                   fontWeight: FontWeight.bold,
@@ -366,7 +366,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total Weight:',
+                    '${Globals.getText('orderTotalWeight')}:',
                     style: TextStyle(
                       fontSize: isSmallScreen ? 14.0 : 16.0,
                       color: Colors.grey.shade600,
@@ -563,7 +563,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                         ),
                         SizedBox(height: 8.0),
                         Text(
-                          'Invoice',
+                          '${Globals.getText('orderInvoice')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             fontWeight: FontWeight.bold,
@@ -675,7 +675,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                     ),
                     const SizedBox(height: 8.0),
                     Text(
-                      'Palets',
+                      '${Globals.getText('orderPalets')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14.0 : 16.0,
                         fontWeight: FontWeight.bold,
@@ -715,7 +715,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                     ),
                     const SizedBox(height: 8.0),
                     Text(
-                      'Crates',
+                      '${Globals.getText('orderCrates')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14.0 : 16.0,
                         fontWeight: FontWeight.bold,
@@ -753,16 +753,16 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 await DeliveryService().pickupOrder(order.orderId, false);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Order picked up successfully')),
+                    SnackBar(
+                        content: Text('${Globals.getText('orderPickupFeedback')}')),
                   );
                 }
               } else if (order.delivered == '0000-00-00 00:00:00') {
                 await DeliveryService().deliverOrder(order.orderId, false);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Order delivered successfully')),
+                    SnackBar(
+                        content: Text('${Globals.getText('orderDeliveryFeedback')}')),
                   );
                 }
               }
@@ -777,9 +777,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         ),
         child: Text(
           order.pickedUp == '0000-00-00 00:00:00'
-              ? 'Pick Up Order'
+              ? '${Globals.getText('orderPickup')}'
               : order.delivered == '0000-00-00 00:00:00'
-                  ? 'Deliver Order'
+                  ? '${Globals.getText('orderDeliver')}'
                   : '',
           style: TextStyle(
             color: Colors.white,
@@ -903,9 +903,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
               }
             },
           ),
-          title: const Center(
+          title: Center(
             child: Text(
-              'Delivery Information',
+              '${Globals.getText('orderTitle')}',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -973,8 +973,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       ),
                                     ),
                                     Text(
-                                      DateFormat('MM-dd (E) HH:mm').format(
-                                          DateTime.parse(order.pickupTime)),
+                                      '${DateFormat('MM-dd').format(DateTime.parse(order.pickupTime))} (${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))}) ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 14.0 : 16.0,
                                         fontWeight: FontWeight.bold,
@@ -986,7 +985,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                 Wrap(
                                   children: [
                                     Text(
-                                      'Address: ',
+                                      '${Globals.getText('orderAddress')}: ',
                                       style: TextStyle(
                                           fontSize: isSmallScreen ? 16.0 : 18.0,
                                           fontWeight: FontWeight.bold,
@@ -1094,7 +1093,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                               ),
                                               const SizedBox(width: 12.0),
                                               Text(
-                                                'Pickup Contact',
+                                                '${Globals.getText('orderPickupContact')}',
                                                 style: TextStyle(
                                                   fontSize: isSmallScreen
                                                       ? 14.0
@@ -1150,7 +1149,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                               ),
                                               const SizedBox(width: 12.0),
                                               Text(
-                                                'Notes',
+                                                '${Globals.getText('orderNotes')}',
                                                 style: TextStyle(
                                                   fontSize: isSmallScreen
                                                       ? 14.0
@@ -1195,20 +1194,19 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       ),
                                     ),
                                     Text(
-                                      DateFormat('MM-dd (E) HH:mm').format(
-                                          DateTime.parse(order.deliveryTime)),
+                                      '${DateFormat('MM-dd').format(DateTime.parse(order.deliveryTime))} (${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))}) ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 14.0 : 16.0,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                    ),
+                                    )
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Wrap(
                                   children: [
                                     Text(
-                                      'Address: ',
+                                      '${Globals.getText('orderAddress')}: ',
                                       style: TextStyle(
                                           fontSize: isSmallScreen ? 16.0 : 18.0,
                                           fontWeight: FontWeight.bold,
@@ -1320,7 +1318,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                               ),
                                               const SizedBox(width: 12.0),
                                               Text(
-                                                'Delivery Contact',
+                                                '${Globals.getText('orderDeliveryContact')}',
                                                 style: TextStyle(
                                                   fontSize: isSmallScreen
                                                       ? 14.0
@@ -1375,7 +1373,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                               ),
                                               const SizedBox(width: 12.0),
                                               Text(
-                                                'Notes',
+                                                '${Globals.getText('orderNotes')}',
                                                 style: TextStyle(
                                                   fontSize: isSmallScreen
                                                       ? 14.0
@@ -1509,7 +1507,7 @@ void openContactPerson(BuildContext context, String name, String telephone) {
                     onPressed: () => openDialer(context, telephone),
                     icon: const Icon(Icons.phone, color: Colors.white),
                     label: Text(
-                      'Call',
+                      '${Globals.getText('orderCall')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14.0 : 16.0,
                         color: Colors.white,
@@ -1540,7 +1538,7 @@ void openContactPerson(BuildContext context, String name, String telephone) {
                       ),
                     ),
                     child: Text(
-                      'Close',
+                      '${Globals.getText('orderClose')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14.0 : 16.0,
                         color: Colors.green.shade700,
@@ -1650,7 +1648,7 @@ void openNotes(BuildContext context, String notes) {
                     ),
                   ),
                   child: Text(
-                    'Close',
+                    '${Globals.getText('orderClose')}',
                     style: TextStyle(
                       fontSize: isSmallScreen ? 14.0 : 16.0,
                       color: Colors.amber.shade700,
@@ -1783,7 +1781,7 @@ void showUitEkr(BuildContext context, String? uit, String? ekr, int orderId,
                       ),
                     ),
                     child: Text(
-                      'Close',
+                      '${Globals.getText('orderClose')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14.0 : 16.0,
                         color: Colors.green.shade700,
@@ -1973,7 +1971,7 @@ void ShowInvoiceCmr(BuildContext context, String relativePdfUrl,
                           ),
                         ),
                         child: Text(
-                          'Close',
+                          '${Globals.getText('orderClose')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             color: Colors.green.shade700,
@@ -2049,7 +2047,7 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Update UIT",
+                "${Globals.getText('orderUpdate')} UIT",
                 style: TextStyle(
                   fontSize: isSmallScreen ? 30.0 : 34.0,
                   fontWeight: FontWeight.bold,
@@ -2059,7 +2057,7 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
               const SizedBox(height: 16),
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Enter new UIT',
+                  hintText: '${Globals.getText('orderUit')}',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -2075,7 +2073,7 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      'Cancel',
+                      '${Globals.getText('orderCancel')}',
                       style: TextStyle(color: Colors.grey.shade700),
                     ),
                   ),
@@ -2108,7 +2106,7 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Update',
+                    child: Text('${Globals.getText('orderUpdate')}',
                         style: TextStyle(color: Colors.white)),
                   ),
                 ],
@@ -2150,7 +2148,7 @@ void updateEkr(BuildContext context, int orderId, Function reloadPage) {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Update EKR",
+                "${Globals.getText('orderUpdate')} EKR",
                 style: TextStyle(
                   fontSize: isSmallScreen ? 30.0 : 34.0,
                   fontWeight: FontWeight.bold,
@@ -2160,7 +2158,7 @@ void updateEkr(BuildContext context, int orderId, Function reloadPage) {
               const SizedBox(height: 16),
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Enter new EKR',
+                  hintText: '${Globals.getText('orderEkr')}',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -2176,7 +2174,7 @@ void updateEkr(BuildContext context, int orderId, Function reloadPage) {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      'Cancel',
+                      '${Globals.getText('orderCancel')}',
                       style: TextStyle(color: Colors.grey.shade700),
                     ),
                   ),
@@ -2208,7 +2206,7 @@ void updateEkr(BuildContext context, int orderId, Function reloadPage) {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Update',
+                    child: Text('${Globals.getText('orderUpdate')}',
                         style: TextStyle(color: Colors.white)),
                   ),
                 ],
@@ -2263,7 +2261,7 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                       ),
                       SizedBox(height: 8.0),
                       Text(
-                        'Invoice',
+                        '${Globals.getText('orderInvoice')}',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 28.0 : 32.0,
                           fontWeight: FontWeight.bold,
@@ -2289,7 +2287,7 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('Select Images',
+                    child: Text('${Globals.getText('orderSelectImages')}',
                         style: TextStyle(color: Colors.white)),
                   ),
                   if (selectedFiles.isNotEmpty) ...[
@@ -2337,7 +2335,7 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(
-                          'Close',
+                          '${Globals.getText('orderClose')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             color: Colors.blue.shade700,
@@ -2379,7 +2377,7 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         ),
                         child: Text(
-                          'Upload',
+                          '${Globals.getText('orderUpload')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             color: Colors.white,
@@ -2467,7 +2465,7 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
                     ),
-                    child: const Text('Select Images',
+                    child: Text('${Globals.getText('orderSelectImages')}',
                         style: TextStyle(color: Colors.white)),
                   ),
                   if (selectedFiles.isNotEmpty) ...[
@@ -2515,7 +2513,7 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(
-                          'Close',
+                          '${Globals.getText('orderClose')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             color: Colors.blue.shade700,
@@ -2555,7 +2553,7 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         ),
                         child: Text(
-                          'Upload',
+                          '${Globals.getText('orderUpload')}',
                           style: TextStyle(
                             fontSize: isSmallScreen ? 14.0 : 16.0,
                             color: Colors.white,
@@ -2622,7 +2620,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Update Crates',
+                        '${Globals.getText('orderCratesTitle')}',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 20 : 24,
                           fontWeight: FontWeight.bold,
@@ -2643,7 +2641,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                       children: [
                         DropdownButtonFormField<String>(
                           value: selectedCrateType,
-                          hint: const Text('Select Crate Type'),
+                          hint: Text('${Globals.getText('orderCratesTitle')}'),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
@@ -2663,7 +2661,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                         const SizedBox(height: 16),
                         TextFormField(
                           decoration: InputDecoration(
-                            labelText: 'Quantity',
+                            labelText: '${Globals.getText('orderPaletsQuantity')}',
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -2694,7 +2692,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         ),
                         child: Text(
-                          'Cancel',
+                          '${Globals.getText('orderCancel')}',
                           style: TextStyle(color: Colors.grey.shade700),
                         ),
                       ),
@@ -2725,7 +2723,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Update',
+                        child: Text('${Globals.getText('orderUpdate')}',
                             style: TextStyle(color: Colors.white)),
                       ),
                     ],
@@ -2787,7 +2785,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Update Palets',
+                        '${Globals.getText('orderPaletsTitle')}',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 20 : 24,
                           fontWeight: FontWeight.bold,
@@ -2808,7 +2806,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                       children: [
                         DropdownButtonFormField<String>(
                           value: selectedPaletType,
-                          hint: const Text('Select Palet Type'),
+                          hint: Text('${Globals.getText('orderPaletsType')}'),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
@@ -2830,7 +2828,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                         const SizedBox(height: 16),
                         TextFormField(
                           decoration: InputDecoration(
-                            labelText: 'Quantity',
+                            labelText: '${Globals.getText('orderPaletsQuantity')}',
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -2861,7 +2859,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         ),
                         child: Text(
-                          'Cancel',
+                          '${Globals.getText('orderCancel')}',
                           style: TextStyle(color: Colors.grey.shade700),
                         ),
                       ),
@@ -2893,7 +2891,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Update',
+                        child: Text('${Globals.getText('orderUpdate')}',
                             style: TextStyle(color: Colors.white)),
                       ),
                     ],
@@ -2968,8 +2966,8 @@ void showConfirmationDialog(
               const SizedBox(height: 16),
               Text(
                 order.pickedUp == '0000-00-00 00:00:00'
-                    ? 'Confirm Pickup'
-                    : 'Confirm Delivery',
+                    ? '${Globals.getText('orderConfirmPickupTitle')}'
+                    : '${Globals.getText('orderConfirmDeliveryTitle')}',
                 style: TextStyle(
                   fontSize: isSmallScreen ? 20 : 24,
                   fontWeight: FontWeight.bold,
@@ -2979,8 +2977,8 @@ void showConfirmationDialog(
               const SizedBox(height: 12),
               Text(
                 order.pickedUp == '0000-00-00 00:00:00'
-                    ? 'Are you sure you want to pick up this order?'
-                    : 'Are you sure you want to deliver this order?',
+                    ? '${Globals.getText('orderConfirmPickupText')}'
+                    : '${Globals.getText('orderConfirmDeliveryText')}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: isSmallScreen ? 16 : 18,
@@ -3000,7 +2998,7 @@ void showConfirmationDialog(
                       ),
                     ),
                     child: Text(
-                      'Cancel',
+                      '${Globals.getText('orderCancel')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14 : 16,
                         color: Colors.grey.shade700,
@@ -3028,7 +3026,7 @@ void showConfirmationDialog(
                       ),
                     ),
                     child: Text(
-                      'Confirm',
+                      '${Globals.getText('OrderConfirm')}',
                       style: TextStyle(
                         fontSize: isSmallScreen ? 14 : 16,
                         color: Colors.white,

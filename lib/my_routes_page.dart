@@ -176,7 +176,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
             title: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Routes', style: TextStyle(color: Colors.white)),
+                Text('${Globals.getText('routesTitle')}', style: TextStyle(color: Colors.white)),
                 Text(
                   '${DateFormat('MMM dd').format(widget.startDate)}',
                   style: const TextStyle(
@@ -196,9 +196,9 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _filterButton(OrderFilter.all, 'All'),
-                    _filterButton(OrderFilter.active, 'Active'),
-                    _filterButton(OrderFilter.inactive, 'Delivered'),
+                    _filterButton(OrderFilter.all, '${Globals.getText('routesAll')}'),
+                    _filterButton(OrderFilter.active, '${Globals.getText('routesActive')}'),
+                    _filterButton(OrderFilter.inactive, '${Globals.getText('routesDelivered')}'),
                   ],
                 ),
               ),
@@ -285,7 +285,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                       children: [
                                         Row(
                                           children: [
-                                            const Text('Partner: ',
+                                            Text('${Globals.getText('orderPartner')}: ',
                                                 style: TextStyle(
                                                     fontSize: 14.0,
                                                     fontWeight:
@@ -342,7 +342,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                 children: [
                                                   Expanded(
                                                       child: Text(
-                                                          'Address: ${pickupWarehouse.warehouseAddress}',
+                                                          '${Globals.getText('orderAddress')}: ${pickupWarehouse.warehouseAddress}',
                                                           style:
                                                               const TextStyle(
                                                                   fontSize:
@@ -423,7 +423,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                 children: [
                                                   Expanded(
                                                       child: Text(
-                                                          'Address: ${deliveryWarehouse.warehouseAddress}',
+                                                          '${Globals.getText('orderAddress')}: ${deliveryWarehouse.warehouseAddress}',
                                                           style:
                                                               const TextStyle(
                                                                   fontSize:
@@ -494,7 +494,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                                 .isNotEmpty),
                                                     SharedIndicators
                                                         .buildDocumentIndicator(
-                                                            'Invoice',
+                                                            '${Globals.getText('orderInvoice')}',
                                                             order.invoice
                                                                 .isNotEmpty),
                                                     SharedIndicators
