@@ -279,6 +279,9 @@ class _DriverPageState extends State<DriverPage> {
             final pickupWarehouse = order.warehouses.firstWhere(
                 (wh) => wh.type == 'pickup',
                 orElse: () => defaultPickupWarehouse);
+            final deliverWarehouse = order.warehouses.firstWhere(
+                (wh) => wh.type == 'delivery',
+                orElse: () => defaultPickupWarehouse);
             order.warehouses.firstWhere((wh) => wh.type == 'delivery',
                 orElse: () => defaultPickupWarehouse);
             final pickupCompany = order.companies.firstWhere(
@@ -422,7 +425,7 @@ class _DriverPageState extends State<DriverPage> {
                                   children: [
                                     Expanded(
                                         child: Text(
-                                            '${Globals.getText('address')}: ${pickupWarehouse.warehouseAddress}',
+                                            '${Globals.getText('address')}: ${deliverWarehouse.warehouseAddress}',
                                             style: const TextStyle(
                                                 fontSize: 12.0))),
                                     Row(
@@ -456,7 +459,7 @@ class _DriverPageState extends State<DriverPage> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('${order.getTotalWeight()} kg',
+                                  Text('${order.getTotalOrderedQuantity()} kg',
                                       style: const TextStyle(
                                           fontSize: 14.0,
                                           fontWeight: FontWeight.bold)),
@@ -635,42 +638,42 @@ class _DriverPageState extends State<DriverPage> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    return  Scaffold(
-          appBar: AppBar(
-            title: Text(Globals.getText('driverPage'),
-                style: TextStyle(color: Colors.white)),
-            backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-            actions: [
-              if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: _refreshOrderData,
-                  tooltip: 'Refresh Orders',
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(Globals.getText('driverPage'),
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+        actions: [
+          if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _refreshOrderData,
+              tooltip: 'Refresh Orders',
+            ),
+        ],
+        iconTheme:
+            const IconThemeData(color: Colors.white), // For hamburger icon
+      ),
+      drawer: _buildDrawer(),
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: _buildBody()),
                 ),
+              ),
             ],
-            iconTheme:
-                const IconThemeData(color: Colors.white), // For hamburger icon
-          ),
-          drawer: _buildDrawer(),
-          body: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: _buildBody()),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildDrawer() {

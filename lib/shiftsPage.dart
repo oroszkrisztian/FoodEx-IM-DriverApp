@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
 import 'package:foodex/globals.dart';
+import 'package:foodex/models/colections.dart';
 import 'package:foodex/my_routes_page.dart';
 import 'package:foodex/services/shift_service.dart';
 import 'package:foodex/models/shift.dart';
@@ -340,6 +341,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
       itemCount: _shifts!.length,
       itemBuilder: (context, index) {
         final shift = _shifts![index];
+        print('total weight ${shift.totalWeight}');
         return _buildShiftCard(
           shift.vehicle,
           shift.startTime.toString(),
@@ -347,16 +349,34 @@ class _ShiftsPageState extends State<ShiftsPage> {
           shift.remarks,
           shift.totalOrder,
           shift.totalWeight,
+          shift.collectionUnits
         );
       },
     ); // Return your shifts list here
   }
 
-  Widget _buildShiftCard(String vehicleName, String startDate, String endDate,
-      String? remarks, int totalOrders, double totalWeight) {
+  Widget _buildShiftCard(
+      String vehicleName,
+      String startDate,
+      String endDate,
+      String? remarks,
+      int totalOrders,
+      double totalWeight,
+      List<CollectionUnit> collectionUnits) {
     final start = DateTime.parse(startDate);
     final end = DateTime.parse(endDate);
     final duration = calculateDuration(startDate, endDate);
+
+    // Format collection units into a single string
+    String formatCollectionUnits(List<CollectionUnit> units) {
+      if (units.isEmpty) return '';
+
+      List<String> formattedUnits = units.map((unit) {
+        return '${unit.quantity} x ${unit.name}';
+      }).toList();
+
+      return formattedUnits.join('; ');
+    }
 
     return InkWell(
       onTap: () {
@@ -371,195 +391,241 @@ class _ShiftsPageState extends State<ShiftsPage> {
         );
       },
       child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white, Colors.grey.shade50],
-            ),
-            borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(
-              width: 1,
-              color: Colors.black,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, Colors.grey.shade50],
           ),
-          child: Container(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(
+            width: 1,
+            color: Colors.black,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.access_time_rounded,
+                            size: 22, color: Colors.grey.shade700),
+                        const SizedBox(width: 12.0),
+                        Expanded(
+                          child: Text(
+                            '${DateFormat('MMM d').format(start)} ${DateFormat('HH:mm').format(start)} - '
+                            '${start.day != end.day ? "${DateFormat('MMM d').format(end)} " : ""}'
+                            '${DateFormat('HH:mm').format(end)}',
+                            style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 34.0, top: 8.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            '${Globals.getText('shiftDuration')}: ',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 2.0),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                            child: Text(
+                              formatDuration(duration),
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Row(
+                children: [
+                  Icon(Icons.local_shipping_rounded,
+                      size: 22, color: Colors.grey.shade700),
+                  const SizedBox(width: 12.0),
+                  Expanded(
+                    child: Text(
+                      vehicleName,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.grey.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (remarks != null && remarks.isNotEmpty) ...[
+                const SizedBox(height: 16.0),
                 Container(
                   padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: Colors.amber.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: Colors.amber.withOpacity(0.2),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.note_rounded,
+                          size: 22, color: Colors.amber.shade700),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          remarks,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey.shade800,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16.0),
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(
+                    color: Colors.green.withOpacity(0.2),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.inventory_2_rounded,
+                            size: 22, color: Colors.green.shade700),
+                        const SizedBox(width: 8.0),
+                        Text(
+                          '$totalOrders ${Globals.getText('shiftOrders')}',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.scale_rounded,
+                            size: 22, color: Colors.green.shade700),
+                        const SizedBox(width: 8.0),
+                        Text(
+                          '$totalWeight kg',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (collectionUnits.isNotEmpty) ...[
+                const SizedBox(height: 16.0),
+                Container(
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: Colors.purple.withOpacity(0.2),
+                      width: 1.0,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.access_time_rounded,
-                              size: 22, color: Colors.grey.shade700),
+                          Icon(Icons.recycling,
+                              size: 22, color: Colors.purple.shade700),
                           const SizedBox(width: 12.0),
-                          Expanded(
-                            child: Text(
-                              '${DateFormat('MMM d').format(start)} ${DateFormat('HH:mm').format(start)} - '
-                              '${start.day != end.day ? "${DateFormat('MMM d').format(end)} " : ""}'
-                              '${DateFormat('HH:mm').format(end)}',
-                              style: const TextStyle(
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
+                          Text(
+                            '${Globals.getText('collectionRequirements')}:',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: Colors.purple.shade700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8.0),
                       Padding(
-                        padding: const EdgeInsets.only(left: 34.0, top: 8.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${Globals.getText('shiftDuration')}: ',
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 2.0),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                              child: Text(
-                                formatDuration(duration),
-                                style: TextStyle(
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.blue.shade700,
-                                ),
-                              ),
-                            ),
-                          ],
+                        padding: const EdgeInsets.only(left: 34.0),
+                        child: Text(
+                          formatCollectionUnits(collectionUnits),
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey.shade800,
+                            height: 1.4,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16.0),
-                Row(
-                  children: [
-                    Icon(Icons.local_shipping_rounded,
-                        size: 22, color: Colors.grey.shade700),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Text(
-                        vehicleName,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.grey.shade800,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (remarks != null && remarks.isNotEmpty) ...[
-                  const SizedBox(height: 16.0),
-                  Container(
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: Colors.amber.withOpacity(0.2),
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.note_rounded,
-                            size: 22, color: Colors.amber.shade700),
-                        const SizedBox(width: 12.0),
-                        Expanded(
-                          child: Text(
-                            remarks,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              color: Colors.grey.shade800,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16.0),
-                Container(
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: Colors.green.withOpacity(0.2),
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize
-                              .min, // This ensures the row only takes needed space
-                          children: [
-                            Icon(Icons.inventory_2_rounded,
-                                size: 22, color: Colors.green.shade700),
-                            const SizedBox(width: 8.0),
-                            Text(
-                              '$totalOrders ${Globals.getText('shiftOrders')}',
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.grey.shade800,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize
-                              .min, // This ensures the row only takes needed space
-                          children: [
-                            Icon(Icons.scale_rounded,
-                                size: 22, color: Colors.green.shade700),
-                            const SizedBox(width: 8.0),
-                            Text(
-                              '${totalWeight.toStringAsFixed(1)} kg',
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.grey.shade800,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )),
               ],
-            ),
-          )),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

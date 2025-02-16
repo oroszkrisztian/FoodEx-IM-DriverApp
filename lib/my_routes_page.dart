@@ -176,7 +176,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
             title: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('${Globals.getText('routesTitle')}', style: TextStyle(color: Colors.white)),
+                Text('${Globals.getText('routesTitle')}',
+                    style: TextStyle(color: Colors.white)),
                 Text(
                   '${DateFormat('MMM dd').format(widget.startDate)}',
                   style: const TextStyle(
@@ -196,9 +197,12 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _filterButton(OrderFilter.all, '${Globals.getText('routesAll')}'),
-                    _filterButton(OrderFilter.active, '${Globals.getText('routesActive')}'),
-                    _filterButton(OrderFilter.inactive, '${Globals.getText('routesDelivered')}'),
+                    _filterButton(
+                        OrderFilter.all, '${Globals.getText('routesAll')}'),
+                    _filterButton(OrderFilter.active,
+                        '${Globals.getText('routesActive')}'),
+                    _filterButton(OrderFilter.inactive,
+                        '${Globals.getText('routesDelivered')}'),
                   ],
                 ),
               ),
@@ -285,7 +289,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                       children: [
                                         Row(
                                           children: [
-                                            Text('${Globals.getText('orderPartner')}: ',
+                                            Text(
+                                                '${Globals.getText('orderPartner')}: ',
                                                 style: TextStyle(
                                                     fontSize: 14.0,
                                                     fontWeight:
@@ -473,7 +478,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                    '${order.getTotalWeight()} kg',
+                                                    '${order.getTotalOrderedQuantity()} kg',
                                                     style: const TextStyle(
                                                         fontSize: 14.0,
                                                         fontWeight:
@@ -530,18 +535,16 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                 size: isSmallScreen ? 48 : 54)
                                             : Container(),
                                   ),
-                                ]else Positioned(
-                                  top: isSmallScreen ? 10:12,
-                                  right:  isSmallScreen ? 8 : 12,
-                                  child: Text(
-                                    "DELIVERED",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black
-                                    ),
-                                  )
-                                  
-                                ),
+                                ] else
+                                  Positioned(
+                                      top: isSmallScreen ? 10 : 12,
+                                      right: isSmallScreen ? 8 : 12,
+                                      child: Text(
+                                        "DELIVERED",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black),
+                                      )),
                               ],
                             ),
                           );

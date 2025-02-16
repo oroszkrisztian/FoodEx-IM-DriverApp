@@ -153,92 +153,162 @@ class DeliveryService {
     }
   }
 
-  Future<void> updateCrates(int orderId, int quantity, String type) async {
-    final body = {
-      'action': 'update-order',
-      'type': 'container',
-      'order-id': orderId.toString(),
-      'crate': quantity.toString(),
-      'crate-type': type.toLowerCase(),
-      'pallet': '0',
-      'pallet-type': '0'
-    };
-    print('Sending update crates request: $body');
+  Future<void> updateCrates(
+      int orderId, int quantity, String containerId) async {
+    try {
+      final body = {
+        'action': 'update-order',
+        'type': 'container',
+        'order-id': orderId.toString(),
+        'quantity': quantity.toString(),
+        'container-id': containerId,
+      };
 
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      body: body,
-    );
+      print('Sending update crates request: $body');
 
-    if (response.statusCode == 200) {
-      print('Successfully updated crates. Response: ${response.body}');
-    } else {
-      throw Exception(
-          'Failed to update crates: ${response.statusCode} - ${response.body}');
-    }
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: body,
+      );
 
-    final responseData = jsonDecode(response.body);
-    if (!responseData['success']) {
-      throw Exception('Failed to update crates: ${responseData['message']}');
-    }
-  }
+      print('Crates response status: ${response.statusCode}');
+      print('Crates response body: ${response.body}');
 
-  Future<void> updatePallets(int orderId, int quantity, String type) async {
-    final body = {
-      'action': 'update-order',
-      'type': 'container',
-      'order-id': orderId.toString(),
-      'pallet': quantity.toString(),
-      'pallet-type': type.toLowerCase(),
-      'crate': '0',
-      'crate-type': '0'
-    };
-    print("Url $baseUrl");
-    print('Sending update pallets request: $body');
+      if (response.statusCode == 200) {
+        final String responseBody = response.body;
+        if (responseBody.isEmpty) {
+          throw Exception('Empty response received');
+        }
 
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      body: body,
-    );
+        final responseData = json.decode(responseBody);
+        if (responseData == null) {
+          throw Exception('Failed to decode response');
+        }
 
-    if (response.statusCode == 200) {
-      print('Successfully updated pallets. Response: ${response.body}');
-    } else {
-      throw Exception('Failed to update pallets');
+        if (responseData is Map<String, dynamic> &&
+            responseData['success'] == false) {
+          throw Exception(responseData['message'] ?? 'Failed to update crates');
+        }
+      } else {
+        throw Exception('Failed to update crates: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating crates: $e');
+      throw Exception('Failed to update crates: $e');
     }
   }
 
-// Helper method to handle all updates from dialog
-  // Future<void> handleOrderUpdates(
-  //     int orderId, Map<String, dynamic> updates) async {
-  //   try {
-  //     // Process document updates first
-  //     if (updates['uit']?.isNotEmpty ?? false) {
-  //       await updateOrderUit(orderId, updates['uit']);
-  //     }
+  Future<void> updatePallets(
+      int orderId, int quantity, String containerId) async {
+    try {
+      final body = {
+        'action': 'update-order',
+        'type': 'container',
+        'order-id': orderId.toString(),
+        'quantity': quantity.toString(),
+        'container-id': containerId,
+      };
 
-  //     if (updates['ekr']?.isNotEmpty ?? false) {
-  //       await updateOrderEkr(orderId, updates['ekr']);
-  //     }
+      print('Sending update pallets request: $body');
 
-  //     if (updates['invoice'] != null) {
-  //       await updateOrderInvoice(orderId, File(updates['invoice']));
-  //     }
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: body,
+      );
 
-  //     if (updates['cmr'] != null) {
-  //       await updateOrderCmr(orderId, File(updates['cmr']));
-  //     }
+      print('Pallets response status: ${response.statusCode}');
+      print('Pallets response body: ${response.body}');
 
-  //     // Handle container updates if present
-  //     if (updates['containers'] != null) {
-  //       await updateOrderContainer(
-  //         orderId,
-  //         containerData: updates['containers'],
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('Error handling order updates: $e')  ;
-  //     throw e;
-  //   }
-  // }
+      if (response.statusCode == 200) {
+        final String responseBody = response.body;
+        if (responseBody.isEmpty) {
+          throw Exception('Empty response received');
+        }
+
+        final responseData = json.decode(responseBody);
+        if (responseData == null) {
+          throw Exception('Failed to decode response');
+        }
+
+        if (responseData is Map<String, dynamic> &&
+            responseData['success'] == false) {
+          throw Exception(
+              responseData['message'] ?? 'Failed to update pallets');
+        }
+      } else {
+        throw Exception('Failed to update pallets: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating pallets: $e');
+      throw Exception('Failed to update pallets: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getCollectionUnits(String type) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: {
+          'action': 'get-collection-units',
+          'type': type,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Decode the response body first
+        final decodedResponse = json.decode(response.body);
+
+        // Check if the response is a success and contains data
+        if (decodedResponse is Map && decodedResponse.containsKey('success')) {
+          if (decodedResponse['success'] == true &&
+              decodedResponse.containsKey('data')) {
+            // Extract the data array
+            final List<dynamic> data = decodedResponse['data'];
+            return List<Map<String, dynamic>>.from(data);
+          } else {
+            throw Exception(decodedResponse['message'] ??
+                'Failed to load collection units');
+          }
+        } else if (decodedResponse is List) {
+          // If the response is directly a list
+          return List<Map<String, dynamic>>.from(decodedResponse);
+        } else {
+          throw Exception('Invalid response format');
+        }
+      } else {
+        throw Exception(
+            'Failed to load collection units: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching collection units: $e');
+    }
+  }
+
+  Future<void> updateProductCollection(
+      int orderId, int productId, int received) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: {
+          'action': 'update-order',
+          'type': 'products',
+          'order-id': orderId.toString(),
+          'product-id': productId.toString(),
+          'received': received.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (!result['success']) {
+          throw Exception(result['message']);
+        }
+      } else {
+        throw Exception('Failed to update product collection');
+      }
+    } catch (e) {
+      print('Error updating product collection: $e');
+      throw e;
+    }
+  }
 }

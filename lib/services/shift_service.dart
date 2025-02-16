@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:foodex/models/shift.dart';
 import 'package:http/http.dart' as http;
 
-
 class ShiftService {
   final String baseUrl;
 
@@ -25,13 +24,17 @@ class ShiftService {
         },
       );
 
+      print(
+          'Raw JSON Response: ${response.body}'); // Print the entire JSON string
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        
+
         if (jsonResponse['success'] == true) {
           final List<dynamic> shiftsData = jsonResponse['data'];
-          final shifts = shiftsData.map((shiftData) => Shift.fromJson(shiftData)).toList();
-          
+          final shifts =
+              shiftsData.map((shiftData) => Shift.fromJson(shiftData)).toList();
+
           // Print fetched data to console
           print('Fetched ${shifts.length} shifts:');
           shifts.forEach((shift) {
@@ -41,14 +44,16 @@ class ShiftService {
             print('Start Time: ${shift.startTime}');
             print('End Time: ${shift.endTime}');
             print("Orders ${shift.orders.length}");
+            print("Collection${shift.collectionUnits}");
           });
-          
+
           return shifts;
         } else {
           throw Exception(jsonResponse['message'] ?? 'Failed to load shifts');
         }
       } else {
-        throw Exception('Failed to load shifts. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to load shifts. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error loading shifts: $e');

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:foodex/globals.dart';
+import 'package:foodex/models/colections.dart';
 
 class Shift {
   final int id;
@@ -50,7 +51,7 @@ class Shift {
   // Get total number of orders in the shift
   // Helper methods
   int get totalOrder {
-    if ( orders[0]['order_id'] == null && orders.length == 1) {
+    if (orders[0]['order_id'] == null && orders.length == 1) {
       print(orders.toString());
       return 0;
     } else {
@@ -72,5 +73,58 @@ class Shift {
     }
 
     return total;
+  }
+
+  // Get all collection units across all orders
+  List<CollectionUnit> get collectionUnits {
+    Map<String, CollectionUnit> combinedUnits = {};
+
+    for (var order in orders) {
+      if (order != null && order['products'] != null) {
+        List<dynamic> products = order['products'];
+        for (var product in products) {
+          // Only process if both collection_unit and collection_quantity exist and are not null
+          if (product['collection_unit'] != null &&
+              product['collection_quantity'] != null &&
+              product['collection_unit'].toString().isNotEmpty) {
+            String unitName = product['collection_unit'].toString();
+            int quantity =
+                int.tryParse(product['collection_quantity'].toString()) ?? 0;
+
+            if (quantity > 0) {
+              // Create a unique key for the collection unit
+              String key = unitName;
+
+              if (combinedUnits.containsKey(key)) {
+                // Add to existing quantity
+                var existingUnit = combinedUnits[key]!;
+                combinedUnits[key] = CollectionUnit(
+                    id: existingUnit.id,
+                    type: existingUnit.type,
+                    name: unitName,
+                    quantity: existingUnit.quantity + quantity);
+              } else {
+                // Create new collection unit
+                combinedUnits[key] = CollectionUnit(
+                    id: '1', // Default ID since it's not in the product data
+                    type:
+                        'default', // Default type since it's not in the product data
+                    name: unitName,
+                    quantity: quantity);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Convert to list and sort by name
+    var unitsList = combinedUnits.values.toList();
+    unitsList.sort((a, b) => a.name.compareTo(b.name));
+    return unitsList;
+  }
+
+  int get totalCollectionUnits {
+    return collectionUnits.fold(0, (sum, unit) => sum + unit.quantity);
   }
 }

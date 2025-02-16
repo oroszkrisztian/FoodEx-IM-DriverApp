@@ -105,9 +105,6 @@ class OrderService {
         }
       }
 
-      // Sort orders by pickup time
-      orders.sort((a, b) => a.pickupTime.compareTo(b.pickupTime));
-
       debugPrint('Processed ${orders.length} $status orders');
       return orders;
     } catch (e) {
@@ -165,7 +162,7 @@ class OrderService {
     debugPrint('Total $type orders: ${orders.length}');
     for (var order in orders) {
       debugPrint('$type Order ID: ${order.orderId}, '
-          'Total Product Quantity: ${order.getTotalQuantity()}');
+          'Total Product Quantity: ${order.getTotalOrderedQuantity()}');
       for (var contact in order.contactPeople) {
         debugPrint('Contact for $type order ${order.orderId}: '
             'Name: ${contact.name}, Tel: ${contact.telephone}, Type: ${contact.type}');
@@ -210,7 +207,6 @@ class OrderService {
 
       // Parse the order data from the backend
       final orderJson = data['data'][0];
-
       final orderDetails = orderJson['order_details'] != null
           ? json.decode(orderJson['order_details'])
           : {};
@@ -229,6 +225,12 @@ class OrderService {
           ? _safeJsonDecode(orderJson['contact_people'], '[]')
           : [];
 
+      // Add collection units parsing
+      final collectionUnits = orderJson['collection_units'] != null &&
+              orderJson['collection_units'] != 'null'
+          ? _safeJsonDecode(orderJson['collection_units'], '[]')
+          : [];
+
       // Create and return the order object
       final order = Order.fromJson({
         ...orderDetails,
@@ -236,6 +238,7 @@ class OrderService {
         'warehouses': warehouses,
         'products': products,
         'contact_people': contactPeople,
+        'collection_units': collectionUnits, // Add collection units to the JSON
       });
 
       debugPrint('Fetched order: ${order.orderId}');

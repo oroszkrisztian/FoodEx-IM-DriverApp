@@ -1,3 +1,5 @@
+import 'package:foodex/models/colections.dart';
+
 import 'product.dart';
 import 'company.dart';
 import 'warehouse.dart';
@@ -21,6 +23,7 @@ class Order {
   final List<Warehouse> warehouses;
   final List<Product> products;
   final List<ContactPerson> contactPeople;
+  final List<CollectionUnit> collectionUnits;
 
   Order({
     required this.orderId,
@@ -40,6 +43,7 @@ class Order {
     required this.warehouses,
     required this.products,
     required this.contactPeople,
+    required this.collectionUnits,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -63,6 +67,7 @@ class Order {
     List<dynamic> safeWarehouses = [];
     List<dynamic> safeProducts = [];
     List<dynamic> safeContactPeople = [];
+    List<dynamic> safeCollectionUnits = [];
 
     try {
       safeCompanies = (json['companies'] is List) ? json['companies'] : [];
@@ -87,6 +92,13 @@ class Order {
           (json['contact_people'] is List) ? json['contact_people'] : [];
     } catch (e) {
       print('Error parsing contact_people: $e');
+    }
+
+    try {
+      safeCollectionUnits =
+          (json['collection_units'] is List) ? json['collection_units'] : [];
+    } catch (e) {
+      print('Error parsing collection_units: $e');
     }
 
     return Order(
@@ -115,18 +127,26 @@ class Order {
       contactPeople: safeContactPeople
           .map((contactJson) => ContactPerson.fromJson(contactJson))
           .toList(),
+      collectionUnits: safeCollectionUnits
+          .map((unitJson) => CollectionUnit.fromJson(unitJson))
+          .toList(),
     );
   }
 
   // Method to calculate the total quantity of products
-  int getTotalQuantity() {
-    return products.fold<int>(0, (total, product) => total + product.quantity);
+  double getTotalOrderedQuantity() {
+    return products.fold<double>(0.0,
+        (total, product) => total + (product.ordered * product.productWeight));
   }
 
   //get order by id
+  int getTotalCollection() {
+    return products.fold<int>(
+        0, (total, product) => total + product.collection);
+  }
 
   // Calculate total weight
-  double getTotalWeight() {
+  double getTotalRecievedWeight() {
     return products.fold<double>(0.0,
         (total, product) => total + (product.quantity * product.productWeight));
   }
@@ -149,7 +169,8 @@ class Order {
       companies: [], // empty list
       warehouses: [], // empty list
       products: [], // empty list
-      contactPeople: [], // empty list
+      contactPeople: [],
+      collectionUnits: [], // empty list
     );
   }
 }

@@ -167,6 +167,11 @@ class Translations {
       'selectDate': 'Please select both start and end dates',
       'noDataForDateAndType': 'No data found for selected date range and type',
       'loading': 'Loading data...',
+      'collection_unit': 'Collection Unit',
+      'productTableQuantity': 'Quantity',
+      'total': 'Total',
+      'order_received' : 'Received' ,
+      'collectionRequirements' : 'Collections'
     },
     'hu': {
       'driverPage': 'Sofőr Oldal',
@@ -333,6 +338,11 @@ class Translations {
       'noDataForDateAndType':
           'Nincs adat a kiválasztott dátumtartományhoz és típushoz',
       'loading': 'Adatok betöltése...',
+      'collection_unit': 'Göngyöleg',
+      'productTableQuantity': 'Mennyiseg',
+      'total': 'Össz',
+      'order_received' : 'Megkapott' ,
+      'collectionRequirements' : 'Göngyölegek'
     },
     'ro': {
       'driverPage': 'Pagina Șofer',
@@ -501,12 +511,25 @@ class Translations {
       'noDataForDateAndType':
           'Nu s-au găsit date pentru intervalul și tipul selectat',
       'loading': 'Se încarcă datele...',
+      'collection_unit': 'Ambalaje',
+      'productTableQuantity': 'Cantitate',
+      'total': 'Totală',
+      'order_received' : 'Primit' ,
+      'collectionRequirements' : 'Ambalaje'
     },
   };
 
   // Helper method to get translated text
   static String getText(String key, String language) {
-    // Default to English if translation is missing
-    return translations[language]?[key] ?? translations['en']![key]!;
+    // Try to get translation in specified language
+    final languageTranslation = translations[language]?[key];
+    if (languageTranslation != null) return languageTranslation;
+
+    // Try English translation
+    final englishTranslation = translations['en']?[key];
+    if (englishTranslation != null) return englishTranslation;
+
+    // If no translation found, return the key itself
+    return key;
   }
 }
