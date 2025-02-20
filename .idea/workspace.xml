@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5ff3c520-0c34-4935-9149-d9fb831a5d7d" name="Changes" comment="commit krisztian">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-    </list>
+    <list default="true" id="5ff3c520-0c34-4935-9149-d9fb831a5d7d" name="Changes" comment="commit krisztian" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,7 +48,7 @@
     "dart.analysis.tool.window.visible": "false",
     "io.flutter.reload.alreadyRun": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/kriszti/Desktop/FoodEx-IM-DriverApp",
+    "last_opened_file_path": "/home/kriszti/Desktop/Android",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>

@@ -1,4 +1,5 @@
 // ignore: file_names
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +37,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   final deliveryService = DeliveryService();
   final orderService = OrderService();
 
+  String collectionUnitsData = "";
+
   late Order order = Order.empty();
   bool _isLoading = true;
   String? _error;
@@ -44,7 +47,31 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   void initState() {
     super.initState();
     _loadOrder();
+    _loadCollections();
     widget.myRoutesPage;
+  }
+
+  Future<void> _loadCollections() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+        body: {
+          'action': 'get-order-collection-units',
+          'order-id': widget.orderId.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedResponse = json.decode(response.body);
+        if (decodedResponse['success'] == true) {
+          setState(() {
+            collectionUnitsData = decodedResponse['data'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading collections: $e');
+    }
   }
 
   Future<void> _loadOrder() async {
@@ -162,7 +189,6 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
               ...order.products
                   .where((product) => product.productType == 'product')
                   .map((product) {
-
                 return DataRow(
                   cells: [
                     DataCell(
@@ -572,7 +598,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => updatePalets(context, order.orderId, _loadOrder),
+              onTap: () => updatePalets(context, order.orderId, _loadOrder,order),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -613,7 +639,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           const SizedBox(width: 12.0),
           Expanded(
             child: GestureDetector(
-              onTap: () => updateCrates(context, order.orderId, _loadOrder),
+              onTap: () =>
+                  updateCrates(context, order.orderId, _loadOrder, order),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -716,6 +743,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
               }
             }
           },
+          collectionUnitsData, // Add this line to pass the data
         ),
         child: Text(
           order.pickedUp == '0000-00-00 00:00:00'
@@ -2513,7 +2541,8 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
   );
 }
 
-void updateCrates(BuildContext context, int orderId, Function reloadPage) {
+void updateCrates(
+    BuildContext context, int orderId, Function reloadPage, Order order) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? selectedCrateType;
@@ -2521,7 +2550,16 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
   List<Map<String, dynamic>> crateTypes = [];
   bool isLoading = true;
 
-  // Create a separate function to load crate types
+  // Get existing crate data from the order
+  final existingCrates = order.collectionUnits
+      .where((unit) => unit.type.toLowerCase().contains('crate'))
+      .toList();
+
+  if (existingCrates.isNotEmpty) {
+    selectedCrateType = existingCrates[0].id.toString();
+    crateQuantity = existingCrates[0].quantity;
+  }
+
   Future<void> loadCrateTypes(StateSetter setState) async {
     try {
       final types = await DeliveryService().getCollectionUnits('crate');
@@ -2541,11 +2579,10 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
 
   showDialog(
     context: context,
-    barrierDismissible: false, // Prevent dismissing while loading
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          // Load crate types only once when dialog opens
           if (isLoading) {
             loadCrateTypes(setState);
           }
@@ -2570,7 +2607,7 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
+                  // Header with current value if exists
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -2641,6 +2678,8 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          initialValue:
+                              crateQuantity > 0 ? crateQuantity.toString() : '',
                           decoration: InputDecoration(
                             labelText: Globals.getText('orderCratesQuantity'),
                             filled: true,
@@ -2659,6 +2698,37 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  // Current Value Display
+                  if (existingCrates.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: isSmallScreen ? 18 : 20,
+                            color: Colors.grey.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Current: ${existingCrates[0].quantity} ${existingCrates[0].name}',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14 : 16,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Action Buttons
                   Row(
@@ -2683,11 +2753,14 @@ void updateCrates(BuildContext context, int orderId, Function reloadPage) {
                       ElevatedButton(
                         onPressed: (selectedCrateType == null ||
                                 crateQuantity <= 0)
-                            ? null // Disable button if no selection or invalid quantity
+                            ? null
                             : () async {
                                 try {
-                                  await DeliveryService().updateCrates(orderId,
-                                      crateQuantity, selectedCrateType!);
+                                  await DeliveryService().updateCrates(
+                                    orderId,
+                                    crateQuantity,
+                                    selectedCrateType!,
+                                  );
                                   if (context.mounted) {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -2898,7 +2971,7 @@ void updateCollectionUnit(BuildContext context, int productId,
   );
 }
 
-void updatePalets(BuildContext context, int orderId, Function reloadPage) {
+void updatePalets(BuildContext context, int orderId, Function reloadPage, Order order) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? selectedPaletType;
@@ -2906,7 +2979,15 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
   List<Map<String, dynamic>> paletTypes = [];
   bool isLoading = true;
 
-  // Create a separate function to load pallet types
+  // Get existing pallet data from the order
+  final existingPallets = order.collectionUnits.where((unit) => 
+    unit.type.toLowerCase().contains('pallet')).toList();
+
+  if (existingPallets.isNotEmpty) {
+    selectedPaletType = existingPallets[0].id.toString();
+    paletQuantity = existingPallets[0].quantity;
+  }
+
   Future<void> loadPaletTypes(StateSetter setState) async {
     try {
       final types = await DeliveryService().getCollectionUnits('pallet');
@@ -2919,7 +3000,6 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading pallet types: $error')),
         );
-        print('Error loading pallet types: $error');
         setState(() => isLoading = false);
       }
     }
@@ -2927,18 +3007,16 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
 
   showDialog(
     context: context,
-    barrierDismissible: false, // Prevent dismissing while loading
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          // Load pallet types only once when dialog opens
           if (isLoading) {
             loadPaletTypes(setState);
           }
 
           return Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             backgroundColor: Colors.transparent,
             child: Container(
               padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
@@ -3012,8 +3090,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
                               ),
                             ),
                             items: paletTypes.map((type) {
@@ -3022,29 +3099,61 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                                 child: Text(type['name']),
                               );
                             }).toList(),
-                            onChanged: (value) =>
-                                setState(() => selectedPaletType = value),
+                            onChanged: (value) => setState(() => selectedPaletType = value),
                           ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          initialValue: paletQuantity > 0 ? paletQuantity.toString() : '',
                           decoration: InputDecoration(
                             labelText: Globals.getText('orderPaletsQuantity'),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
                           ),
                           keyboardType: TextInputType.number,
-                          onChanged: (value) => setState(
-                              () => paletQuantity = int.tryParse(value) ?? 0),
+                          onChanged: (value) => setState(() => paletQuantity = int.tryParse(value) ?? 0),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
+
+                  // Current Value Display
+                  if (existingPallets.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: isSmallScreen ? 18 : 20,
+                            color: Colors.grey.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Current: ${existingPallets[0].quantity} ${existingPallets[0].name}',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14 : 16,
+                                color: Colors.grey.shade700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Action Buttons
                   Row(
@@ -3053,8 +3162,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           backgroundColor: Colors.grey.shade50,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -3067,19 +3175,20 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: (selectedPaletType == null ||
-                                paletQuantity <= 0)
-                            ? null // Disable button if no selection or invalid quantity
+                        onPressed: (selectedPaletType == null || paletQuantity <= 0)
+                            ? null
                             : () async {
                                 try {
-                                  await DeliveryService().updatePallets(orderId,
-                                      paletQuantity, selectedPaletType!);
+                                  await DeliveryService().updatePallets(
+                                    orderId,
+                                    paletQuantity,
+                                    selectedPaletType!,
+                                  );
                                   if (context.mounted) {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(Globals.getText(
-                                            'orderPaletsUpdateSuccess')),
+                                        content: Text(Globals.getText('orderPaletsUpdateSuccess')),
                                       ),
                                     );
                                     reloadPage();
@@ -3096,10 +3205,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
+                          backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -3121,8 +3228,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage) {
   );
 }
 
-void showConfirmationDialog(
-    BuildContext context, Order order, Function onConfirm) {
+void showConfirmationDialog(BuildContext context, Order order,
+    Function onConfirm, String collectionUnits) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
 
@@ -3188,6 +3295,7 @@ void showConfirmationDialog(
                   fontWeight: FontWeight.bold,
                   color: Colors.grey.shade800,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
@@ -3200,6 +3308,53 @@ void showConfirmationDialog(
                   color: Colors.grey.shade600,
                 ),
               ),
+
+              // Collection Units Section
+              if (collectionUnits.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: isSmallScreen ? 20 : 24,
+                            color: Colors.blue.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${Globals.getText('collectionRequirements')}:',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14 : 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        collectionUnits,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14 : 16,
+                          color: Colors.grey.shade800,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
