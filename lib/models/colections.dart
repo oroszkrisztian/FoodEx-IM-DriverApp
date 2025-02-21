@@ -1,5 +1,5 @@
 class CollectionUnit {
-  final String id;
+  final int id;
   final String type;
   final String name;
   final int quantity;
@@ -13,7 +13,7 @@ class CollectionUnit {
 
   factory CollectionUnit.fromJson(Map<String, dynamic> json) {
     return CollectionUnit(
-      id: json['collection_unit_id']?.toString() ?? '',
+      id: json['collection_unit_id'] ?? 0,
       type: json['collection_type']?.toString() ?? '',
       name: json['collection_unit_name']?.toString() ?? '',
       quantity: json['collection_quantity'] is int 

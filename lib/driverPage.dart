@@ -846,7 +846,7 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.4',
+              'Version 1.3.5',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: isSmallScreen ? 16.0 : 20.0,

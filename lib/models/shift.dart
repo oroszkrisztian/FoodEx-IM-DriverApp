@@ -106,7 +106,7 @@ class Shift {
               } else {
                 // Create new collection unit
                 combinedUnits[key] = CollectionUnit(
-                    id: '1', // Default ID since it's not in the product data
+                    id: 1, // Default ID since it's not in the product data
                     type:
                         'default', // Default type since it's not in the product data
                     name: unitName,

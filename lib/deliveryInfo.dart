@@ -5,6 +5,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter/services.dart';
 import 'package:foodex/driverPage.dart';
 import 'package:foodex/globals.dart';
+import 'package:foodex/models/colections.dart';
 import 'package:foodex/models/product.dart';
 import 'package:foodex/my_routes_page.dart';
 import 'package:foodex/services/delivery_service.dart';
@@ -104,231 +105,266 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     super.dispose();
   }
 
-  Widget _buildProductsTable(BuildContext context, bool isSmallScreen) {
+  Widget _buildProductsTable(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
+    // Define breakpoints
+    final isSmallScreen = screenWidth < 360; // Extra small devices
+    final isMediumScreen = screenWidth < 480; // Small to medium devices
+
+    // Adjust font sizes based on screen size
+    final double headerFontSize =
+        isSmallScreen ? 12.0 : (isMediumScreen ? 13.0 : 16.0);
+    final double contentFontSize =
+        isSmallScreen ? 11.0 : (isMediumScreen ? 12.0 : 14.0);
+
+    // Adjust spacing based on screen size
+    final double horizontalMargin =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 24.0);
+    final double columnSpacing =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 24.0);
+
+    // Calculate dynamic constraints for product name column
+    final double maxNameWidth =
+        screenWidth * (isSmallScreen ? 0.25 : (isMediumScreen ? 0.3 : 0.4));
+
     return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: Colors.black,
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: Colors.black,
+            width: 1.0,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        // Add ClipRRect to clip the content
-        borderRadius: BorderRadius.circular(12.0),
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            dataTableTheme: DataTableThemeData(
-              dataRowMinHeight: 48,
-              dataRowMaxHeight: textScaleFactor * 64,
-              headingRowHeight: 56,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
-          ),
-          child: DataTable(
-            columnSpacing: isSmallScreen ? 16 : 24,
-            horizontalMargin: isSmallScreen ? 16 : 24,
-            columns: [
-              DataColumn(
-                label: Expanded(
-                  child: Text(
-                    Globals.getText('orderName'),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
-                      fontSize: isSmallScreen ? 14.0 : 16.0,
-                    ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              // Set minimum width to prevent squishing
+              constraints: BoxConstraints(
+                minWidth: screenWidth,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dataTableTheme: DataTableThemeData(
+                    dataRowMinHeight: isSmallScreen ? 40 : 48,
+                    dataRowMaxHeight:
+                        textScaleFactor * (isSmallScreen ? 56 : 64),
+                    headingRowHeight: isSmallScreen ? 48 : 56,
+                    dividerThickness: 1.0,
                   ),
                 ),
-              ),
-              DataColumn(
-                label: Text(
-                  Globals.getText('productTableQuantity'),
-                  style: TextStyle(
+                child: DataTable(
+                  columnSpacing: columnSpacing,
+                  horizontalMargin: horizontalMargin,
+                  border: const TableBorder(
+                    horizontalInside: BorderSide(color: Colors.transparent),
+                    verticalInside: BorderSide(color: Colors.transparent),
+                  ),
+                  headingTextStyle: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey.shade800,
-                    fontSize: isSmallScreen ? 14.0 : 16.0,
+                    fontSize: headerFontSize,
                   ),
-                ),
-                numeric: true,
-              ),
-              DataColumn(
-                label: Text(
-                  Globals.getText('collection_unit'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                  dataTextStyle: TextStyle(
                     color: Colors.grey.shade800,
-                    fontSize: isSmallScreen ? 14.0 : 16.0,
+                    fontSize: contentFontSize,
                   ),
-                ),
-                numeric: true,
-              ),
-              DataColumn(
-                label: Text(
-                  '${Globals.getText('order_received')} (kg)',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
-                    fontSize: isSmallScreen ? 14.0 : 16.0,
-                  ),
-                ),
-                numeric: true,
-              ),
-            ],
-            rows: [
-              ...order.products
-                  .where((product) => product.productType == 'product')
-                  .map((product) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      GestureDetector(
-                        onTap: () => updateCollectionUnit(
-                            context,
-                            product.productId,
-                            product.productName,
-                            widget.orderId,
-                            _loadOrder),
-                        child: Container(
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width *
-                                (isSmallScreen ? 0.4 : 0.5),
-                          ),
-                          child: Text(
-                            product.productName,
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 14.0 : 16.0,
-                              color: Colors.grey.shade800,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
+                  columns: [
+                    DataColumn(
+                      label: Container(
+                        width: maxNameWidth,
+                        alignment: Alignment.center,
+                        child: Text(
+                          Globals.getText('orderName'),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                    DataCell(
-                      GestureDetector(
-                        onTap: () => updateCollectionUnit(
-                            context,
-                            product.productId,
-                            product.productName,
-                            widget.orderId,
-                            _loadOrder),
+                    DataColumn(
+                      label: Container(
+                        alignment: Alignment.center,
                         child: Text(
-                          product.productUnit.toLowerCase() == 'kg'
-                              ? '${product.ordered} kg'
-                              : '${product.ordered} pc',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.grey.shade800,
-                          ),
+                          Globals.getText('productTableQuantity'),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                    DataCell(
-                      GestureDetector(
-                        onTap: () => updateCollectionUnit(
-                            context,
-                            product.productId,
-                            product.productName,
-                            widget.orderId,
-                            _loadOrder),
+                    DataColumn(
+                      label: Container(
+                        alignment: Alignment.center,
                         child: Text(
-                          '${product.collection}',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.grey.shade800,
-                          ),
+                          Globals.getText('collection_unit'),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                    DataCell(
-                      GestureDetector(
-                        onTap: () => updateCollectionUnit(
-                            context,
-                            product.productId,
-                            product.productName,
-                            widget.orderId,
-                            _loadOrder),
+                    DataColumn(
+                      label: Container(
+                        alignment: Alignment.center,
                         child: Text(
-                          product.productUnit.toLowerCase() == 'kg'
-                              ? '${product.quantity} kg'
-                              : '${product.quantity} pc',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.grey.shade800,
-                          ),
+                          '${Globals.getText('order_received')} (kg)',
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                   ],
-                );
-              }).toList(),
-              // Summary Row
-              DataRow(
-                color: MaterialStateProperty.all(
-                    const Color.fromARGB(255, 177, 177, 177)),
-                cells: [
-                  DataCell(
-                    Text(
-                      '${Globals.getText('orderSummary')}:',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
+                  rows: [
+                    ...order.products
+                        .where((product) => product.productType == 'product')
+                        .map((product) {
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            GestureDetector(
+                              onTap: () => updateCollectionUnit(
+                                context,
+                                product.productId,
+                                product.productName,
+                                widget.orderId,
+                                _loadOrder,
+                              ),
+                              child: Container(
+                                width: maxNameWidth,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  product.productName,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: isSmallScreen ? 1 : 2,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            GestureDetector(
+                              onTap: () => updateCollectionUnit(
+                                context,
+                                product.productId,
+                                product.productName,
+                                widget.orderId,
+                                _loadOrder,
+                              ),
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  product.productUnit.toLowerCase() == 'kg'
+                                      ? '${product.ordered}kg'
+                                      : '${product.ordered}pc',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            GestureDetector(
+                              onTap: () => updateCollectionUnit(
+                                context,
+                                product.productId,
+                                product.productName,
+                                widget.orderId,
+                                _loadOrder,
+                              ),
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${product.collection}',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            GestureDetector(
+                              onTap: () => updateCollectionUnit(
+                                context,
+                                product.productId,
+                                product.productName,
+                                widget.orderId,
+                                _loadOrder,
+                              ),
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  product.productUnit.toLowerCase() == 'kg'
+                                      ? '${product.quantity}kg'
+                                      : '${product.quantity}pc',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                    // Summary Row
+                    DataRow(
+                      color: MaterialStateProperty.all(
+                        const Color.fromARGB(255, 177, 177, 177),
                       ),
+                      cells: [
+                        DataCell(
+                          Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${Globals.getText('orderSummary')}:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${order.getTotalOrderedQuantity()}kg',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${order.getTotalCollection()}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${order.getTotalRecievedWeight()}kg',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  DataCell(
-                    Text(
-                      '${order.getTotalOrderedQuantity()} kg',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      '${order.getTotalCollection()}',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      '${order.getTotalRecievedWeight()} kg',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   //UIT,EKR, INVOICE, CMR
@@ -598,7 +634,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => updatePalets(context, order.orderId, _loadOrder,order),
+              onTap: () =>
+                  updatePalets(context, order.orderId, _loadOrder, order),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -1364,7 +1401,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
 
                           //PRODUCTS AND CONTAINERS TABLES
                           const SizedBox(height: 16),
-                          _buildProductsTable(context, isSmallScreen),
+                          _buildProductsTable(context),
                           const SizedBox(height: 16),
                           _buildContainerStatus(context, isSmallScreen),
                           //UIT,EKR, INVOICE, CMR
@@ -2555,10 +2592,15 @@ void updateCrates(
       .where((unit) => unit.type.toLowerCase().contains('crate'))
       .toList();
 
+  // Initialize with first crate's values if it exists
   if (existingCrates.isNotEmpty) {
     selectedCrateType = existingCrates[0].id.toString();
     crateQuantity = existingCrates[0].quantity;
   }
+
+  // Initialize the controller with the current quantity
+  final crateQuantityController = TextEditingController(
+      text: crateQuantity > 0 ? crateQuantity.toString() : '');
 
   Future<void> loadCrateTypes(StateSetter setState) async {
     try {
@@ -2673,13 +2715,33 @@ void updateCrates(
                                 child: Text(type['name']),
                               );
                             }).toList(),
-                            onChanged: (value) =>
-                                setState(() => selectedCrateType = value),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedCrateType = value;
+                                // Find matching existing crate and set quantity
+                                if (value != null) {
+                                  final existingCrate =
+                                      existingCrates.firstWhere(
+                                    (crate) => crate.id.toString() == value,
+                                    orElse: () => CollectionUnit(
+                                        id: 0, type: '', name: '', quantity: 0),
+                                  );
+                                  if (existingCrate.id != 0) {
+                                    // Check if we found a real crate
+                                    crateQuantity = existingCrate.quantity;
+                                    crateQuantityController.text =
+                                        crateQuantity.toString();
+                                  } else {
+                                    crateQuantity = 0;
+                                    crateQuantityController.text = '';
+                                  }
+                                }
+                              });
+                            },
                           ),
                         const SizedBox(height: 16),
                         TextFormField(
-                          initialValue:
-                              crateQuantity > 0 ? crateQuantity.toString() : '',
+                          controller: crateQuantityController,
                           decoration: InputDecoration(
                             labelText: Globals.getText('orderCratesQuantity'),
                             filled: true,
@@ -2709,27 +2771,48 @@ void updateCrates(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: isSmallScreen ? 18 : 20,
-                            color: Colors.grey.shade700,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: isSmallScreen ? 18 : 20,
+                                color: Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Current:',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14 : 16,
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Current: ${existingCrates[0].quantity} ${existingCrates[0].name}',
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 14 : 16,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
+                          const SizedBox(height: 8),
+                          ...existingCrates
+                              .map(
+                                (crate) => Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 26, bottom: 4),
+                                  child: Text(
+                                    '${crate.quantity} ${crate.name}',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                   ],
-
                   // Action Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -2971,7 +3054,8 @@ void updateCollectionUnit(BuildContext context, int productId,
   );
 }
 
-void updatePalets(BuildContext context, int orderId, Function reloadPage, Order order) {
+void updatePalets(
+    BuildContext context, int orderId, Function reloadPage, Order order) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? selectedPaletType;
@@ -2980,13 +3064,19 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
   bool isLoading = true;
 
   // Get existing pallet data from the order
-  final existingPallets = order.collectionUnits.where((unit) => 
-    unit.type.toLowerCase().contains('pallet')).toList();
+  final existingPallets = order.collectionUnits
+      .where((unit) => unit.type.toLowerCase().contains('pallet'))
+      .toList();
 
+  // Initialize with first pallet's values if it exists
   if (existingPallets.isNotEmpty) {
     selectedPaletType = existingPallets[0].id.toString();
     paletQuantity = existingPallets[0].quantity;
   }
+
+  // Initialize the controller with the current quantity
+  final paletQuantityController = TextEditingController(
+      text: paletQuantity > 0 ? paletQuantity.toString() : '');
 
   Future<void> loadPaletTypes(StateSetter setState) async {
     try {
@@ -3016,7 +3106,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
           }
 
           return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             backgroundColor: Colors.transparent,
             child: Container(
               padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
@@ -3034,7 +3125,7 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
+                  // Header with current value if exists
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -3090,7 +3181,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade300),
                               ),
                             ),
                             items: paletTypes.map((type) {
@@ -3099,22 +3191,46 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                                 child: Text(type['name']),
                               );
                             }).toList(),
-                            onChanged: (value) => setState(() => selectedPaletType = value),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedPaletType = value;
+                                // Find matching existing pallet and set quantity
+                                if (value != null) {
+                                  final existingPallet =
+                                      existingPallets.firstWhere(
+                                    (pallet) => pallet.id.toString() == value,
+                                    orElse: () => CollectionUnit(
+                                        id: 0, type: '', name: '', quantity: 0),
+                                  );
+                                  if (existingPallet.id != 0) {
+                                    // Check if we found a real pallet
+                                    paletQuantity = existingPallet.quantity;
+                                    paletQuantityController.text =
+                                        paletQuantity.toString();
+                                  } else {
+                                    paletQuantity = 0;
+                                    paletQuantityController.text = '';
+                                  }
+                                }
+                              });
+                            },
                           ),
                         const SizedBox(height: 16),
                         TextFormField(
-                          initialValue: paletQuantity > 0 ? paletQuantity.toString() : '',
+                          controller: paletQuantityController,
                           decoration: InputDecoration(
                             labelText: Globals.getText('orderPaletsQuantity'),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade300),
                             ),
                           ),
                           keyboardType: TextInputType.number,
-                          onChanged: (value) => setState(() => paletQuantity = int.tryParse(value) ?? 0),
+                          onChanged: (value) => setState(
+                              () => paletQuantity = int.tryParse(value) ?? 0),
                         ),
                       ],
                     ),
@@ -3131,24 +3247,43 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: isSmallScreen ? 18 : 20,
-                            color: Colors.grey.shade700,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Current: ${existingPallets[0].quantity} ${existingPallets[0].name}',
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 14 : 16,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: isSmallScreen ? 18 : 20,
                                 color: Colors.grey.shade700,
                               ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Current:',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14 : 16,
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 8),
+                          ...existingPallets
+                              .map(
+                                (pallet) => Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 26, bottom: 4),
+                                  child: Text(
+                                    '${pallet.quantity} ${pallet.name}',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         ],
                       ),
                     ),
@@ -3162,7 +3297,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           backgroundColor: Colors.grey.shade50,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -3175,7 +3311,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: (selectedPaletType == null || paletQuantity <= 0)
+                        onPressed: (selectedPaletType == null ||
+                                paletQuantity <= 0)
                             ? null
                             : () async {
                                 try {
@@ -3188,7 +3325,8 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(Globals.getText('orderPaletsUpdateSuccess')),
+                                        content: Text(Globals.getText(
+                                            'orderPaletsUpdateSuccess')),
                                       ),
                                     );
                                     reloadPage();
@@ -3205,8 +3343,10 @@ void updatePalets(BuildContext context, int orderId, Function reloadPage, Order 
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
