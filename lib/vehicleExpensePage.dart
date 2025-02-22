@@ -3,10 +3,8 @@ import 'dart:io';
 import 'dart:convert'; // Import json package
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http; // Import the http package
-import 'package:mime/mime.dart';
 import 'globals.dart';
 import 'package:path/path.dart' as path;
 
@@ -33,23 +31,31 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   bool _isFuelSelected = false;
   String? _errorMessage;
   int? _lastKm;
-  List<Map<String, dynamic>> _expenseTypes = [];
-  bool _isLoading = true;
 
-  String _selectedCurrency = 'RON';
+  bool get _isCarWash => _selectedType?.toLowerCase() == 'mosás/spălare';
+
+  String _selectedCurrency = 'RON'; // Default currency
+
+  List<Map<String, dynamic>> _expenseCategories = [];
+  bool _isLoadingCategories = true;
 
   @override
   void initState() {
     super.initState();
-    _loadExpenseTypes();
+    // Removed getCarDetails call since it's not needed
     getLastKm(Globals.userId, Globals.vehicleID);
+    _fetchExpenseCategories();
   }
 
-  Future<void> _loadExpenseTypes() async {
+  Future<void> _fetchExpenseCategories() async {
+    setState(() {
+      _isLoadingCategories = true;
+    });
+
     try {
       final response = await http.post(
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
-        headers: <String, String>{
+        headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
@@ -61,55 +67,27 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          _expenseTypes = List<Map<String, dynamic>>.from(data);
-          _isLoading = false;
+          _expenseCategories = List<Map<String, dynamic>>.from(data);
+          _isLoadingCategories = false;
         });
       } else {
-        setState(() {
-          _errorMessage =
-              'Failed to load expense types: ${response.statusCode}';
-          _isLoading = false;
-        });
+        throw Exception('Failed to load categories');
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error loading expense types: $e';
-        _isLoading = false;
+        _errorMessage = 'Error loading categories: $e';
+        _isLoadingCategories = false;
       });
     }
   }
 
   /// Pick an image using the camera
   Future<void> _pickImage() async {
-    try {
-      final pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-        preferredCameraDevice: CameraDevice.rear,
-      );
-
-      if (pickedFile != null) {
-        final File imageFile = File(pickedFile.path);
-
-        // Validate file size
-        final size = await imageFile.length();
-        if (size > 10 * 1024 * 1024) {
-          throw Exception('Image size too large. Maximum size is 10MB.');
-        }
-
-        setState(() {
-          _image = imageFile;
-        });
-
-        print('Image picked successfully:');
-        print('- Path: ${pickedFile.path}');
-        print('- Size: $size bytes');
-      }
-    } catch (e) {
-      print('Error picking image: $e');
-      _showErrorDialog('Error capturing image: $e');
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
     }
   }
 
@@ -119,7 +97,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('${Globals.getText('expensePreview')}'),
+          title: const Text('Image Preview'),
           content: Image.file(image),
           actions: <Widget>[
             TextButton(
@@ -130,7 +108,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                 foregroundColor: Colors.white,
               ),
-              child: Text('${Globals.getText('expenseClose')}'),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -191,7 +169,14 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
 
   /// Submit the expense data
   Future<bool> _submitExpense() async {
-    if (!_formKey.currentState!.validate()) {
+    // Check if image is required for car wash
+    if (_isCarWash && _image == null) {
+      _showErrorDialog('Please take a picture for car wash expense');
+      return false;
+    }
+
+    // For car wash, skip other validations
+    if (!_isCarWash && !_formKey.currentState!.validate()) {
       print("Invalid form data for expense upload");
       return false;
     }
@@ -206,125 +191,62 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
       );
 
-      // Set up the basic fields
-      Map<String, String> fields = {
-        'action': 'vehicle-expense',
-        'driver': Globals.userId.toString(),
-        'vehicle': Globals.vehicleID.toString(),
-        'km': _kmController.text,
-        'type': _selectedType ?? '',
-        'remarks': _remarksController?.text ?? '',
-        'cost': _costController.text
-            .replaceAll(',', '.'), // Ensure decimal point is correct
-        'amount': _amountController?.text ?? '',
-        'currency': _selectedCurrency.toLowerCase(),
-      };
+      // Set up the fields, using empty strings for null values in car wash case
+      request.fields['action'] = 'vehicle-expense';
+      request.fields['driver'] = Globals.userId.toString();
+      request.fields['vehicle'] = Globals.vehicleID.toString();
+      request.fields['km'] = _isCarWash
+          ? (_kmController.text.isEmpty ? '0' : _kmController.text)
+          : _kmController.text;
+      request.fields['type'] = (_selectedType ?? '').toLowerCase();
+      request.fields['remarks'] =
+          (_remarksController?.text ?? '').toLowerCase();
+      request.fields['cost'] = _isCarWash
+          ? (_costController.text.isEmpty
+              ? '0'
+              : _costController.text.replaceAll(',', '.'))
+          : _costController.text.replaceAll(',', '.');
+      request.fields['amount'] = _isCarWash
+          ? (_amountController!.text.isEmpty
+              ? '0'
+              : _amountController!.text.replaceAll(',', '.'))
+          : (_amountController?.text ?? '').replaceAll(',', '.');
+      request.fields['currency'] = _selectedCurrency.toLowerCase();
 
-      request.fields.addAll(fields);
-
-      // Add expense photo if exists
-      if (_image != null) {
-        try {
-          // Read file as bytes
-          final bytes = await _image!.readAsBytes();
-          final size = bytes.length;
-
-          // Validate file size (e.g., max 10MB)
-          if (size > 10 * 1024 * 1024) {
-            throw Exception('File size too large. Maximum size is 10MB.');
-          }
-
-          // Get file extension and name
-          final extension = path.extension(_image!.path).toLowerCase();
-          final fileName = path.basename(_image!.path);
-
-          // Determine MIME type
-          String mimeType;
-          switch (extension) {
-            case '.jpg':
-            case '.jpeg':
-              mimeType = 'image/jpeg';
-              break;
-            case '.png':
-              mimeType = 'image/png';
-              break;
-            case '.gif':
-              mimeType = 'image/gif';
-              break;
-            default:
-              throw Exception(
-                  'Unsupported file type. Please use JPG, PNG, or GIF.');
-          }
-
-          // Create MultipartFile
-          final multipartFile = http.MultipartFile.fromBytes(
-            'photo',
-            bytes,
-            filename: fileName,
-            contentType: MediaType.parse(mimeType),
-          );
-
-          print('Preparing to upload file:');
-          print('- Path: ${_image!.path}');
-          print('- Name: $fileName');
-          print('- MIME: $mimeType');
-          print('- Size: $size bytes');
-
-          request.files.add(multipartFile);
-        } catch (e) {
-          print('Error preparing file upload: $e');
-          _showErrorDialog('Error preparing file for upload: $e');
-          return false;
-        }
+      // Add expense photo
+      if (_image != null && _image!.path.isNotEmpty) {
+        print('Adding photo: ${_image!.path}');
+        request.files
+            .add(await http.MultipartFile.fromPath('photo', _image!.path));
+      } else {
+        print('No photo path provided');
       }
 
       print("Sending expense request...");
       print("Request fields: ${request.fields}");
 
-      if (request.files.isNotEmpty) {
-        print("Files to upload: ${request.files.length}");
-        for (var file in request.files) {
-          print("File details:");
-          print("- Field: ${file.field}");
-          print("- Filename: ${file.filename}");
-          print("- Content-Type: ${file.contentType}");
-          print("- Length: ${file.length} bytes");
-        }
-      }
-
-      // Add headers
-      request.headers.addAll({
-        'Accept': 'application/json',
-      });
-
-      final streamedResponse = await request.send();
-
-      final response = await http.Response.fromStream(streamedResponse);
+      final response = await request.send();
+      final responseData = await response.stream.bytesToString();
 
       print("Response status code: ${response.statusCode}");
-      print("Response headers: ${response.headers}");
-      print("Response data: ${response.body}");
+      print("Response data: $responseData");
 
       if (response.statusCode == 200) {
-        try {
-          final responseData = json.decode(response.body);
-          if (responseData['success'] == true) {
-            _showSuccessDialog();
-            _resetForm();
-            return true;
-          } else {
-            throw Exception(
-                responseData['message'] ?? 'Unknown error occurred');
-          }
-        } catch (e) {
-          throw Exception('Invalid response format: ${response.body}');
+        var data = json.decode(responseData);
+        if (data['success'] == true) {
+          _showSuccessDialog();
+          _resetForm();
+          return true;
         }
-      } else {
-        throw Exception('Server error: ${response.statusCode}');
       }
+
+      _showErrorDialog(response.statusCode == 200
+          ? (json.decode(responseData)['message'] ?? 'Failed to submit expense')
+          : 'Server error: ${response.statusCode}');
+      return false;
     } catch (e) {
       print('Error uploading expense: $e');
-      _showErrorDialog(e.toString());
+      _showErrorDialog('Error submitting expense: $e');
       return false;
     } finally {
       setState(() {
@@ -353,8 +275,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('${Globals.getText('expenseCompletedSuccess')}'),
-          content: Text('${Globals.getText('expenseCompletedSuccessMessage')}'),
+          title: const Text('Completed'),
+          content: const Text('Your expense has been completed.'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -397,7 +319,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                 backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                 foregroundColor: Colors.white,
               ),
-              child: Text('${Globals.getText('expenseClose')}'),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -457,7 +379,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: Text('${Globals.getText('expensePicture')}'),
+                child: const Text('Take a picture'),
               ),
               const SizedBox(height: 8),
               ElevatedButton(
@@ -472,7 +394,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-                child: Text('${Globals.getText('expensePreview')}'),
+                child: const Text('Preview'),
               ),
             ],
           ),
@@ -494,62 +416,54 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${Globals.getText('expenseTitle')}',
+        title: const Text('Submit Vehicle Expense',
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
       ),
       body: SafeArea(
         child: Stack(
           children: [
-            if (_isLoading)
-              const Center(
-                child: CircularProgressIndicator(),
-              )
-            else
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            width: 1,
-                            color: Colors.black,
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(width: 1, color: Colors.black),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.6),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: const Offset(0, 3),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.6),
-                              spreadRadius: 5,
-                              blurRadius: 7,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          if (_isLoadingCategories)
+                            const CircularProgressIndicator()
+                          else
                             DropdownButtonFormField<String>(
-                              decoration: InputDecoration(
-                                labelText:
-                                    '${Globals.getText('expenseSelectType')}',
-                              ),
-                              items: _expenseTypes.map((type) {
+                              decoration: const InputDecoration(
+                                  labelText: 'Expense Type'),
+                              items: _expenseCategories.map((category) {
                                 return DropdownMenuItem<String>(
-                                  value: type['name'],
-                                  child: Text(
-                                    type['name'],
-                                    style: const TextStyle(color: Colors.black),
-                                  ),
+                                  value: category['name'],
+                                  child: Text(category['name'],
+                                      style:
+                                          const TextStyle(color: Colors.black)),
                                 );
                               }).toList(),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null) {
                                   return 'Please select an expense type';
                                 }
                                 return null;
@@ -562,104 +476,93 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                                 });
                               },
                             ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _kmController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'KM',
+                              hintText: _lastKm != null
+                                  ? 'Last KM: $_lastKm'
+                                  : 'Fetching last KM...',
+                            ),
+                            validator: (value) {
+                              if (!_isCarWash &&
+                                  (value == null || value.isEmpty)) {
+                                return 'Please enter KM';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _remarksController,
+                            keyboardType: TextInputType.text,
+                            decoration:
+                                const InputDecoration(labelText: 'Remarks'),
+                            validator: (value) => null, // Always optional
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _costController,
+                            keyboardType: TextInputType.number,
+                            decoration:
+                                const InputDecoration(labelText: 'Cost'),
+                            validator: (value) {
+                              if (!_isCarWash &&
+                                  (value == null || value.isEmpty)) {
+                                return 'Please enter cost';
+                              }
+                              return null;
+                            },
+                          ),
+                          if (_isFuelSelected) ...[
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _kmController,
+                              controller: _amountController,
                               keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'KM',
-                                hintText: _lastKm != null
-                                    ? 'Last KM: $_lastKm'
-                                    : 'Fetching last KM...', // Check if _lastKm is available
-                              ),
+                              decoration:
+                                  const InputDecoration(labelText: 'Amount'),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter KM';
+                                if (_isFuelSelected &&
+                                    !_isCarWash &&
+                                    (value == null || value.isEmpty)) {
+                                  return 'Please enter the amount';
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _remarksController,
-                              keyboardType: TextInputType.text,
-                              decoration: InputDecoration(
-                                  labelText:
-                                      '${Globals.getText('expenseSelectRemarks')}'),
-                              validator: (value) {
-                                // No longer mandatory, so return null to indicate it's valid
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _costController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                  labelText:
-                                      '${Globals.getText('expenseSelectCost')}'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter cost';
-                                }
-                                return null;
-                              },
-                            ),
-                            if (_isFuelSelected) const SizedBox(height: 16),
-                            if (_isFuelSelected)
-                              TextFormField(
-                                controller: _amountController,
-                                keyboardType: TextInputType.number,
-                                decoration:
-                                    const InputDecoration(labelText: 'Amount'),
-                                validator: (value) {
-                                  if (_isFuelSelected &&
-                                      (value == null || value.isEmpty)) {
-                                    return 'Please enter the amount';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            // Add this just before _buildImageContainer call
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
-                              decoration: InputDecoration(
-                                labelText:
-                                    '${Globals.getText('expenseSelectCurrency')}',
-                              ),
-                              value: _selectedCurrency,
-                              items:
-                                  ['RON', 'HUF', 'EUR'].map((String currency) {
-                                return DropdownMenuItem<String>(
-                                  value: currency,
-                                  child: Text(currency,
-                                      style:
-                                          const TextStyle(color: Colors.black)),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    _selectedCurrency = newValue;
-                                  });
-                                }
-                              },
-                            ),
-
-                            const SizedBox(height: 16.0),
-                            _buildImageContainer(
-                                '${Globals.getText('expenseImage')}', _image),
-                            if (_image == null)
-                              const Padding(
-                                padding: EdgeInsets.only(top: 8.0),
-                              ),
                           ],
-                        ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            decoration:
+                                const InputDecoration(labelText: 'Currency'),
+                            value: _selectedCurrency,
+                            items: ['RON', 'HUF', 'EUR'].map((String currency) {
+                              return DropdownMenuItem<String>(
+                                value: currency,
+                                child: Text(currency,
+                                    style:
+                                        const TextStyle(color: Colors.black)),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedCurrency = newValue;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16.0),
+                          _buildImageContainer('Expense Image', _image),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
             if (_isSubmitting)
               Container(
                 color: Colors.black.withOpacity(0.5),
@@ -673,10 +576,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                       SizedBox(height: 16.0),
                       Text(
                         'Uploading Expense...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.0,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 16.0),
                       ),
                     ],
                   ),
@@ -696,10 +596,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: Text(
-            '${Globals.getText('expenseSubmit')}',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text('Submit Expense',
+              style: TextStyle(color: Colors.white)),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

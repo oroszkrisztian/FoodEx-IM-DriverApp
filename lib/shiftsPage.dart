@@ -343,14 +343,13 @@ class _ShiftsPageState extends State<ShiftsPage> {
         final shift = _shifts![index];
         print('total weight ${shift.totalWeight}');
         return _buildShiftCard(
-          shift.vehicle,
-          shift.startTime.toString(),
-          shift.endTime.toString(),
-          shift.remarks,
-          shift.totalOrder,
-          shift.totalWeight,
-          shift.collectionUnits
-        );
+            shift.vehicle,
+            shift.startTime.toString(),
+            shift.endTime.toString(),
+            shift.remarks,
+            shift.totalOrder,
+            shift.totalWeight,
+            shift.collectionUnits);
       },
     ); // Return your shifts list here
   }
@@ -433,13 +432,13 @@ class _ShiftsPageState extends State<ShiftsPage> {
                         const SizedBox(width: 12.0),
                         Expanded(
                           child: Text(
-                            '${DateFormat('MMM d').format(start)} ${DateFormat('HH:mm').format(start)} - '
-                            '${start.day != end.day ? "${DateFormat('MMM d').format(end)} " : ""}'
+                            '${Globals.getText(DateFormat('E').format(start))} ${DateFormat('dd.MM').format(start)}, ${DateFormat('HH:mm').format(start)} - '
+                            '${Globals.getText(DateFormat('E').format(end))} ${start.day != end.day ? "${DateFormat('dd.MM').format(end)} " : ""}'
                             '${DateFormat('HH:mm').format(end)}',
                             style: const TextStyle(
-                              fontSize: 20.0,
+                              fontSize: 18.0,
                               fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.1,
                             ),
                           ),
                         ),

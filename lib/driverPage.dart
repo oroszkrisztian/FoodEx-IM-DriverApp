@@ -306,6 +306,11 @@ class _DriverPageState extends State<DriverPage> {
               child: Stack(
                 children: [
                   Card(
+                    color: order.pickedUp == '0000-00-00 00:00:00'
+                        ? Color.fromARGB(255, 255, 213,
+                            213) // Changed to red tint for pickup
+                        : Color.fromARGB(255, 166, 250,
+                            118), // Changed to green tint for delivery
                     elevation: 2.0,
                     margin: EdgeInsets.symmetric(
                       vertical: 4.0,
@@ -338,9 +343,9 @@ class _DriverPageState extends State<DriverPage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0, vertical: 6.0),
                             decoration: BoxDecoration(
-                              color: Colors.blue[50],
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(6.0),
-                              border: Border.all(color: Colors.blue),
+                              border: Border.all(color: Colors.black),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,10 +358,10 @@ class _DriverPageState extends State<DriverPage> {
                                         style: const TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.blue)),
+                                            color: Colors
+                                                .red)), // Changed to red for pickup
                                     Text(
-                                        DateFormat('MM-dd HH:mm').format(
-                                            DateTime.parse(order.pickupTime)),
+                                        '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                         style: const TextStyle(
                                             fontSize: 12.0,
                                             fontWeight: FontWeight.bold)),
@@ -396,9 +401,9 @@ class _DriverPageState extends State<DriverPage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0, vertical: 6.0),
                             decoration: BoxDecoration(
-                              color: Colors.green[50],
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(6.0),
-                              border: Border.all(color: Colors.green),
+                              border: Border.all(color: Colors.black),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,10 +416,10 @@ class _DriverPageState extends State<DriverPage> {
                                         style: const TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.green)),
+                                            color: Colors
+                                                .green)), // Changed to green for delivery
                                     Text(
-                                        DateFormat('MM-dd HH:mm').format(
-                                            DateTime.parse(order.deliveryTime)),
+                                        '${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.deliveryTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
                                         style: const TextStyle(
                                             fontSize: 12.0,
                                             fontWeight: FontWeight.bold)),
@@ -490,12 +495,18 @@ class _DriverPageState extends State<DriverPage> {
                     top: 0,
                     right: isSmallScreen ? 4.0 : 8.0,
                     child: order.pickedUp == '0000-00-00 00:00:00'
-                        ? Icon(Icons.keyboard_arrow_up,
-                            color: Colors.green, size: isSmallScreen ? 48 : 54)
+                        ? Icon(
+                            Icons.keyboard_arrow_up,
+                            color: Colors.red, // Shows red for pickup state
+                            size: isSmallScreen ? 48 : 54,
+                          )
                         : order.delivered == '0000-00-00 00:00:00'
-                            ? Icon(Icons.keyboard_arrow_down,
-                                color: Colors.red,
-                                size: isSmallScreen ? 48 : 54)
+                            ? Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors
+                                    .green, // Shows green for delivery state
+                                size: isSmallScreen ? 48 : 54,
+                              )
                             : Container(),
                   ),
                 ],

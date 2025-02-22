@@ -515,7 +515,8 @@ class Translations {
       'productTableQuantity': 'Cantitate',
       'total': 'Totală',
       'order_received' : 'Primit' ,
-      'collectionRequirements' : 'Ambalaje'
+      'collectionRequirements' : 'Ambalaje',
+      
     },
   };
 

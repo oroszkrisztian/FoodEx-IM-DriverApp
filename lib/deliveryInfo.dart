@@ -923,13 +923,13 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
               child: order.pickedUp == '0000-00-00 00:00:00'
                   ? Icon(
                       Icons.keyboard_arrow_up,
-                      color: const Color.fromARGB(255, 108, 226, 112),
+                      color: Colors.red,
                       size: isSmallScreen ? 56 : 62,
                     )
                   : order.delivered == '0000-00-00 00:00:00'
                       ? Icon(
                           Icons.keyboard_arrow_down,
-                          color: Colors.red,
+                          color: const Color.fromARGB(255, 108, 226, 112),
                           size: isSmallScreen ? 56 : 62,
                         )
                       : Container(),
@@ -960,9 +960,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
-                              color: Colors.blue[50],
+                              color: Color.fromARGB(255, 253, 213, 213),
                               borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(color: Colors.blue),
+                              border: Border.all(color: Colors.red),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,11 +976,11 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 18.0 : 22.0,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
+                                        color: Colors.red,
                                       ),
                                     ),
                                     Text(
-                                      '${DateFormat('MM-dd').format(DateTime.parse(order.pickupTime))} (${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))}) ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
+                                      '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 14.0 : 16.0,
                                         fontWeight: FontWeight.bold,
@@ -1201,7 +1201,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       ),
                                     ),
                                     Text(
-                                      '${DateFormat('MM-dd').format(DateTime.parse(order.deliveryTime))} (${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))}) ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
+                                      '${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.deliveryTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 14.0 : 16.0,
                                         fontWeight: FontWeight.bold,
@@ -2276,24 +2276,52 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final ImagePicker picker = ImagePicker();
-                      final List<XFile> images = await picker.pickMultiImage();
-                      if (images.isNotEmpty) {
-                        setState(() {
-                          selectedFiles
-                              .addAll(images.map((image) => File(image.path)));
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                    child: Text('${Globals.getText('orderSelectImages')}',
-                        style: TextStyle(color: Colors.white)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Camera Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(
+                              source: ImageSource.camera);
+                          if (image != null) {
+                            setState(() {
+                              selectedFiles.add(File(image.path));
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
+                        ),
+                        child:
+                            const Icon(Icons.camera_alt, color: Colors.white),
+                      ),
+                      // Gallery Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final List<XFile> images =
+                              await picker.pickMultiImage();
+                          if (images.isNotEmpty) {
+                            setState(() {
+                              selectedFiles.addAll(
+                                  images.map((image) => File(image.path)));
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
+                        ),
+                        child: const Icon(Icons.photo_library,
+                            color: Colors.white),
+                      ),
+                    ],
                   ),
                   if (selectedFiles.isNotEmpty) ...[
                     const SizedBox(height: 16),
@@ -2354,10 +2382,8 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                             ? null
                             : () async {
                                 try {
-                                  for (var file in selectedFiles) {
-                                    await DeliveryService().updateOrderInvoice(
-                                        orderId, selectedFiles);
-                                  }
+                                  await DeliveryService().updateOrderInvoice(
+                                      orderId, selectedFiles);
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -2454,24 +2480,52 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final ImagePicker picker = ImagePicker();
-                      final List<XFile> images = await picker.pickMultiImage();
-                      if (images.isNotEmpty) {
-                        setState(() {
-                          selectedFiles
-                              .addAll(images.map((image) => File(image.path)));
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                    child: Text('${Globals.getText('orderSelectImages')}',
-                        style: TextStyle(color: Colors.white)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Camera Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(
+                              source: ImageSource.camera);
+                          if (image != null) {
+                            setState(() {
+                              selectedFiles.add(File(image.path));
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        child:
+                            const Icon(Icons.camera_alt, color: Colors.white),
+                      ),
+                      // Gallery Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final List<XFile> images =
+                              await picker.pickMultiImage();
+                          if (images.isNotEmpty) {
+                            setState(() {
+                              selectedFiles.addAll(
+                                  images.map((image) => File(image.path)));
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        child: const Icon(Icons.photo_library,
+                            color: Colors.white),
+                      ),
+                    ],
                   ),
                   if (selectedFiles.isNotEmpty) ...[
                     const SizedBox(height: 16),
@@ -3412,14 +3466,14 @@ void showConfirmationDialog(BuildContext context, Order order,
                   if (order.pickedUp == '0000-00-00 00:00:00') ...[
                     Icon(
                       Icons.keyboard_arrow_up,
-                      color: Colors.green,
+                      color: Colors.red,
                       size: isSmallScreen ? 74 : 80,
                     )
                   ] else
                     order.delivered == '0000-00-00 00:00:00'
                         ? Icon(
                             Icons.keyboard_arrow_down,
-                            color: Colors.red,
+                            color: Colors.green,
                             size: isSmallScreen ? 74 : 80,
                           )
                         : Container(),
@@ -3468,7 +3522,7 @@ void showConfirmationDialog(BuildContext context, Order order,
                           Icon(
                             Icons.inventory_2_outlined,
                             size: isSmallScreen ? 20 : 24,
-                            color: Colors.blue.shade700,
+                            color: Colors.red.shade700,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -3476,7 +3530,7 @@ void showConfirmationDialog(BuildContext context, Order order,
                             style: TextStyle(
                               fontSize: isSmallScreen ? 14 : 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
+                              color: Colors.red.shade700,
                             ),
                           ),
                         ],
