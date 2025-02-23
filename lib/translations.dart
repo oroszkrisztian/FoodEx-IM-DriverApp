@@ -171,7 +171,8 @@ class Translations {
       'productTableQuantity': 'Quantity',
       'total': 'Total',
       'order_received' : 'Received' ,
-      'collectionRequirements' : 'Collections'
+      'collectionRequirements' : 'Collections',
+      'orderUploadPhoto' : 'Product photo(s)'
     },
     'hu': {
       'driverPage': 'Sofőr Oldal',
@@ -342,7 +343,8 @@ class Translations {
       'productTableQuantity': 'Mennyiseg',
       'total': 'Össz',
       'order_received' : 'Megkapott' ,
-      'collectionRequirements' : 'Göngyölegek'
+      'collectionRequirements' : 'Göngyölegek',
+      'orderUploadPhoto' : 'Áru kép(ek)',
     },
     'ro': {
       'driverPage': 'Pagina Șofer',
@@ -516,6 +518,7 @@ class Translations {
       'total': 'Totală',
       'order_received' : 'Primit' ,
       'collectionRequirements' : 'Ambalaje',
+      'orderUploadPhoto' : 'Poze produs'
       
     },
   };

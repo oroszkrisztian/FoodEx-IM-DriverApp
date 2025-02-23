@@ -1426,7 +1426,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                   context, order.orderId, _loadOrder),
                               icon: Icon(Icons.camera_alt, color: Colors.white),
                               label: Text(
-                                '${Globals.getText('orderPhotos')}',
+                                '${Globals.getText('orderUploadPhoto')}',
                                 style: TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -2748,6 +2748,26 @@ void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.all_inbox,
+                        size: isSmallScreen ? 40 : 44,
+                        color: Colors.blue.shade700,
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        '${Globals.getText('orderUploadPhoto')}',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 28.0 : 32.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       // Camera Button
@@ -2897,8 +2917,7 @@ void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(
-                                          '${Globals.getText('orderPhotoSuccess')}'),
+                                      content: Text('Succes'),
                                     ),
                                   );
                                   reloadPage();
