@@ -1411,6 +1411,36 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
 
                           //CONTAINERS
 
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border:
+                                  Border.all(color: Colors.black, width: 1.0),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: () => updatePhotos(
+                                  context, order.orderId, _loadOrder),
+                              icon: Icon(Icons.camera_alt, color: Colors.white),
+                              label: Text(
+                                '${Globals.getText('orderPhotos')}',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 1, 160, 226),
+                                minimumSize: Size(
+                                    double.infinity, isSmallScreen ? 44 : 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+
                           //DELIVER/PICKUP BUTTON
                           if (Globals.vehicleID != null) ...[
                             if (order.pickedUp == '0000-00-00 00:00:00' ||
@@ -2620,6 +2650,232 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
+  final screenSize = MediaQuery.of(context).size;
+  final isSmallScreen = screenSize.width < 600;
+  List<File> selectedFiles = [];
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            backgroundColor: Colors.transparent,
+            child: Container(
+              width: screenSize.width * 0.8,
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Camera Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(
+                            source: ImageSource.camera,
+                            imageQuality: 70,
+                          );
+                          if (image != null) {
+                            setState(() {
+                              selectedFiles.add(File(image.path));
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: EdgeInsets.all(12),
+                          shape: CircleBorder(),
+                        ),
+                        child: Icon(Icons.camera_alt, color: Colors.white),
+                      ),
+// Gallery Button
+                      ElevatedButton(
+                        onPressed: () async {
+                          final ImagePicker picker = ImagePicker();
+                          final List<XFile> images =
+                              await picker.pickMultiImage(
+                            imageQuality: 70,
+                          );
+                          if (images.isNotEmpty) {
+                            setState(() {
+                              selectedFiles.addAll(
+                                images.map((image) => File(image.path)),
+                              );
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: EdgeInsets.all(12),
+                          shape: CircleBorder(),
+                        ),
+                        child: Icon(Icons.photo_library, color: Colors.white),
+                      )
+                    ],
+                  ),
+                  if (selectedFiles.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: selectedFiles.length,
+                        itemBuilder: (context, index) {
+                          return Stack(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.all(8.0),
+                                width: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.grey.shade400),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    selectedFiles[index],
+                                    height: 180,
+                                    width: 180,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedFiles.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withOpacity(0.8),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 20 : 24,
+                            vertical: isSmallScreen ? 10 : 12,
+                          ),
+                          backgroundColor: Colors.grey.shade100,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderCancel')}',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: selectedFiles.isEmpty
+                            ? null
+                            : () async {
+                                try {
+                                  await DeliveryService().updateOrderPhotos(
+                                      orderId, selectedFiles);
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '${Globals.getText('orderPhotoSuccess')}'),
+                                    ),
+                                  );
+                                  reloadPage();
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: ${e.toString()}'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 20 : 24,
+                            vertical: isSmallScreen ? 10 : 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderUpload')}',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ],

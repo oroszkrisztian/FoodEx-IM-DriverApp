@@ -311,4 +311,56 @@ class DeliveryService {
       throw e;
     }
   }
+
+  Future<void> updateOrderPhotos(int orderId, List<File> photoFiles) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
+      request.fields.addAll({
+        'action': 'update-order',
+        'type': 'photo',
+        'order-id': orderId.toString(),
+      });
+
+      print(
+          'Starting photo upload for order #$orderId with ${photoFiles.length} files');
+
+      for (var file in photoFiles) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'photos[]',
+          file.path,
+        ));
+        print('Added file: ${file.path}');
+      }
+
+      print('Sending request to server...');
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        print('Decoded response: $result');
+
+        if (result is List && result.isNotEmpty) {
+          for (var item in result) {
+            print(
+                'Upload result: ${item['success'] ? 'Success' : 'Failed'} - ${item['message']}');
+          }
+
+          if (!result[0]['success']) {
+            throw Exception(result[0]['message']);
+          }
+          print('Photo upload completed successfully for order #$orderId');
+        }
+      } else {
+        print('Upload failed with status code: ${response.statusCode}');
+        throw Exception('Failed to upload photos');
+      }
+    } catch (e) {
+      print('Error updating photos: $e');
+      throw e;
+    }
+  }
 }
