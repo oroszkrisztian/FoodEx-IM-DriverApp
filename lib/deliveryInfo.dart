@@ -2356,33 +2356,60 @@ void updateInvoice(BuildContext context, int orderId, Function reloadPage) {
                   if (selectedFiles.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
-                      height: 120,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: selectedFiles.length,
                         itemBuilder: (context, index) {
                           return Stack(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Image.file(
-                                  selectedFiles[index],
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.cover,
+                              Container(
+                                margin: const EdgeInsets.all(8.0),
+                                width: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.grey.shade400),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    selectedFiles[index],
+                                    height: 180,
+                                    width: 180,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               Positioned(
                                 right: 0,
                                 top: 0,
-                                child: IconButton(
-                                  icon: const Icon(Icons.close,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    setState(() {
-                                      selectedFiles.removeAt(index);
-                                    });
-                                  },
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedFiles.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withOpacity(0.8),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -2560,33 +2587,60 @@ void updateCmr(BuildContext context, int orderId, Function reloadPage) {
                   if (selectedFiles.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
-                      height: 120,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: selectedFiles.length,
                         itemBuilder: (context, index) {
                           return Stack(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Image.file(
-                                  selectedFiles[index],
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.cover,
+                              Container(
+                                margin: const EdgeInsets.all(8.0),
+                                width: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.grey.shade400),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    selectedFiles[index],
+                                    height: 180,
+                                    width: 180,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               Positioned(
                                 right: 0,
                                 top: 0,
-                                child: IconButton(
-                                  icon: const Icon(Icons.close,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    setState(() {
-                                      selectedFiles.removeAt(index);
-                                    });
-                                  },
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedFiles.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withOpacity(0.8),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
