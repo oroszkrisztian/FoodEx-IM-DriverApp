@@ -120,6 +120,64 @@ class DeliveryService {
     }
   }
 
+  Future<List<String>> getPhotos(int orderId) async {
+    const baseUrl =
+        'https://vinczefi.com/foodexim/functions.php'; // Replace with your actual API endpoint
+
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
+      request.fields.addAll({
+        'action': 'get-order-photos',
+        'order-id': orderId.toString(),
+      });
+
+      // Send the request
+      var response = await request.send();
+
+      // Check if the request was successful
+      if (response.statusCode == 200) {
+        // Parse the response body
+        var responseBody = await response.stream.bytesToString();
+        var jsonResponse = jsonDecode(responseBody);
+
+        if (jsonResponse['success']) {
+          print('Response Data: ${jsonResponse['data']}');
+          // Extract the photo URLs from the response
+          List<String> photoUrls = (jsonResponse['data'] as List)
+              .map((photo) =>
+                  photo['path']?.toString() ??
+                  '') // Ensure it's a string or fallback to empty
+              .where((url) => url.isNotEmpty) // Filter out empty values
+              .toList();
+          print("Final Image URLs: $photoUrls");
+
+          // Construct full URLs
+
+          photoUrls = photoUrls.map((url) {
+            // Ensure the baseUrl ends with a '/' and the url does not start with a '/'
+            String base =
+                'https://vinczefi.com/foodexim/'; // Remove functions.php
+            String path = url.startsWith('/') ? url.substring(1) : url;
+            return Uri.parse('$base$path').toString();
+          }).toList();
+
+          return photoUrls; // Return the list of photo URLs
+        } else {
+          // Handle case where no photos are found
+          print('No photos found: ${jsonResponse['message']}');
+          return []; // Return an empty list
+        }
+      } else {
+        // Handle HTTP error
+        print('HTTP Error: ${response.statusCode}');
+        return []; // Return an empty list
+      }
+    } catch (e) {
+      print("Error getting order photos: $e");
+      return [];
+    }
+  }
+
   Future<void> updateOrderCmr(int orderId, List<File> cmrFiles) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(baseUrl));

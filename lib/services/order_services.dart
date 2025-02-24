@@ -195,17 +195,11 @@ class OrderService {
       final data = json.decode(response.body);
       debugPrint('Response for order ID $orderId: ${response.body}');
 
-      if (!data['success']) {
+      if (!data['success'] || data['data'] == null || data['data'].isEmpty) {
         debugPrint('Failed to fetch order: ${data['message']}');
         return null;
       }
 
-      if (data['data'] == null || data['data'].isEmpty) {
-        debugPrint('No order found with ID $orderId');
-        return null;
-      }
-
-      // Parse the order data from the backend
       final orderJson = data['data'][0];
       final orderDetails = orderJson['order_details'] != null
           ? json.decode(orderJson['order_details'])
@@ -216,7 +210,6 @@ class OrderService {
         return null;
       }
 
-      // Parse related data (companies, warehouses, products, etc.)
       final companies = _safeJsonDecode(orderJson['companies'], '[]');
       final warehouses = _safeJsonDecode(orderJson['warehouses'], '[]');
       final products = _safeJsonDecode(orderJson['products'], '[]');
@@ -224,24 +217,26 @@ class OrderService {
               orderJson['contact_people'] != 'null'
           ? _safeJsonDecode(orderJson['contact_people'], '[]')
           : [];
-
-      // Add collection units parsing
       final collectionUnits = orderJson['collection_units'] != null &&
               orderJson['collection_units'] != 'null'
           ? _safeJsonDecode(orderJson['collection_units'], '[]')
           : [];
 
-      // Create and return the order object
+      // Handle existsPhoto field only in getOrderById
+      final existsPhoto = orderJson['existsPhoto'] ?? false;
+
       final order = Order.fromJson({
         ...orderDetails,
+        'existsPhoto': existsPhoto,
         'companies': companies,
         'warehouses': warehouses,
         'products': products,
         'contact_people': contactPeople,
-        'collection_units': collectionUnits, // Add collection units to the JSON
+        'collection_units': collectionUnits,
       });
 
-      debugPrint('Fetched order: ${order.orderId}');
+      debugPrint(
+          'Fetched order: ${order.orderId}, has photo: ${order.existsPhotos}');
       return order;
     } catch (e) {
       debugPrint('Error in getOrderById: $e');

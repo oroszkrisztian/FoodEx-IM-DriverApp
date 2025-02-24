@@ -271,8 +271,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                               children: [
                                 Card(
                                   color: order.pickedUp == '0000-00-00 00:00:00'
-                                      ? Color.fromARGB(255, 255, 213,
-                                          213) // Changed to red tint for pickup
+                                      ? Colors.orange[
+                                          200] // Changed to red tint for pickup
                                       : Color.fromARGB(255, 166, 250, 118),
                                   elevation: 2.0,
                                   margin: EdgeInsets.symmetric(
@@ -313,12 +313,11 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                               horizontal: 8.0, vertical: 6.0),
                                           decoration: BoxDecoration(
                                             color: Colors
-                                                .red[50], // Changed to red tint
+                                                .white, // Changed to red tint
                                             borderRadius:
                                                 BorderRadius.circular(6.0),
                                             border: Border.all(
-                                                color: Colors
-                                                    .red), // Changed to red border
+                                                color: Colors.black), // Changed to red border
                                           ),
                                           child: Column(
                                             crossAxisAlignment:
@@ -331,12 +330,12 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                 children: [
                                                   Text(
                                                       pickupCompany.companyName,
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                           fontSize: 14.0,
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          color: Colors
-                                                              .red)), // Changed to red
+                                                          color: Colors.orange[
+                                                800])), // Changed to red
                                                   Text(
                                                       DateFormat('MM-dd HH:mm')
                                                           .format(DateTime
@@ -396,12 +395,12 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                               horizontal: 8.0, vertical: 6.0),
                                           decoration: BoxDecoration(
                                             color: Colors
-                                                .green[50], // Kept green tint
+                                                .white, // Kept green tint
                                             borderRadius:
                                                 BorderRadius.circular(6.0),
                                             border: Border.all(
                                                 color: Colors
-                                                    .green), // Kept green border
+                                                    .black), // Kept green border
                                           ),
                                           child: Column(
                                             crossAxisAlignment:

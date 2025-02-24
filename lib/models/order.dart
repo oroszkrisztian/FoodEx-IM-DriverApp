@@ -19,6 +19,7 @@ class Order {
   final String ekr;
   final String invoice;
   final String cmr;
+  final bool existsPhotos;  // Changed to boolean
   final List<Company> companies;
   final List<Warehouse> warehouses;
   final List<Product> products;
@@ -39,6 +40,7 @@ class Order {
     required this.ekr,
     required this.invoice,
     required this.cmr,
+    required this.existsPhotos,
     required this.companies,
     required this.warehouses,
     required this.products,
@@ -101,6 +103,21 @@ class Order {
       print('Error parsing collection_units: $e');
     }
 
+    // Parse existsPhoto as boolean
+    bool existsPhotos = false;
+    try {
+      if (json['existsPhoto'] is bool) {
+        existsPhotos = json['existsPhoto'];
+      } else if (json['existsPhoto'] is String) {
+        existsPhotos = json['existsPhoto'].toLowerCase() == 'true' || 
+                      json['existsPhoto'] == '1';
+      } else if (json['existsPhoto'] is num) {
+        existsPhotos = json['existsPhoto'] != 0;
+      }
+    } catch (e) {
+      print('Error parsing existsPhoto: $e');
+    }
+
     return Order(
       orderId: safeOrderId,
       driver: json['driver']?.toString() ?? '',
@@ -115,6 +132,7 @@ class Order {
       ekr: json['ekr']?.toString() ?? '',
       invoice: json['invoice']?.toString() ?? '',
       cmr: json['cmr']?.toString() ?? '',
+      existsPhotos: existsPhotos,  // Use the parsed boolean value
       companies: safeCompanies
           .map((companyJson) => Company.fromJson(companyJson))
           .toList(),
@@ -166,11 +184,12 @@ class Order {
       ekr: '',
       invoice: '',
       cmr: '',
-      companies: [], // empty list
-      warehouses: [], // empty list
-      products: [], // empty list
+      existsPhotos: false,  // Default to false for empty order
+      companies: [],
+      warehouses: [],
+      products: [],
       contactPeople: [],
-      collectionUnits: [], // empty list
+      collectionUnits: [],
     );
   }
 }

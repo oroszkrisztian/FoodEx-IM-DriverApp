@@ -960,9 +960,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 253, 213, 213),
+                              color: Colors.orange[50],
                               borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(color: Colors.red),
+                              border: Border.all(color: Colors.orange),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,7 +976,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       style: TextStyle(
                                         fontSize: isSmallScreen ? 18.0 : 22.0,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.red,
+                                        color: Colors.orange,
                                       ),
                                     ),
                                     Text(
@@ -1129,14 +1129,14 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                         decoration: BoxDecoration(
                                           color: (order.upNotes != null &&
                                                   order.upNotes.isNotEmpty)
-                                              ? Colors.amber.withOpacity(0.1)
+                                              ? Colors.green.withOpacity(0.1)
                                               : Colors.red.withOpacity(0.1),
                                           borderRadius:
                                               BorderRadius.circular(12.0),
                                           border: Border.all(
                                             color: (order.upNotes != null &&
                                                     order.upNotes.isNotEmpty)
-                                                ? Colors.amber
+                                                ? Colors.green
                                                 : Colors.red,
                                             width: 1.0,
                                           ),
@@ -1151,7 +1151,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                                 color: (order.upNotes != null &&
                                                         order
                                                             .upNotes.isNotEmpty)
-                                                    ? Colors.amber.shade700
+                                                    ? Colors.green.shade700
                                                     : Colors.red.shade700,
                                               ),
                                               const SizedBox(width: 12.0),
@@ -1352,14 +1352,14 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                         decoration: BoxDecoration(
                                           color: (order.downNotes != null &&
                                                   order.downNotes.isNotEmpty)
-                                              ? Colors.amber.withOpacity(0.1)
+                                              ? Colors.green.withOpacity(0.1)
                                               : Colors.red.withOpacity(0.1),
                                           borderRadius:
                                               BorderRadius.circular(12.0),
                                           border: Border.all(
                                             color: (order.downNotes != null &&
                                                     order.downNotes.isNotEmpty)
-                                                ? Colors.amber
+                                                ? Colors.green
                                                 : Colors.red,
                                             width: 1.0,
                                           ),
@@ -1375,7 +1375,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                                     (order.downNotes != null &&
                                                             order.downNotes
                                                                 .isNotEmpty)
-                                                        ? Colors.amber.shade700
+                                                        ? Colors.green.shade700
                                                         : Colors.red.shade700,
                                               ),
                                               const SizedBox(width: 12.0),
@@ -1421,23 +1421,54 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                   Border.all(color: Colors.black, width: 1.0),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
-                            child: ElevatedButton.icon(
-                              onPressed: () => updatePhotos(
-                                  context, order.orderId, _loadOrder),
-                              icon: Icon(Icons.camera_alt, color: Colors.white),
-                              label: Text(
-                                '${Globals.getText('orderUploadPhoto')}',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 1, 160, 226),
-                                minimumSize: Size(
-                                    double.infinity, isSmallScreen ? 44 : 48),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () => updatePhotos(
+                                      context, order.orderId, _loadOrder),
+                                  icon: Icon(Icons.camera_alt,
+                                      color: Colors.white),
+                                  label: Text(
+                                    '${Globals.getText('orderUploadPhoto')}',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 1, 160, 226),
+                                    minimumSize: Size(double.infinity,
+                                        isSmallScreen ? 44 : 48),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                SizedBox(height: 10),
+                                if (order.existsPhotos) ...[
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      openPhotos(
+                                          context, order.orderId, _loadOrder);
+                                      print(order.existsPhotos);
+                                    },
+                                    icon: Icon(Icons.photo_library,
+                                        color: Colors.white),
+                                    label: Text(
+                                      '${Globals.getText('orderPrewviewPhoto')}',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 1, 160, 226),
+                                      minimumSize: Size(double.infinity,
+                                          isSmallScreen ? 44 : 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ]
+                              ],
                             ),
                           ),
 
@@ -1639,12 +1670,12 @@ void openNotes(BuildContext context, String notes) {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
+                      color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.note_rounded,
-                      color: Colors.amber.shade700,
+                      color: Colors.green.shade700,
                       size: isSmallScreen ? 50 : 56,
                     ),
                   ),
@@ -1677,7 +1708,7 @@ void openNotes(BuildContext context, String notes) {
                       horizontal: isSmallScreen ? 20 : 24,
                       vertical: isSmallScreen ? 10 : 12,
                     ),
-                    backgroundColor: Colors.amber.shade50,
+                    backgroundColor: Colors.green.shade50,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1686,7 +1717,7 @@ void openNotes(BuildContext context, String notes) {
                     '${Globals.getText('orderClose')}',
                     style: TextStyle(
                       fontSize: isSmallScreen ? 14.0 : 16.0,
-                      color: Colors.amber.shade700,
+                      color: Colors.green.shade700,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -2959,6 +2990,80 @@ void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
       );
     },
   );
+}
+
+void openPhotos(BuildContext context, int orderId, Function reloadPage) async {
+  final screenSize = MediaQuery.of(context).size;
+  final isSmallScreen = screenSize.width < 600;
+  try {
+    // Show a loading indicator while fetching photos
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Fetch photos using the getPhotos function
+    List<String> photoUrls = await DeliveryService().getPhotos(orderId);
+
+    // Close the loading dialog
+    Navigator.of(context).pop();
+
+    // Check if photos were found
+    if (photoUrls.isNotEmpty) {
+      // Show the photos in a popup
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Order Photos'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: photoUrls
+                  .map((url) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Image.network(url, fit: BoxFit.cover),
+                      ))
+                  .toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 20 : 24,
+                  vertical: isSmallScreen ? 10 : 12,
+                ),
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                '${Globals.getText('orderCancel')}',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14.0 : 16.0,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Handle case where no photos are found
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No photos found')),
+      );
+    }
+  } catch (e) {
+    // Handle any other errors
+    Navigator.of(context).pop(); // Close the loading dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error fetching photos: $e')),
+    );
+  }
 }
 
 void updateCrates(

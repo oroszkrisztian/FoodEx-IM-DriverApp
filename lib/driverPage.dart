@@ -307,8 +307,7 @@ class _DriverPageState extends State<DriverPage> {
                 children: [
                   Card(
                     color: order.pickedUp == '0000-00-00 00:00:00'
-                        ? Color.fromARGB(255, 255, 213,
-                            213) // Changed to red tint for pickup
+                        ? Colors.orange[200] // Changed to red tint for pickup
                         : Color.fromARGB(255, 166, 250,
                             118), // Changed to green tint for delivery
                     elevation: 2.0,
@@ -355,11 +354,11 @@ class _DriverPageState extends State<DriverPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(pickupCompany.companyName,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .red)), // Changed to red for pickup
+                                            color: Colors.orange[
+                                                800])), // Changed to red for pickup
                                     Text(
                                         '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                         style: const TextStyle(
@@ -378,11 +377,12 @@ class _DriverPageState extends State<DriverPage> {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (order.upNotes.isNotEmpty) ...[
-                                          SharedIndicators.buildIcon(
-                                              Icons.note_rounded, Colors.amber),
-                                          const SizedBox(width: 4.0),
-                                        ],
+                                        SharedIndicators.buildIcon(
+                                            Icons.note_rounded,
+                                            order.upNotes.isNotEmpty
+                                                ? Colors.green
+                                                : Colors.red),
+                                        const SizedBox(width: 4.0),
                                         SharedIndicators.buildContactStatus(
                                           name: pickupContact.name,
                                           telephone: pickupContact.telephone,
@@ -436,11 +436,12 @@ class _DriverPageState extends State<DriverPage> {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (order.downNotes.isNotEmpty) ...[
-                                          SharedIndicators.buildIcon(
-                                              Icons.note_rounded, Colors.amber),
-                                          const SizedBox(width: 4.0),
-                                        ],
+                                        SharedIndicators.buildIcon(
+                                            Icons.note_rounded,
+                                            order.downNotes.isNotEmpty
+                                                ? Colors.green
+                                                : Colors.red),
+                                        const SizedBox(width: 4.0),
                                         SharedIndicators.buildContactStatus(
                                           name: deliveryContact.name,
                                           telephone: deliveryContact.telephone,
