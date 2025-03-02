@@ -33,8 +33,6 @@ class DeliveryInfo extends StatefulWidget {
 }
 
 class _DeliveryInfoState extends State<DeliveryInfo> {
-  // Initialize delivery service
-
   final deliveryService = DeliveryService();
   final orderService = OrderService();
 
@@ -103,6 +101,301 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Widget _buildUserNotes(BuildContext context) {
+    final bool isNoteEmpty = order.orderNote.isEmpty;
+    final Color borderColor = isNoteEmpty ? Colors.red : Colors.blue;
+    final Color backgroundColor = isNoteEmpty
+        ? Colors.red.withOpacity(0.1)
+        : const Color.fromARGB(255, 213, 236, 255);
+
+    return GestureDetector(
+      onTap: () {
+        if (isNoteEmpty) {
+          editUserNotes(context, order.orderId, _loadOrder);
+        } else {
+          openNotesUser(context, order.orderNote, _loadOrder);
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border.all(
+            color: borderColor,
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.note,
+                    color: isNoteEmpty ? Colors.red : Colors.blue,
+                    size: 24.0,
+                  ),
+                  SizedBox(width: 8.0),
+                  Text(
+                    '${Globals.getText('orderNotesTitle')}:',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              isNoteEmpty
+                  ? '${Globals.getText('noOrderNotes')}'
+                  : order.orderNote,
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.grey.shade800,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void openNotesUser(BuildContext context, String notes, Function reloadPage) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.note_rounded,
+                        color: Colors.blue.shade700,
+                        size: isSmallScreen ? 50 : 56,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      notes,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 28.0 : 32.0,
+                        height: 1.5,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        editUserNotes(context, order.orderId, reloadPage);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 20 : 24,
+                          vertical: isSmallScreen ? 10 : 12,
+                        ),
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        'Edit',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                        width: 10), // Add some spacing between buttons
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 20 : 24,
+                          vertical: isSmallScreen ? 10 : 12,
+                        ),
+                        backgroundColor: Colors.blue.shade50,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        '${Globals.getText('orderClose')}',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void editUserNotes(BuildContext context, int orderId, Function reloadPage) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    String? newUserNote;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "${Globals.getText('orderUpdate')} ${Globals.getText('orderNotesTitle')}",
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 20.0 : 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: '${Globals.getText('orderUserNotes')}',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                  ),
+                  onChanged: (value) => newUserNote = value,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        '${Globals.getText('orderCancel')}',
+                        style: TextStyle(color: Colors.grey.shade700),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (newUserNote?.isNotEmpty ?? false) {
+                          try {
+                            await DeliveryService()
+                                .updateOrderNote(orderId, newUserNote!);
+                            Navigator.pop(context);
+                            reloadPage(); // Call the reloadPage function to refresh the page
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('User Notes updated successfully')),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: ${e.toString()}')),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text('${Globals.getText('orderUpdate')}',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildProductsTable(BuildContext context) {
@@ -1398,7 +1691,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                               ],
                             ),
                           ),
-
+                          //USER NOTES
+                          const SizedBox(height: 16),
+                          _buildUserNotes(context),
                           //PRODUCTS AND CONTAINERS TABLES
                           const SizedBox(height: 16),
                           _buildProductsTable(context),
@@ -2751,6 +3046,7 @@ void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   List<File> selectedFiles = [];
+  bool isLoading = false;
 
   showDialog(
     context: context,
@@ -2775,215 +3071,276 @@ void updatePhotos(BuildContext context, int orderId, Function reloadPage) {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.all_inbox,
-                        size: isSmallScreen ? 40 : 44,
-                        color: Colors.blue.shade700,
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        '${Globals.getText('orderUploadPhoto')}',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 28.0 : 32.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Camera Button
-                      ElevatedButton(
-                        onPressed: () async {
-                          final ImagePicker picker = ImagePicker();
-                          final XFile? image = await picker.pickImage(
-                            source: ImageSource.camera,
-                            imageQuality: 70,
-                          );
-                          if (image != null) {
-                            setState(() {
-                              selectedFiles.add(File(image.path));
-                            });
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: EdgeInsets.all(12),
-                          shape: CircleBorder(),
-                        ),
-                        child: Icon(Icons.camera_alt, color: Colors.white),
-                      ),
-// Gallery Button
-                      ElevatedButton(
-                        onPressed: () async {
-                          final ImagePicker picker = ImagePicker();
-                          final List<XFile> images =
-                              await picker.pickMultiImage(
-                            imageQuality: 70,
-                          );
-                          if (images.isNotEmpty) {
-                            setState(() {
-                              selectedFiles.addAll(
-                                images.map((image) => File(image.path)),
-                              );
-                            });
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: EdgeInsets.all(12),
-                          shape: CircleBorder(),
-                        ),
-                        child: Icon(Icons.photo_library, color: Colors.white),
-                      )
-                    ],
-                  ),
-                  if (selectedFiles.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: selectedFiles.length,
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.all(8.0),
-                                width: 180,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: Colors.grey.shade400),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    selectedFiles[index],
-                                    height: 180,
-                                    width: 180,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+              child: isLoading
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.upload_file_outlined,
+                              size: isSmallScreen ? 40 : 44,
+                              color: Colors.blue.shade700,
+                            ),
+                            SizedBox(width: 12.0),
+                            Text(
+                              '${Globals.getText('orderUploadPhoto')}',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 28.0 : 32.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
                               ),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedFiles.removeAt(index);
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.8),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 20 : 24,
-                            vertical: isSmallScreen ? 10 : 12,
-                          ),
-                          backgroundColor: Colors.grey.shade100,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          '${Globals.getText('orderCancel')}',
+                        SizedBox(height: 32.0),
+                        CircularProgressIndicator(
+                          color: const Color.fromARGB(255, 1, 160, 226),
+                          strokeWidth: 5.0,
+                        ),
+                        SizedBox(height: 24.0),
+                        Text(
+                          '${Globals.getText('orderUploading')}',
                           style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.grey.shade700,
+                            color: Colors.grey.shade800,
+                            fontSize: isSmallScreen ? 16.0 : 18.0,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: selectedFiles.isEmpty
-                            ? null
-                            : () async {
-                                try {
-                                  await DeliveryService().updateOrderPhotos(
-                                      orderId, selectedFiles);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Succes'),
-                                    ),
-                                  );
-                                  reloadPage();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                        SizedBox(height: 8.0),
+                        Text(
+                          '${Globals.getText('orderPleaseWait')}',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                          ),
+                        ),
+                        SizedBox(height: 24.0),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.all_inbox,
+                              size: isSmallScreen ? 40 : 44,
+                              color: Colors.blue.shade700,
+                            ),
+                            SizedBox(width: 12.0),
+                            Text(
+                              '${Globals.getText('orderUploadPhoto')}',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 28.0 : 32.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // Camera Button
+                            ElevatedButton(
+                              onPressed: () async {
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? image = await picker.pickImage(
+                                  source: ImageSource.camera,
+                                  imageQuality: 70,
+                                );
+                                if (image != null) {
+                                  setState(() {
+                                    selectedFiles.add(File(image.path));
+                                  });
                                 }
                               },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 20 : 24,
-                            vertical: isSmallScreen ? 10 : 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: EdgeInsets.all(12),
+                                shape: CircleBorder(),
+                              ),
+                              child:
+                                  Icon(Icons.camera_alt, color: Colors.white),
+                            ),
+                            // Gallery Button
+                            ElevatedButton(
+                              onPressed: () async {
+                                final ImagePicker picker = ImagePicker();
+                                final List<XFile> images =
+                                    await picker.pickMultiImage(
+                                  imageQuality: 70,
+                                );
+                                if (images.isNotEmpty) {
+                                  setState(() {
+                                    selectedFiles.addAll(
+                                      images.map((image) => File(image.path)),
+                                    );
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 1, 160, 226),
+                                padding: EdgeInsets.all(12),
+                                shape: CircleBorder(),
+                              ),
+                              child: Icon(Icons.photo_library,
+                                  color: Colors.white),
+                            )
+                          ],
                         ),
-                        child: Text(
-                          '${Globals.getText('orderUpload')}',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.white,
+                        if (selectedFiles.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: selectedFiles.length,
+                              itemBuilder: (context, index) {
+                                return Stack(
+                                  children: [
+                                    Container(
+                                      margin: const EdgeInsets.all(8.0),
+                                      width: 180,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey.shade400),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          selectedFiles[index],
+                                          height: 180,
+                                          width: 180,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              selectedFiles.removeAt(index);
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.red.withOpacity(0.8),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
+                        ],
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 20 : 24,
+                                  vertical: isSmallScreen ? 10 : 12,
+                                ),
+                                backgroundColor: Colors.grey.shade100,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                '${Globals.getText('orderCancel')}',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14.0 : 16.0,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: selectedFiles.isEmpty
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      try {
+                                        await DeliveryService()
+                                            .updateOrderPhotos(
+                                                orderId, selectedFiles);
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text('Succes'),
+                                          ),
+                                        );
+                                        reloadPage();
+                                      } catch (e) {
+                                        setState(() {
+                                          isLoading = false;
+                                        });
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content:
+                                                Text('Error: ${e.toString()}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 1, 160, 226),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 20 : 24,
+                                  vertical: isSmallScreen ? 10 : 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                '${Globals.getText('orderUpload')}',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14.0 : 16.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          ],
                         ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
+                      ],
+                    ),
             ),
           );
         },

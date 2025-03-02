@@ -25,7 +25,7 @@ class ShiftService {
       );
 
       print(
-          'Raw JSON Response: ${response.body}'); // Print the entire JSON string
+          'Raw JSON Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);

@@ -19,7 +19,8 @@ class Order {
   final String ekr;
   final String invoice;
   final String cmr;
-  final bool existsPhotos;  // Changed to boolean
+  final bool existsPhotos; 
+  final String orderNote; 
   final List<Company> companies;
   final List<Warehouse> warehouses;
   final List<Product> products;
@@ -41,6 +42,7 @@ class Order {
     required this.invoice,
     required this.cmr,
     required this.existsPhotos,
+    required this.orderNote, 
     required this.companies,
     required this.warehouses,
     required this.products,
@@ -132,7 +134,8 @@ class Order {
       ekr: json['ekr']?.toString() ?? '',
       invoice: json['invoice']?.toString() ?? '',
       cmr: json['cmr']?.toString() ?? '',
-      existsPhotos: existsPhotos,  // Use the parsed boolean value
+      existsPhotos: existsPhotos,
+      orderNote: json['user_notes']?.toString() ?? '',  
       companies: safeCompanies
           .map((companyJson) => Company.fromJson(companyJson))
           .toList(),
@@ -184,7 +187,8 @@ class Order {
       ekr: '',
       invoice: '',
       cmr: '',
-      existsPhotos: false,  // Default to false for empty order
+      existsPhotos: false,
+      orderNote: '',  
       companies: [],
       warehouses: [],
       products: [],

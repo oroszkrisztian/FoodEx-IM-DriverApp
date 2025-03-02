@@ -170,10 +170,15 @@ class Translations {
       'collection_unit': 'Collection Unit',
       'productTableQuantity': 'Quantity',
       'total': 'Total',
-      'order_received' : 'Received' ,
-      'collectionRequirements' : 'Collections',
-      'orderUploadPhoto' : 'Product photo(s)',
-      'orderPrewviewPhoto': 'Product photo(s) preview'
+      'order_received': 'Received',
+      'collectionRequirements': 'Collections',
+      'orderUploadPhoto': 'Product photo(s)',
+      'orderPrewviewPhoto': 'Product photo(s) preview',
+      'orderUploading': 'Uploading Photo(s)...',
+      'orderPleaseWait': 'Please wait...',
+      'orderNotesTitle': 'Order Note',
+      'noOrderNotes': 'No notes available',
+      'orderUserNotes': 'Enter new note'
     },
     'hu': {
       'driverPage': 'Sofőr Oldal',
@@ -343,10 +348,15 @@ class Translations {
       'collection_unit': 'Göngyöleg',
       'productTableQuantity': 'Mennyiseg',
       'total': 'Össz',
-      'order_received' : 'Megkapott' ,
-      'collectionRequirements' : 'Göngyölegek',
-      'orderUploadPhoto' : 'Áru kép(ek)',
-      'orderPrewviewPhoto': 'Áru kép(ek) megtekintése'
+      'order_received': 'Megkapott',
+      'collectionRequirements': 'Göngyölegek',
+      'orderUploadPhoto': 'Áru kép(ek)',
+      'orderPrewviewPhoto': 'Áru kép(ek) megtekintése',
+      'orderUploading': 'Áru kép(ek) feltöltése...',
+      'orderPleaseWait': 'Kérjük várjon...',
+      'orderNotesTitle': 'Rendelés Megjegyzés',
+      'noOrderNotes': 'Nincs megjegyzés',
+      'orderUserNotes': 'Írj be egy új megjegyzést'
     },
     'ro': {
       'driverPage': 'Pagina Șofer',
@@ -518,11 +528,15 @@ class Translations {
       'collection_unit': 'Ambalaje',
       'productTableQuantity': 'Cantitate',
       'total': 'Totală',
-      'order_received' : 'Primit' ,
-      'collectionRequirements' : 'Ambalaje',
-      'orderUploadPhoto' : 'Poze produs',
-      'orderPrewviewPhoto': 'Vizualizare poze produs'
-      
+      'order_received': 'Primit',
+      'collectionRequirements': 'Ambalaje',
+      'orderUploadPhoto': 'Poze produs',
+      'orderPrewviewPhoto': 'Vizualizare poze produs',
+      'orderUploading': 'Se încarcă pozele...',
+      'orderPleaseWait': 'Vă rugăm așteptați...',
+      'orderNotesTitle': 'Notiță comandă',
+      'noOrderNotes': 'Nu există notițe',
+      'orderUserNotes': 'Scrie o nouă notiță'
     },
   };
 

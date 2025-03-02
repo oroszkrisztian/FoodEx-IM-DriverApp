@@ -33,6 +33,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   int? _lastKm;
 
   bool get _isCarWash => _selectedType?.toLowerCase() == 'mosás/spălare';
+  bool get _isCarFuel => _selectedType?.toLowerCase() == 'üzemanyag/combustibil';
 
   String _selectedCurrency = 'RON'; // Default currency
 
@@ -471,8 +472,6 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                               onChanged: (newValue) {
                                 setState(() {
                                   _selectedType = newValue;
-                                  _isFuelSelected =
-                                      newValue?.toLowerCase() == 'fuel';
                                 });
                               },
                             ),
@@ -516,7 +515,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                               return null;
                             },
                           ),
-                          if (_isFuelSelected) ...[
+                          if (_isCarFuel) ...[ // Show Amount field only for fuel
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _amountController,
@@ -524,7 +523,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                               decoration:
                                   const InputDecoration(labelText: 'Amount'),
                               validator: (value) {
-                                if (_isFuelSelected &&
+                                if (_isCarFuel &&
                                     !_isCarWash &&
                                     (value == null || value.isEmpty)) {
                                   return 'Please enter the amount';
@@ -604,3 +603,4 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
     );
   }
 }
+

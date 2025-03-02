@@ -307,7 +307,7 @@ class _DriverPageState extends State<DriverPage> {
                 children: [
                   Card(
                     color: order.pickedUp == '0000-00-00 00:00:00'
-                        ? Colors.orange[200] // Changed to red tint for pickup
+                        ? const Color.fromARGB(255, 255, 189, 189) // Changed to red tint for pickup
                         : Color.fromARGB(255, 166, 250,
                             118), // Changed to green tint for delivery
                     elevation: 2.0,
@@ -357,8 +357,7 @@ class _DriverPageState extends State<DriverPage> {
                                         style: TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.orange[
-                                                800])), // Changed to red for pickup
+                                            color: Colors.red)), // Changed to red for pickup
                                     Text(
                                         '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                         style: const TextStyle(
@@ -858,7 +857,7 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.5',
+              'Version 1.3.6',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: isSmallScreen ? 16.0 : 20.0,

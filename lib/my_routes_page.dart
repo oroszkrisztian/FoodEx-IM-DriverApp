@@ -271,8 +271,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                               children: [
                                 Card(
                                   color: order.pickedUp == '0000-00-00 00:00:00'
-                                      ? Colors.orange[
-                                          200] // Changed to red tint for pickup
+                                      ? const Color.fromARGB(255, 255, 189,
+                                          189) // Changed to red tint for pickup
                                       : Color.fromARGB(255, 166, 250, 118),
                                   elevation: 2.0,
                                   margin: EdgeInsets.symmetric(
@@ -317,7 +317,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                             borderRadius:
                                                 BorderRadius.circular(6.0),
                                             border: Border.all(
-                                                color: Colors.black), // Changed to red border
+                                                color: Colors
+                                                    .black), // Changed to red border
                                           ),
                                           child: Column(
                                             crossAxisAlignment:
@@ -334,8 +335,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                           fontSize: 14.0,
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          color: Colors.orange[
-                                                800])), // Changed to red
+                                                          color: Colors
+                                                              .red)), // Changed to red
                                                   Text(
                                                       DateFormat('MM-dd HH:mm')
                                                           .format(DateTime
@@ -362,16 +363,14 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     children: [
-                                                      if (order.upNotes
-                                                          .isNotEmpty) ...[
-                                                        SharedIndicators
-                                                            .buildIcon(
-                                                                Icons
-                                                                    .note_rounded,
-                                                                Colors.amber),
-                                                        const SizedBox(
-                                                            width: 4.0),
-                                                      ],
+                                                      SharedIndicators.buildIcon(
+                                                          Icons.note_rounded,
+                                                          order.upNotes
+                                                                  .isNotEmpty
+                                                              ? Colors.green
+                                                              : Colors.red),
+                                                      const SizedBox(
+                                                          width: 4.0),
                                                       SharedIndicators
                                                           .buildContactStatus(
                                                         name:
@@ -394,8 +393,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 8.0, vertical: 6.0),
                                           decoration: BoxDecoration(
-                                            color: Colors
-                                                .white, // Kept green tint
+                                            color:
+                                                Colors.white, // Kept green tint
                                             borderRadius:
                                                 BorderRadius.circular(6.0),
                                             border: Border.all(
@@ -446,16 +445,14 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     children: [
-                                                      if (order.downNotes
-                                                          .isNotEmpty) ...[
-                                                        SharedIndicators
-                                                            .buildIcon(
-                                                                Icons
-                                                                    .note_rounded,
-                                                                Colors.amber),
-                                                        const SizedBox(
-                                                            width: 4.0),
-                                                      ],
+                                                      SharedIndicators.buildIcon(
+                                                          Icons.note_rounded,
+                                                          order.downNotes
+                                                                  .isNotEmpty
+                                                              ? Colors.green
+                                                              : Colors.red),
+                                                      const SizedBox(
+                                                          width: 4.0),
                                                       SharedIndicators
                                                           .buildContactStatus(
                                                         name: deliveryContact

@@ -120,6 +120,32 @@ class DeliveryService {
     }
   }
 
+  Future<void> updateOrderNote(int orderId, String note) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: {
+          'action': 'update-order',
+          'type': 'notes',
+          'order-id': orderId.toString(),
+          'notes': note,
+        },
+      );
+      print('Response: ${response.body}');
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (!result['success']) {
+          throw Exception(result['message']);
+        }
+      } else {
+        throw Exception('Failed to update note');
+      }
+    } catch (e) {
+      print('Error updating note: $e');
+      throw e;
+    }
+  }
+
   Future<List<String>> getPhotos(int orderId) async {
     const baseUrl =
         'https://vinczefi.com/foodexim/functions.php'; // Replace with your actual API endpoint
