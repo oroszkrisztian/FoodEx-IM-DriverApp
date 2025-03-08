@@ -2,31 +2,18 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
+import 'package:foodex/shorebirdUpdateScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'globals.dart'; // Import your globals.dart file
-import 'package:workmanager/workmanager.dart';
+
 
 // Constants for task names
 const String uploadImageTask = "uploadImageTask";
 const String uploadExpenseTask = "uploadExpenseTask";
-
-// Callback dispatcher for handling background tasks
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case uploadImageTask:
-        return await handleImageUpload(inputData);
-      // case uploadExpenseTask:
-      //   return await handleExpenseUpload(inputData);
-      default:
-        return Future.value(false);
-    }
-  });
-}
 
 // Handling image upload task
 Future<bool> handleImageUpload(Map<String, dynamic>? inputData) async {
@@ -38,17 +25,6 @@ Future<bool> handleImageUpload(Map<String, dynamic>? inputData) async {
     return Future.value(false);
   }
 }
-
-// Handling expense upload task
-// Future<bool> handleExpenseUpload(Map<String, dynamic>? inputData) async {
-//   try {
-//     await uploadExpense(inputData);
-//     return Future.value(true);
-//   } catch (e) {
-//     print('Error in expense upload task: $e');
-//     return Future.value(false);
-//   }
-// }
 
 // Function to upload images in the background
 Future<void> uploadImages(Map<String, dynamic>? inputData) async {
@@ -100,10 +76,7 @@ Future<void> uploadImages(Map<String, dynamic>? inputData) async {
   }
 }
 
-// Function to upload expenses in the background
-
 // Function to handle vehicle login
-// This function should be in the page or class where it is used
 Future<bool> loginVehicle() async {
   try {
     var request = http.MultipartRequest(
@@ -135,13 +108,9 @@ Future<bool> loginVehicle() async {
   }
 }
 
-//levente commit 7
-//commit kriszti 4
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-
+  
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
@@ -204,7 +173,10 @@ class MyApp extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.black),
         ),
       ),
-      home: isLoggedIn ? const DriverPage() : const MyHomePage(),
+      home: ShorebirdUpdateScreen(
+        primaryColor: const Color.fromARGB(255, 1, 160, 226),
+        child: isLoggedIn ? const DriverPage() : const MyHomePage(),
+      ),
     );
   }
 }
@@ -343,7 +315,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       SizedBox(height: isSmallScreen ? 16 : 24),
                       Text(
-                        'Food Ex-Im Driver',
+                        'Foode Ex-Im Driver App', 
                         style: TextStyle(
                           fontSize: isSmallScreen ? 24 : 28,
                           fontWeight: FontWeight.bold,

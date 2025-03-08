@@ -7,7 +7,6 @@ import 'driverPage.dart'; // Import DriverPage
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart';
-import 'package:workmanager/workmanager.dart';
 
 import 'main.dart';
 
@@ -464,23 +463,6 @@ class _LoginPageState extends State<LoginPage> {
       bool loginSuccessful = await loginVehicle();
 
       if (loginSuccessful) {
-        // Register background task for image upload
-        await Workmanager().registerOneOffTask(
-          "1",
-          uploadImageTask,
-          inputData: {
-            'userId': userID.toString(),
-            'vehicleID': carId.toString(),
-            'km': _kmController.text,
-            'image1': Globals.image1?.path,
-            'image2': Globals.image2?.path,
-            'image3': Globals.image3?.path,
-            'image4': Globals.image4?.path,
-            'image5': Globals.image5?.path,
-            'image6': Globals.parcursIn?.path
-          },
-        );
-
         _hideLoggingDialog();
 
         // Navigate to driver page

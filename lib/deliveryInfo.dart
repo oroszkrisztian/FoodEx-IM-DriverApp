@@ -113,7 +113,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     return GestureDetector(
       onTap: () {
         if (isNoteEmpty) {
-          editUserNotes(context, order.orderId, _loadOrder);
+          editUserNotes(context, order.orderId, _loadOrder, order.orderNote);
         } else {
           openNotesUser(context, order.orderNote, _loadOrder);
         }
@@ -241,7 +241,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);
-                        editUserNotes(context, order.orderId, reloadPage);
+                        editUserNotes(context, order.orderId, reloadPage,
+                            order.orderNote);
                       },
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(
@@ -295,10 +296,15 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     );
   }
 
-  void editUserNotes(BuildContext context, int orderId, Function reloadPage) {
+  void editUserNotes(BuildContext context, int orderId, Function reloadPage,
+      String orderNote) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
     String? newUserNote;
+
+    // Initialize a TextEditingController with the existing order note
+    final TextEditingController _controller =
+        TextEditingController(text: orderNote);
 
     showDialog(
       context: context,
@@ -334,6 +340,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller:
+                      _controller, // Set the controller to auto-fill the text
                   decoration: InputDecoration(
                     hintText: '${Globals.getText('orderUserNotes')}',
                     border: OutlineInputBorder(
@@ -342,6 +350,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                     filled: true,
                     fillColor: Colors.grey.shade50,
                   ),
+                  maxLines:
+                      null, // Allow the TextField to expand based on content
                   onChanged: (value) => newUserNote = value,
                 ),
                 const SizedBox(height: 20),

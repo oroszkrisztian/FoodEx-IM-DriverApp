@@ -1,0 +1,2 @@
+Create a patch for your currently released version:
+        shorebird patch android

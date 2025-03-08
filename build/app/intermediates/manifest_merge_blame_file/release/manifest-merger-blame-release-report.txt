@@ -2,11 +2,11 @@
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="com.oroszkrisztian.foodex"
 4    android:versionCode="2"
-5    android:versionName="1.3.4" >
+5    android:versionName="1.3.6" >
 6
 7    <uses-sdk
 8        android:minSdkVersion="21"
-9        android:targetSdkVersion="34" />
+9        android:targetSdkVersion="35" />
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
 11-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:2:5-66
@@ -47,408 +47,203 @@
 29        </intent>
 30    </queries>
 31
-32    <uses-permission android:name="android.permission.WAKE_LOCK" />
-32-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:23:5-68
-32-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:23:22-65
-33    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-33-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:24:5-79
-33-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:24:22-76
-34    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-34-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:26:5-77
-34-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:26:22-74
+32    <permission
+32-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+33        android:name="com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+33-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+34        android:protectionLevel="signature" />
+34-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
 35
-36    <permission
-36-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
-37        android:name="com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-37-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
-38        android:protectionLevel="signature" />
-38-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
-39
-40    <uses-permission android:name="com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-40-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
-40-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
-41
-42    <application
-43        android:name="android.app.Application"
-43-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:11:9-42
-44        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-44-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
-45        android:extractNativeLibs="true"
-46        android:icon="@mipmap/ic_launcher"
-46-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:12:9-43
-47        android:label="FoodExIm App" >
-47-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:10:9-37
-48        <activity
-48-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:14:9-35:20
-49            android:name="com.oroszkrisztian.foodex.MainActivity"
-49-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:15:13-41
-50            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-50-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:20:13-163
-51            android:exported="true"
-51-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:16:13-36
-52            android:hardwareAccelerated="true"
-52-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:21:13-47
-53            android:launchMode="singleTop"
-53-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:17:13-43
-54            android:taskAffinity=""
-54-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:18:13-36
-55            android:theme="@style/LaunchTheme"
-55-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:19:13-47
-56            android:windowSoftInputMode="adjustResize" >
-56-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:22:13-55
-57
-58            <!--
-59                 Specifies an Android theme to apply to this Activity as soon as
-60                 the Android process has started. This theme is visible to the user
-61                 while the Flutter UI initializes. After that, this theme continues
-62                 to determine the Window background behind the Flutter UI.
-63            -->
-64            <meta-data
-64-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:27:13-30:15
-65                android:name="io.flutter.embedding.android.NormalTheme"
-65-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:28:17-72
-66                android:resource="@style/NormalTheme" />
-66-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:29:17-54
-67
-68            <intent-filter>
-68-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:31:13-34:29
-69                <action android:name="android.intent.action.MAIN" />
-69-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:32:17-68
-69-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:32:25-66
+36    <uses-permission android:name="com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+36-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+36-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+37
+38    <application
+39        android:name="android.app.Application"
+39-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:11:9-42
+40        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+40-->[androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/4b1df6943c871bb977e21b188400dab8/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+41        android:extractNativeLibs="true"
+42        android:icon="@mipmap/ic_launcher"
+42-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:12:9-43
+43        android:label="FoodExIm App" >
+43-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:10:9-37
+44        <activity
+44-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:14:9-35:20
+45            android:name="com.oroszkrisztian.foodex.MainActivity"
+45-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:15:13-41
+46            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+46-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:20:13-163
+47            android:exported="true"
+47-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:16:13-36
+48            android:hardwareAccelerated="true"
+48-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:21:13-47
+49            android:launchMode="singleTop"
+49-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:17:13-43
+50            android:taskAffinity=""
+50-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:18:13-36
+51            android:theme="@style/LaunchTheme"
+51-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:19:13-47
+52            android:windowSoftInputMode="adjustResize" >
+52-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:22:13-55
+53
+54            <!--
+55                 Specifies an Android theme to apply to this Activity as soon as
+56                 the Android process has started. This theme is visible to the user
+57                 while the Flutter UI initializes. After that, this theme continues
+58                 to determine the Window background behind the Flutter UI.
+59            -->
+60            <meta-data
+60-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:27:13-30:15
+61                android:name="io.flutter.embedding.android.NormalTheme"
+61-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:28:17-72
+62                android:resource="@style/NormalTheme" />
+62-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:29:17-54
+63
+64            <intent-filter>
+64-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:31:13-34:29
+65                <action android:name="android.intent.action.MAIN" />
+65-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:32:17-68
+65-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:32:25-66
+66
+67                <category android:name="android.intent.category.LAUNCHER" />
+67-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:33:17-76
+67-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:33:27-74
+68            </intent-filter>
+69        </activity>
 70
-71                <category android:name="android.intent.category.LAUNCHER" />
-71-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:33:17-76
-71-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:33:27-74
-72            </intent-filter>
-73        </activity>
-74
-75        <!--
-76             Don't delete the meta-data below.
-77             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
-78        -->
-79        <meta-data
-79-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:39:9-41:33
-80            android:name="flutterEmbedding"
-80-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:40:13-44
-81            android:value="2" />
-81-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:41:13-30
-82
-83        <provider
-83-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:9:9-17:20
-84            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
-84-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-82
-85            android:authorities="com.oroszkrisztian.foodex.flutter.image_provider"
-85-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-74
-86            android:exported="false"
-86-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:12:13-37
-87            android:grantUriPermissions="true" >
-87-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-47
-88            <meta-data
-88-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-16:75
-89                android:name="android.support.FILE_PROVIDER_PATHS"
-89-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:15:17-67
-90                android:resource="@xml/flutter_image_picker_file_paths" />
-90-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:16:17-72
-91        </provider> <!-- Trigger Google Play services to install the backported photo picker module. -->
-92        <service
-92-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:19:9-31:19
-93            android:name="com.google.android.gms.metadata.ModuleDependencies"
-93-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:20:13-78
-94            android:enabled="false"
-94-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:21:13-36
-95            android:exported="false" >
-95-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:22:13-37
-96            <intent-filter>
-96-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-26:29
-97                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
-97-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:25:17-94
-97-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:25:25-91
-98            </intent-filter>
-99
-100            <meta-data
-100-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:28:13-30:36
-101                android:name="photopicker_activity:0:required"
-101-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-63
-102                android:value="" />
-102-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:30:17-33
-103        </service>
-104
-105        <activity
-105-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-11:74
-106            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
-106-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:9:13-74
-107            android:exported="false"
-107-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-37
-108            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
-108-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-71
-109
-110        <provider
-110-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:29:9-37:20
-111            android:name="androidx.startup.InitializationProvider"
-111-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:30:13-67
-112            android:authorities="com.oroszkrisztian.foodex.androidx-startup"
-112-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:31:13-68
-113            android:exported="false" >
-113-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:32:13-37
-114            <meta-data
-114-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:34:13-36:52
-115                android:name="androidx.work.WorkManagerInitializer"
-115-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:35:17-68
-116                android:value="androidx.startup" />
-116-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:36:17-49
+71        <!--
+72             Don't delete the meta-data below.
+73             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
+74        -->
+75        <meta-data
+75-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:39:9-41:33
+76            android:name="flutterEmbedding"
+76-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:40:13-44
+77            android:value="2" />
+77-->/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:41:13-30
+78
+79        <provider
+79-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:9:9-17:20
+80            android:name="io.flutter.plugins.imagepicker.ImagePickerFileProvider"
+80-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-82
+81            android:authorities="com.oroszkrisztian.foodex.flutter.image_provider"
+81-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-74
+82            android:exported="false"
+82-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:12:13-37
+83            android:grantUriPermissions="true" >
+83-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-47
+84            <meta-data
+84-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-16:75
+85                android:name="android.support.FILE_PROVIDER_PATHS"
+85-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:15:17-67
+86                android:resource="@xml/flutter_image_picker_file_paths" />
+86-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:16:17-72
+87        </provider> <!-- Trigger Google Play services to install the backported photo picker module. -->
+88        <service
+88-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:19:9-31:19
+89            android:name="com.google.android.gms.metadata.ModuleDependencies"
+89-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:20:13-78
+90            android:enabled="false"
+90-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:21:13-36
+91            android:exported="false" >
+91-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:22:13-37
+92            <intent-filter>
+92-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-26:29
+93                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+93-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:25:17-94
+93-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:25:25-91
+94            </intent-filter>
+95
+96            <meta-data
+96-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:28:13-30:36
+97                android:name="photopicker_activity:0:required"
+97-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-63
+98                android:value="" />
+98-->[:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:30:17-33
+99        </service>
+100
+101        <activity
+101-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-11:74
+102            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
+102-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:9:13-74
+103            android:exported="false"
+103-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-37
+104            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+104-->[:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-71
+105
+106        <uses-library
+106-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:23:9-25:40
+107            android:name="androidx.window.extensions"
+107-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:24:13-54
+108            android:required="false" />
+108-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:25:13-37
+109        <uses-library
+109-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:26:9-28:40
+110            android:name="androidx.window.sidecar"
+110-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:27:13-51
+111            android:required="false" />
+111-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/1685e0bdc8ba0a11e1b2f7a1f1070933/transformed/jetified-window-1.2.0/AndroidManifest.xml:28:13-37
+112
+113        <provider
+113-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
+114            android:name="androidx.startup.InitializationProvider"
+114-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
+115            android:authorities="com.oroszkrisztian.foodex.androidx-startup"
+115-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
+116            android:exported="false" >
+116-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37
 117            <meta-data
-117-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+117-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
 118                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-118-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+118-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
 119                android:value="androidx.startup" />
-119-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+119-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/777aec164c6c48533e905efd2d8d0e22/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
 120            <meta-data
-120-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+120-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
 121                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-121-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+121-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
 122                android:value="androidx.startup" />
-122-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+122-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
 123        </provider>
 124
-125        <service
-125-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:39:9-45:35
-126            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
-126-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:40:13-88
+125        <receiver
+125-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+126            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+126-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
 127            android:directBootAware="false"
-127-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:41:13-44
-128            android:enabled="@bool/enable_system_alarm_service_default"
-128-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:42:13-72
-129            android:exported="false" />
-129-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:43:13-37
-130        <service
-130-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:46:9-52:35
-131            android:name="androidx.work.impl.background.systemjob.SystemJobService"
-131-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:47:13-84
-132            android:directBootAware="false"
-132-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:48:13-44
-133            android:enabled="@bool/enable_system_job_service_default"
-133-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:49:13-70
-134            android:exported="true"
-134-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:50:13-36
-135            android:permission="android.permission.BIND_JOB_SERVICE" />
-135-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:51:13-69
-136        <service
-136-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:53:9-59:35
-137            android:name="androidx.work.impl.foreground.SystemForegroundService"
-137-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:54:13-81
-138            android:directBootAware="false"
-138-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:55:13-44
-139            android:enabled="@bool/enable_system_foreground_service_default"
-139-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:56:13-77
-140            android:exported="false" />
-140-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:57:13-37
-141
-142        <receiver
-142-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:61:9-66:35
-143            android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
-143-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:62:13-88
-144            android:directBootAware="false"
-144-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:63:13-44
-145            android:enabled="true"
-145-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:64:13-35
-146            android:exported="false" />
-146-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:65:13-37
-147        <receiver
-147-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:67:9-77:20
-148            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
-148-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:68:13-106
-149            android:directBootAware="false"
-149-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:69:13-44
-150            android:enabled="false"
-150-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:70:13-36
-151            android:exported="false" >
-151-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:71:13-37
-152            <intent-filter>
-152-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:73:13-76:29
-153                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-153-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:74:17-87
-153-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:74:25-84
-154                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-154-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:75:17-90
-154-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:75:25-87
-155            </intent-filter>
-156        </receiver>
-157        <receiver
-157-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:78:9-88:20
-158            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy"
-158-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:79:13-104
-159            android:directBootAware="false"
-159-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:80:13-44
-160            android:enabled="false"
-160-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:81:13-36
-161            android:exported="false" >
-161-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:82:13-37
-162            <intent-filter>
-162-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:84:13-87:29
-163                <action android:name="android.intent.action.BATTERY_OKAY" />
-163-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:85:17-77
-163-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:85:25-74
-164                <action android:name="android.intent.action.BATTERY_LOW" />
-164-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:86:17-76
-164-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:86:25-73
-165            </intent-filter>
-166        </receiver>
-167        <receiver
-167-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:89:9-99:20
-168            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy"
-168-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:90:13-104
-169            android:directBootAware="false"
-169-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:91:13-44
-170            android:enabled="false"
-170-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:92:13-36
-171            android:exported="false" >
-171-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:93:13-37
-172            <intent-filter>
-172-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:95:13-98:29
-173                <action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
-173-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:96:17-83
-173-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:96:25-80
-174                <action android:name="android.intent.action.DEVICE_STORAGE_OK" />
-174-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:97:17-82
-174-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:97:25-79
-175            </intent-filter>
-176        </receiver>
-177        <receiver
-177-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:100:9-109:20
-178            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
-178-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:101:13-103
-179            android:directBootAware="false"
-179-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:102:13-44
-180            android:enabled="false"
-180-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:103:13-36
-181            android:exported="false" >
-181-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:104:13-37
-182            <intent-filter>
-182-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:106:13-108:29
-183                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-183-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:107:17-79
-183-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:107:25-76
-184            </intent-filter>
-185        </receiver>
-186        <receiver
-186-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:110:9-121:20
-187            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
-187-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:111:13-88
-188            android:directBootAware="false"
-188-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:112:13-44
-189            android:enabled="false"
-189-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:113:13-36
-190            android:exported="false" >
-190-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:114:13-37
-191            <intent-filter>
-191-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:116:13-120:29
-192                <action android:name="android.intent.action.BOOT_COMPLETED" />
-192-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:117:17-79
-192-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:117:25-76
-193                <action android:name="android.intent.action.TIME_SET" />
-193-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:118:17-73
-193-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:118:25-70
-194                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-194-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:119:17-81
-194-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:119:25-78
-195            </intent-filter>
-196        </receiver>
-197        <receiver
-197-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:122:9-131:20
-198            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
-198-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:123:13-99
-199            android:directBootAware="false"
-199-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:124:13-44
-200            android:enabled="@bool/enable_system_alarm_service_default"
-200-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:125:13-72
-201            android:exported="false" >
-201-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:126:13-37
-202            <intent-filter>
-202-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:128:13-130:29
-203                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies" />
-203-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:129:17-98
-203-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:129:25-95
-204            </intent-filter>
-205        </receiver>
-206        <receiver
-206-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:132:9-142:20
-207            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
-207-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:133:13-78
-208            android:directBootAware="false"
-208-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:134:13-44
-209            android:enabled="true"
-209-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:135:13-35
-210            android:exported="true"
-210-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:136:13-36
-211            android:permission="android.permission.DUMP" >
-211-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:137:13-57
-212            <intent-filter>
-212-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:139:13-141:29
-213                <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS" />
-213-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:140:17-88
-213-->[androidx.work:work-runtime:2.8.1] /home/kriszti/.gradle/caches/transforms-3/f740e3dfac608bbb652f46ae8ff0e3f2/transformed/work-runtime-2.8.1/AndroidManifest.xml:140:25-85
-214            </intent-filter>
-215        </receiver>
-216
-217        <uses-library
-217-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:23:9-25:40
-218            android:name="androidx.window.extensions"
-218-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:24:13-54
-219            android:required="false" />
-219-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:25:13-37
-220        <uses-library
-220-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:26:9-28:40
-221            android:name="androidx.window.sidecar"
-221-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:27:13-51
-222            android:required="false" />
-222-->[androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:28:13-37
-223
-224        <service
-224-->[androidx.room:room-runtime:2.5.0] /home/kriszti/.gradle/caches/transforms-3/8478d99fbbcb5c29686ee6eb91797679/transformed/room-runtime-2.5.0/AndroidManifest.xml:24:9-28:63
-225            android:name="androidx.room.MultiInstanceInvalidationService"
-225-->[androidx.room:room-runtime:2.5.0] /home/kriszti/.gradle/caches/transforms-3/8478d99fbbcb5c29686ee6eb91797679/transformed/room-runtime-2.5.0/AndroidManifest.xml:25:13-74
-226            android:directBootAware="true"
-226-->[androidx.room:room-runtime:2.5.0] /home/kriszti/.gradle/caches/transforms-3/8478d99fbbcb5c29686ee6eb91797679/transformed/room-runtime-2.5.0/AndroidManifest.xml:26:13-43
-227            android:exported="false" />
-227-->[androidx.room:room-runtime:2.5.0] /home/kriszti/.gradle/caches/transforms-3/8478d99fbbcb5c29686ee6eb91797679/transformed/room-runtime-2.5.0/AndroidManifest.xml:27:13-37
-228
-229        <receiver
-229-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
-230            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-230-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
-231            android:directBootAware="false"
-231-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
-232            android:enabled="true"
-232-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
-233            android:exported="true"
-233-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
-234            android:permission="android.permission.DUMP" >
-234-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
-235            <intent-filter>
-235-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
-236                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-236-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
-236-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
-237            </intent-filter>
-238            <intent-filter>
-238-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
-239                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-239-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
-239-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
-240            </intent-filter>
-241            <intent-filter>
-241-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
-242                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-242-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
-242-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
-243            </intent-filter>
-244            <intent-filter>
-244-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
-245                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-245-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
-245-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
-246            </intent-filter>
-247        </receiver>
-248    </application>
-249
-250</manifest>
+127-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+128            android:enabled="true"
+128-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+129            android:exported="true"
+129-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+130            android:permission="android.permission.DUMP" >
+130-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+131            <intent-filter>
+131-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+132                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+132-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+132-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+133            </intent-filter>
+134            <intent-filter>
+134-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+135                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+135-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+135-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+136            </intent-filter>
+137            <intent-filter>
+137-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+138                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+138-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+138-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+139            </intent-filter>
+140            <intent-filter>
+140-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+141                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+141-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+141-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/5461790cbe4850e2409bb149f08b1be7/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+142            </intent-filter>
+143        </receiver>
+144    </application>
+145
+146</manifest>

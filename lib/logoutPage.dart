@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart';
 import 'driverPage.dart'; // Import DriverPage
-import 'package:workmanager/workmanager.dart';
 
 import 'main.dart';
 
@@ -440,21 +439,6 @@ class _LogoutPageState extends State<LogoutPage> {
     bool loginSuccessful = await loginVehicle();
 
     if (loginSuccessful) {
-      Workmanager().registerOneOffTask(
-        "2",
-        uploadImageTask,
-        inputData: {
-          'userId': Globals.userId.toString(),
-          'vehicleID': Globals.vehicleID.toString(),
-          'km': _kmController.text,
-          'image1': Globals.image6?.path,
-          'image2': Globals.image7?.path,
-          'image3': Globals.image8?.path,
-          'image4': Globals.image9?.path,
-          'image5': Globals.image10?.path,
-          'image6': Globals.parcursOut?.path
-        },
-      );
 
       _hideLoggingDialog();
       SharedPreferences prefs = await SharedPreferences.getInstance();

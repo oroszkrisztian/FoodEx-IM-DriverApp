@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.oroszkrisztian.foodex.app-mergeDebugResources-34:/values-hi/values-hi.xml",
+            "outputFile": "com.oroszkrisztian.foodex.app-mergeDebugResources-29:/values-hi/values-hi.xml",
             "map": [
                 {
                     "source": "/home/kriszti/.gradle/caches/transforms-3/9a7a783aa8682aaa028c57031d48c15e/transformed/browser-1.8.0/res/values-hi/values-hi.xml",
