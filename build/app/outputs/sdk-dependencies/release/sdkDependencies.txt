@@ -721,7 +721,7 @@ library {
 }
 library {
   digests {
-    sha256: "L|J\034R\203\207\022\203\006Nz\217\226\261\316\2454\020\212\273\275Gu\022O\303\2224M8\324"
+    sha256: "\270\370M\177D\b~u\034\305\364\313\205#\344\357\327`\335O\340)\3067\231\350\260\034\302\255vN"
   }
 }
 library_dependencies {
@@ -1148,6 +1148,16 @@ repositories {
 repositories {
   maven_repo {
     url: "https://download.shorebird.dev/download.flutter.io"
+  }
+}
+repositories {
+  maven_repo {
+    url: "https://dl.google.com/dl/android/maven2/"
+  }
+}
+repositories {
+  maven_repo {
+    url: "https://repo.maven.apache.org/maven2/"
   }
 }
 repositories {

@@ -28,14 +28,14 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
   bool _isSubmitting = false;
-  bool _isFuelSelected = false;
-  String? _errorMessage;
   int? _lastKm;
 
   bool get _isCarWash => _selectedType?.toLowerCase() == 'mosás/spălare';
-  bool get _isCarFuel => _selectedType?.toLowerCase() == 'üzemanyag/combustibil';
+  bool get _isCarFuel =>
+      _selectedType?.toLowerCase() == 'üzemanyag/combustibil';
+  bool get _isAdBLue => _selectedType?.toLowerCase() == 'adblue';
 
-  String _selectedCurrency = 'RON'; // Default currency
+  String _selectedCurrency = 'RON';
 
   List<Map<String, dynamic>> _expenseCategories = [];
   bool _isLoadingCategories = true;
@@ -76,7 +76,6 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error loading categories: $e';
         _isLoadingCategories = false;
       });
     }
@@ -138,32 +137,25 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
         if (data is bool && data == false) {
           setState(() {
             _lastKm = 0; // Set to 0 if no data is found
-            _errorMessage = null; // Clear any previous error messages
+// Clear any previous error messages
           });
           return true; // Allow the process to continue
         } else if (data != null &&
             (data is int || int.tryParse(data.toString()) != null)) {
           setState(() {
             _lastKm = int.parse(data.toString());
-            _errorMessage = null;
           });
           return true;
         } else {
-          setState(() {
-            _errorMessage = 'Invalid response data';
-          });
+          setState(() {});
           return false;
         }
       } else {
-        setState(() {
-          _errorMessage = 'Failed to load last KM: ${response.statusCode}';
-        });
+        setState(() {});
         return false;
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Error fetching last KM: $e';
-      });
+      setState(() {});
       return false;
     }
   }
@@ -171,8 +163,8 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
   /// Submit the expense data
   Future<bool> _submitExpense() async {
     // Check if image is required for car wash
-    if (_isCarWash && _image == null) {
-      _showErrorDialog('Please take a picture for car wash expense');
+    if (_image == null) {
+      _showErrorDialog('Please take a picture for the expense');
       return false;
     }
 
@@ -192,7 +184,6 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
       );
 
-      // Set up the fields, using empty strings for null values in car wash case
       request.fields['action'] = 'vehicle-expense';
       request.fields['driver'] = Globals.userId.toString();
       request.fields['vehicle'] = Globals.vehicleID.toString();
@@ -266,7 +257,6 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
       _amountController?.clear();
       _selectedType = null; // Reset the dropdown to its initial state
       _image = null;
-      _isFuelSelected = false;
     });
   }
 
@@ -515,7 +505,7 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
                               return null;
                             },
                           ),
-                          if (_isCarFuel) ...[ // Show Amount field only for fuel
+                          if (_isCarFuel || _isAdBLue) ...[
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _amountController,
@@ -603,4 +593,3 @@ class _VehicleExpensePageState extends State<VehicleExpensePage> {
     );
   }
 }
-

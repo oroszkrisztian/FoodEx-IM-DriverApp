@@ -247,9 +247,11 @@ class OrderService {
   Future<int?> checkVehicleLogin() async {
     try {
       final body = {
-        'action': 'get-vehicle-id',
+        'action': 'get-vehicle-id-simple',
         'driver': Globals.userId.toString()
       };
+
+      debugPrint("Getting vehicle ID for driver: ${Globals.userId}");
 
       final response = await http.post(
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
@@ -260,15 +262,15 @@ class OrderService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('Raw vehicle response: ${response.body}');
+        debugPrint('Response: ${response.body}');
         final Map<String, dynamic> data = json.decode(response.body);
 
         if (data['success'] == true && data['data'] != null) {
-          final vehicleData = data['data'];
-          final vehicleId = vehicleData['vehicle_id'];
+          final vehicleId = data['data']['vehicle_id'];
 
           if (vehicleId != null) {
             int? parsedVehicleId;
+
             if (vehicleId is String) {
               parsedVehicleId = int.tryParse(vehicleId);
             } else if (vehicleId is int) {
@@ -277,30 +279,23 @@ class OrderService {
 
             if (parsedVehicleId != null) {
               Globals.vehicleID = parsedVehicleId;
-              debugPrint('Successfully stored vehicle ID: $parsedVehicleId');
-
-              if (vehicleData['photos'] != null) {
-                final List<dynamic> photos = json.decode(vehicleData['photos']);
-                debugPrint('Found ${photos.length} photos');
-              }
-
+              debugPrint('Vehicle ID: $parsedVehicleId');
               return parsedVehicleId;
             }
           }
 
-          debugPrint('No valid vehicle ID found in response');
+          debugPrint('No vehicle ID in response');
           return null;
         }
 
-        debugPrint(
-            'Response indicates failure or missing data: ${data['message']}');
+        debugPrint('Request failed: ${data['message']}');
         return null;
       }
 
       debugPrint('HTTP Error: ${response.statusCode}');
       return null;
     } catch (e) {
-      debugPrint('Error in checkVehicleLogin: $e');
+      debugPrint('Error getting vehicle ID: $e');
       return null;
     }
   }

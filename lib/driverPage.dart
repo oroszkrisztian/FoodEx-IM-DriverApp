@@ -14,13 +14,16 @@ import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/myLogs.dart';
 import 'package:foodex/services/delivery_service.dart';
 import 'package:foodex/services/order_services.dart';
+import 'package:foodex/services/shorebird_service.dart';
 import 'package:foodex/services/user_service.dart';
 import 'package:foodex/shiftsPage.dart';
+import 'package:foodex/shorebirdUpdateScreen.dart';
 import 'package:foodex/vehicleData.dart';
 import 'package:foodex/vehicleExpensePage.dart';
 import 'package:foodex/widgets/shared_indicators.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'globals.dart';
 
 final defaultPickupWarehouse = Warehouse(
@@ -61,6 +64,7 @@ class _DriverPageState extends State<DriverPage> {
   final deliveryService = DeliveryService();
   final userService = UserService(baseUrl: 'https://vinczefi.com');
   String? errorMessage;
+  final ShorebirdCodePush _shorebirdCodePush = ShorebirdCodePush();
 
   @override
   void initState() {
@@ -74,6 +78,63 @@ class _DriverPageState extends State<DriverPage> {
   void dispose() {
     _ordersSubscription?.cancel();
     super.dispose();
+  }
+
+  void _checkForUpdates() async {
+    try {
+      final isUpdateAvailable =
+          await _shorebirdCodePush.isNewPatchAvailableForDownload();
+      if (isUpdateAvailable) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(Globals.getText('newVersionAvailable')),
+            content: Text(Globals.getText('wouldYouLikeToUpdate')),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(Globals.getText('later')),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(Globals.getText('downloadingUpdate')),
+                    ),
+                  );
+                  await _shorebirdCodePush.downloadUpdateIfAvailable();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(Globals.getText('updateComplete')),
+                      ),
+                    );
+                  }
+                },
+                child: Text(Globals.getText('updateNow')),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(Globals.getText('noUpdatesAvailable')),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking for updates: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _setupOrdersListener() {
@@ -307,7 +368,8 @@ class _DriverPageState extends State<DriverPage> {
                 children: [
                   Card(
                     color: order.pickedUp == '0000-00-00 00:00:00'
-                        ? const Color.fromARGB(255, 255, 189, 189) // Changed to red tint for pickup
+                        ? const Color.fromARGB(255, 255, 189,
+                            189) // Changed to red tint for pickup
                         : Color.fromARGB(255, 166, 250,
                             118), // Changed to green tint for delivery
                     elevation: 2.0,
@@ -357,7 +419,8 @@ class _DriverPageState extends State<DriverPage> {
                                         style: TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.red)), // Changed to red for pickup
+                                            color: Colors
+                                                .red)), // Changed to red for pickup
                                     Text(
                                         '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
                                         style: const TextStyle(
@@ -831,6 +894,17 @@ class _DriverPageState extends State<DriverPage> {
               },
             ),
           ],
+          const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.system_update,
+                color: Color.fromARGB(255, 1, 160, 226)),
+            title: Text(Globals.getText('checkForUpdates')),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              ShorebirdService().showUpdatePopup(context);
+            },
+          ),
           const Spacer(),
           //const Divider(),
           // Language Selection SectionG

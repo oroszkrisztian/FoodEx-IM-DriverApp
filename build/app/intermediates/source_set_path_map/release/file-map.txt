@@ -39,5 +39,6 @@ com.oroszkrisztian.foodex.app-packaged_res-37 /home/kriszti/Desktop/FoodEx-IM-Dr
 com.oroszkrisztian.foodex.app-packaged_res-38 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/packaged_res/release
 com.oroszkrisztian.foodex.app-packaged_res-39 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/packaged_res/release
 com.oroszkrisztian.foodex.app-packaged_res-40 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/packaged_res/release
-com.oroszkrisztian.foodex.app-packaged_res-41 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/packaged_res/release
-com.oroszkrisztian.foodex.app-packaged_res-42 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/packaged_res/release
+com.oroszkrisztian.foodex.app-packaged_res-41 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/packaged_res/release
+com.oroszkrisztian.foodex.app-packaged_res-42 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/packaged_res/release
+com.oroszkrisztian.foodex.app-packaged_res-43 /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/packaged_res/release

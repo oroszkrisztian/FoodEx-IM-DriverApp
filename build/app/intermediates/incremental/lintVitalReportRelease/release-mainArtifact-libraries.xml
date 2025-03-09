@@ -121,6 +121,19 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
+      name="/home/kriszti/Desktop/FoodEx-IM-DriverApp/android@@:restart_app::release"
+      jars="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/.transforms/2fc249624bd432f808857079d658230c/transformed/out/jars/classes.jar:/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/.transforms/2fc249624bd432f808857079d658230c/transformed/out/jars/libs/R.jar"
+      resolved="gabrimatic.info.restart:restart_app:unspecified"
+      folder="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/.transforms/2fc249624bd432f808857079d658230c/transformed/out"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
       name="/home/kriszti/Desktop/FoodEx-IM-DriverApp/android@@:url_launcher_android::release"
       jars="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/.transforms/147a7cf357ff818e9c7c248bffb79f35/transformed/out/jars/classes.jar:/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/.transforms/147a7cf357ff818e9c7c248bffb79f35/transformed/out/jars/libs/R.jar"
       resolved="io.flutter.plugins.urllauncher:url_launcher_android:unspecified"

@@ -1,2 +1,5 @@
+new release aab and apk
+        shorebird release android --artifact=apk
+
 Create a patch for your currently released version:
         shorebird patch android
