@@ -2,11 +2,11 @@
     name="release"
     package="com.oroszkrisztian.foodex"
     minSdkVersion="21"
-    targetSdkVersion="35"
+    targetSdkVersion="34"
     shrinking="true"
     mergedManifest="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/merged_manifest/release/AndroidManifest.xml"
     manifestMergeReport="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/outputs/logs/manifest-merger-release-report.txt"
-    proguardFiles="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.1.0:/home/kriszti/.shorebird/bin/cache/flutter/a5bd04b23bd448f5c825a20ddb391110ea15d3f1/packages/flutter_tools/gradle/flutter_proguard_rules.pro:proguard-rules.pro"
+    proguardFiles="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/default_proguard_files/global/proguard-android.txt-8.1.0:/home/kriszti/snap/flutter/common/flutter/packages/flutter_tools/gradle/flutter_proguard_rules.pro:proguard-rules.pro"
     partialResultsDir="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/lint_vital_partial_results/release/out">
   <buildFeatures
       namespacing="REQUIRED"/>
@@ -31,6 +31,6 @@
       applicationId="com.oroszkrisztian.foodex"
       generatedSourceFolders="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/generated/ap_generated_sources/release/out"
       generatedResourceFolders="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/generated/res/resValues/release"
-      desugaredMethodsFiles="/home/kriszti/.gradle/caches/transforms-3/010033666daf9ecdf352480843edd272/transformed/D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="/home/kriszti/.gradle/caches/transforms-3/65c0c5e1a46dd2074f619deb01dcd57d/transformed/D8BackportedDesugaredMethods.txt">
   </mainArtifact>
 </variant>

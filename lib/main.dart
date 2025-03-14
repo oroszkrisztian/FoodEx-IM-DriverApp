@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
-import 'package:foodex/shorebirdUpdateScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart';
-import 'globals.dart'; // Import your globals.dart file
 
+import 'globals.dart'; // Import your globals.dart file
 
 // Constants for task names
 const String uploadImageTask = "uploadImageTask";
@@ -110,7 +108,7 @@ Future<bool> loginVehicle() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
@@ -173,10 +171,7 @@ class MyApp extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.black),
         ),
       ),
-      home: ShorebirdUpdateScreen(
-        primaryColor: const Color.fromARGB(255, 1, 160, 226),
-        child: isLoggedIn ? const DriverPage() : const MyHomePage(),
-      ),
+      home: isLoggedIn ? const DriverPage() : const MyHomePage(),
     );
   }
 }
@@ -315,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       SizedBox(height: isSmallScreen ? 16 : 24),
                       Text(
-                        'Foode Ex-Im Driver App', 
+                        'Foode Ex-Im Driver App',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 24 : 28,
                           fontWeight: FontWeight.bold,

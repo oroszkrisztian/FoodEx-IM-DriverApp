@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foodex/ServerUpdate.dart';
 import 'package:foodex/deliveryInfo.dart';
 import 'package:foodex/expense_log_page.dart';
 import 'package:foodex/loginPage.dart';
@@ -654,14 +655,14 @@ class _DriverPageState extends State<DriverPage> {
             Container(
               padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.blue.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: themeColor.withOpacity(0.3)),
               ),
               child: Column(
                 children: [
                   Icon(
-                    Icons.directions_car_outlined,
+                    Icons.directions_subway_filled_rounded,
                     color: themeColor,
                     size: isSmallScreen ? 40 : 48,
                   ),
@@ -899,10 +900,15 @@ class _DriverPageState extends State<DriverPage> {
           ListTile(
             leading: const Icon(Icons.system_update,
                 color: Color.fromARGB(255, 1, 160, 226)),
-            title: Text(Globals.getText('checkForUpdates')),
+            title: Text(
+                Globals.getText('checkServerUpdate') ?? 'Check Server Update'),
             onTap: () {
-              Navigator.pop(context); // Close drawer
-              ShorebirdService().showUpdatePopup(context);
+              Navigator.pop(context);
+
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => const ServerUpdateDialog(),
+              );
             },
           ),
           const Spacer(),
@@ -931,7 +937,7 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.6',
+              'Version 1.3.8.1',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: isSmallScreen ? 16.0 : 20.0,

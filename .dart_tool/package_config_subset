@@ -1,3 +1,7 @@
+android_intent_plus
+3.1
+file:///home/kriszti/.pub-cache/hosted/pub.dev/android_intent_plus-5.3.0/
+file:///home/kriszti/.pub-cache/hosted/pub.dev/android_intent_plus-5.3.0/lib/
 archive
 3.0
 file:///home/kriszti/.pub-cache/hosted/pub.dev/archive-3.6.1/
@@ -234,6 +238,14 @@ mime
 3.2
 file:///home/kriszti/.pub-cache/hosted/pub.dev/mime-1.0.6/
 file:///home/kriszti/.pub-cache/hosted/pub.dev/mime-1.0.6/lib/
+package_info_plus
+2.18
+file:///home/kriszti/.pub-cache/hosted/pub.dev/package_info_plus-4.2.0/
+file:///home/kriszti/.pub-cache/hosted/pub.dev/package_info_plus-4.2.0/lib/
+package_info_plus_platform_interface
+2.12
+file:///home/kriszti/.pub-cache/hosted/pub.dev/package_info_plus_platform_interface-2.0.1/
+file:///home/kriszti/.pub-cache/hosted/pub.dev/package_info_plus_platform_interface-2.0.1/lib/
 path
 3.0
 file:///home/kriszti/.pub-cache/hosted/pub.dev/path-1.9.0/
@@ -410,6 +422,10 @@ web
 3.4
 file:///home/kriszti/.pub-cache/hosted/pub.dev/web-1.1.0/
 file:///home/kriszti/.pub-cache/hosted/pub.dev/web-1.1.0/lib/
+win32
+3.5
+file:///home/kriszti/.pub-cache/hosted/pub.dev/win32-5.10.1/
+file:///home/kriszti/.pub-cache/hosted/pub.dev/win32-5.10.1/lib/
 xdg_directories
 3.3
 file:///home/kriszti/.pub-cache/hosted/pub.dev/xdg_directories-1.1.0/
