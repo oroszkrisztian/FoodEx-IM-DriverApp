@@ -328,16 +328,17 @@ class DeliveryService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getCollectionUnits(String type) async {
+  Future<List<Map<String, dynamic>>> getCollectionUnits(String type, String productId) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         body: {
           'action': 'get-collection-units',
           'type': type,
+          'product_id' : productId
         },
       );
-
+      print(response.body);
       if (response.statusCode == 200) {
         // Decode the response body first
         final decodedResponse = json.decode(response.body);
@@ -346,7 +347,7 @@ class DeliveryService {
         if (decodedResponse is Map && decodedResponse.containsKey('success')) {
           if (decodedResponse['success'] == true &&
               decodedResponse.containsKey('data')) {
-            // Extract the data array
+            
             final List<dynamic> data = decodedResponse['data'];
             return List<Map<String, dynamic>>.from(data);
           } else {
@@ -369,13 +370,42 @@ class DeliveryService {
   }
 
   Future<void> updateProductCollection(
-      int orderId, int productId, int received) async {
+      int orderId, int productId, int received, String containerId) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         body: {
           'action': 'update-order',
-          'type': 'products',
+          'type': 'received-containers',
+          'order-id': orderId.toString(),
+          'product-id': productId.toString(),
+          'received': received.toString(),
+          'container-id': containerId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (!result['success']) {
+          throw Exception(result['message']);
+        }
+      } else {
+        throw Exception('Failed to update product collection container');
+      }
+    } catch (e) {
+      print('Error updating product collection container: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateProductReceivedQuantity(
+      int orderId, int productId, double received) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        body: {
+          'action': 'update-order',
+          'type': 'received-product',
           'order-id': orderId.toString(),
           'product-id': productId.toString(),
           'received': received.toString(),
@@ -388,10 +418,10 @@ class DeliveryService {
           throw Exception(result['message']);
         }
       } else {
-        throw Exception('Failed to update product collection');
+        throw Exception('Failed to update product received quantity');
       }
     } catch (e) {
-      print('Error updating product collection: $e');
+      print('Error updating product received quantity: $e');
       throw e;
     }
   }

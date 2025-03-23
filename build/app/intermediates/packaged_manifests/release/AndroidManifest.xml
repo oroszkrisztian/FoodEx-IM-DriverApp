@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.oroszkrisztian.foodex"
     android:versionCode="3"
-    android:versionName="1.3.8" >
+    android:versionName="1.3.9" >
 
     <uses-sdk
         android:minSdkVersion="21"

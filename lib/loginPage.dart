@@ -44,11 +44,13 @@ class _LoginPageState extends State<LoginPage> {
   final _kmController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
 
+  // New state variable to track if photos section is visible
+  bool _showPhotosSection = false;
+
   File? _image1;
-  File? _image2;
-  File? _image3;
-  File? _image4;
-  File? _image5;
+  File? _imageFront;
+  File? _imageBack;
+  File? _imageBox;
   File? parcursIn;
 
   int? _selectedCarId;
@@ -61,11 +63,17 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     getCars();
-    getLastKm(Globals.userId, Globals.vehicleID);
+    if (Globals.vehicleID != null) {
+      _selectedCarId = Globals.vehicleID;
+      getLastKm(Globals.userId, Globals.vehicleID);
+    }
   }
 
   Future<void> getCars() async {
     try {
+      // Get the driver ID from globals
+      int? driverId = Globals.userId;
+
       final response = await http.post(
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
         headers: <String, String>{
@@ -73,10 +81,11 @@ class _LoginPageState extends State<LoginPage> {
         },
         body: {
           'action': 'get-cars',
+          'driver': driverId?.toString(), // Add driver parameter
+          // Optionally add 'all': '1' if you want to get inactive vehicles too
         },
       );
 
-      // Debug: Print the raw response body
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -93,6 +102,18 @@ class _LoginPageState extends State<LoginPage> {
             setState(() {
               _cars = cars;
               _isLoading = false;
+
+              // Select the first car as default if available
+              if (_cars.isNotEmpty && _selectedCarId == null) {
+                _selectedCarId = _cars[0].id;
+                Globals.vehicleID = _selectedCarId;
+                Globals.vehicleName = '${_cars[0].make} ${_cars[0].model} - ${_cars[0].licencePlate}';
+
+                // Get last KM for selected vehicle
+                if (Globals.userId != null && _selectedCarId != null) {
+                  getLastKm(Globals.userId, _selectedCarId);
+                }
+              }
             });
           } catch (e) {
             setState(() {
@@ -122,6 +143,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<bool> getLastKm(int? driverId, int? vehicleId) async {
     try {
+      if (driverId == null || vehicleId == null) {
+        setState(() {
+          _errorMessage = 'Driver ID or Vehicle ID is missing';
+        });
+        return false;
+      }
+
       final response = await http.post(
         Uri.parse('https://vinczefi.com/foodexim/functions.php'),
         headers: <String, String>{
@@ -130,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
         body: {
           'action': 'get-last-km',
           'driver_id': driverId.toString(),
-          'vehicle_id': _selectedCarId.toString(),
+          'vehicle_id': vehicleId.toString(),
         },
       );
 
@@ -139,18 +167,22 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        print('Response data: $data'); // Debug print to check the response
+        print('Response data: $data');
 
         if (data is bool && data == false) {
           setState(() {
-            _lastKm = 0; // Set to 0 if no data is found for the vehicle
+            _lastKm = 0;
+            _kmController.text = "0"; // Set the text field to 0
             _errorMessage = null; // Clear any previous error messages
           });
           return true; // Allow the process to continue since we handle the default value
         } else if (data != null &&
             (data is int || int.tryParse(data.toString()) != null)) {
+          int lastKm = int.parse(data.toString());
           setState(() {
-            _lastKm = int.parse(data.toString());
+            _lastKm = lastKm;
+            _kmController.text =
+                lastKm.toString(); // Fill the text field with last KM
             _errorMessage = null;
           });
           return true;
@@ -174,10 +206,52 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _getImage(int imageNumber) async {
+  Future<bool> validateKm(int? driverId, int? vehicleId) async {
     try {
-      final pickedFile =
-          await _imagePicker.pickImage(source: ImageSource.camera);
+      if (driverId == null || vehicleId == null) {
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'action': 'get-last-km',
+          'driver_id': driverId.toString(),
+          'vehicle_id': vehicleId.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+
+        if (data is bool && data == false) {
+          return true;
+        } else if (data != null &&
+            (data is int || int.tryParse(data.toString()) != null)) {
+          int lastKm = int.parse(data.toString());
+          setState(() {
+            _lastKm = lastKm;
+            
+          });
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _getImage(int imageNumber,
+      {ImageSource source = ImageSource.camera}) async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(source: source);
 
       if (pickedFile != null) {
         setState(() {
@@ -186,16 +260,13 @@ class _LoginPageState extends State<LoginPage> {
               _image1 = File(pickedFile.path);
               break;
             case 2:
-              _image2 = File(pickedFile.path);
+              _imageFront = File(pickedFile.path);
               break;
             case 3:
-              _image3 = File(pickedFile.path);
+              _imageBack = File(pickedFile.path);
               break;
             case 4:
-              _image4 = File(pickedFile.path);
-              break;
-            case 5:
-              _image5 = File(pickedFile.path);
+              _imageBox = File(pickedFile.path);
               break;
             case 6:
               parcursIn = File(pickedFile.path);
@@ -209,11 +280,123 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _showImagePickerOptions(int imageNumber) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Camera Option
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            _getImage(imageNumber, source: ImageSource.camera);
+                          },
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: isSmallScreen ? 36 : 40,
+                              color: const Color.fromARGB(255, 1, 160, 226),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                      ],
+                    ),
+
+                    // Gallery Option
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            _getImage(imageNumber, source: ImageSource.gallery);
+                          },
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.photo_library,
+                              size: isSmallScreen ? 36 : 40,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 24),
+
+                // Cancel Button
+                SizedBox(
+                  width: 150,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      '${Globals.getText('orderCancel')}',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 16 : 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showImage(File? image, int imageNumber) {
     if (image == null) {
-      _getImage(imageNumber);
+      _showImagePickerOptions(imageNumber);
       return;
     }
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -236,7 +419,7 @@ class _LoginPageState extends State<LoginPage> {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        _getImage(imageNumber);
+                        _showImagePickerOptions(imageNumber);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
@@ -277,10 +460,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildImageInput(int imageNumber, File? image, bool isSmallScreen) {
     final Map<int, String> labels = {
       1: 'loginVehicleDashboard',
-      2: 'loginVehicleFrontLeft',
-      3: 'loginVehicleFrontRight',
-      4: 'loginVehicleRearLeft',
-      5: 'loginVehicleRearRight',
+      2: 'loginVehicleFront',
+      3: 'loginVehicleBack',
+      4: 'loginVehicleBox',
       6: 'loginVehicleLogbook',
     };
 
@@ -403,17 +585,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Validate all images are present
-      if (_image1 == null ||
-          _image2 == null ||
-          _image3 == null ||
-          _image4 == null ||
-          _image5 == null ||
-          parcursIn == null) {
-        await _showErrorDialog('Please take all required pictures.');
-        return;
-      }
-
       // Validate user ID and vehicle ID
       int? userID = Globals.userId;
       int? carId = Globals.vehicleID;
@@ -426,17 +597,15 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Store data in globals
       Globals.image1 = _image1;
-      Globals.image2 = _image2;
-      Globals.image3 = _image3;
-      Globals.image4 = _image4;
-      Globals.image5 = _image5;
+      Globals.image2 = _imageFront;
+      Globals.image3 = _imageBack;
+      Globals.image4 = _imageBox;
       Globals.kmValue = _kmController.text;
       Globals.parcursIn = parcursIn;
 
       // Validate KM against last recorded value
-      bool isKmValid = await getLastKm(userID, carId);
+      bool isKmValid = await validateKm(userID, carId);
       if (!isKmValid || _lastKm == null) {
         await _showErrorDialog(
             'Unable to retrieve or validate KM data. Please try again.');
@@ -461,6 +630,21 @@ class _LoginPageState extends State<LoginPage> {
 
       // Attempt to login vehicle
       bool loginSuccessful = await loginVehicle();
+
+      if (Globals.image1 != null ||
+          Globals.image2 != null ||
+          Globals.image3 != null ||
+          Globals.image4 != null ||
+          Globals.parcursIn != null) {
+        Map<String, dynamic> inputData = {
+          'image1': Globals.image1?.path,
+          'image2': Globals.image2?.path,
+          'image3': Globals.image3?.path,
+          'image4': Globals.image4?.path,
+          'image5': Globals.parcursIn?.path,
+        };
+        await uploadImages(inputData);
+      }
 
       if (loginSuccessful) {
         _hideLoggingDialog();
@@ -529,11 +713,18 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Function to toggle the photos section visibility
+  void _togglePhotosSection() {
+    setState(() {
+      _showPhotosSection = !_showPhotosSection;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
-    final primaryColor = const Color.fromARGB(255, 1, 160, 226);
+    const primaryColor = Color.fromARGB(255, 1, 160, 226);
 
     return PopScope(
         canPop: false,
@@ -545,7 +736,7 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context) => const DriverPage(),
             ),
           );
-          // Prevent defaultR back behavior since we're handling navigation
+          // Prevent default back behavior since we're handling navigation
         },
         child: Scaffold(
           backgroundColor: Colors.grey.shade50,
@@ -634,9 +825,61 @@ class _LoginPageState extends State<LoginPage> {
                                   isSmallScreen, primaryColor),
                               SizedBox(height: isSmallScreen ? 12 : 20),
 
-                              // Vehicle Photos Card
-                              _buildVehiclePhotosCard(
-                                  isSmallScreen, primaryColor),
+                              // Toggle Photos Button
+                              Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: InkWell(
+                                  onTap: _togglePhotosSection,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                        isSmallScreen ? 12.0 : 16.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.car_crash_outlined,
+                                              color: Colors.grey.shade800,
+                                              size: isSmallScreen ? 20 : 24,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              '${Globals.getText('loginVehicleCondition')}',
+                                              style: TextStyle(
+                                                fontSize:
+                                                    isSmallScreen ? 18 : 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey.shade800,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Icon(
+                                          _showPhotosSection
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          color: primaryColor,
+                                          size: isSmallScreen ? 24 : 28,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Vehicle Photos Card (only shown when toggled)
+                              if (_showPhotosSection) ...[
+                                SizedBox(height: isSmallScreen ? 12 : 16),
+                                _buildVehiclePhotosCard(
+                                    isSmallScreen, primaryColor),
+                              ],
+
                               SizedBox(height: isSmallScreen ? 20 : 24),
 
                               // Submit Button
@@ -742,9 +985,13 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 labelText: '${Globals.getText('loginVehicleMileage')}',
                 floatingLabelBehavior: FloatingLabelBehavior.always,
-                hintText: _lastKm != null
+                helperText: _lastKm != null
                     ? '${Globals.getText('loginVehicleLast')} $_lastKm km'
-                    : 'Enter current mileage',
+                    : null,
+                helperStyle: TextStyle(
+                  fontSize: isSmallScreen ? 11 : 12,
+                  color: Colors.grey.shade600,
+                ),
                 prefixIcon: Icon(Icons.speed, color: primaryColor),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 12 : 16,
@@ -825,41 +1072,20 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.car_crash_outlined,
-                  color: Colors.grey.shade800,
-                  size: isSmallScreen ? 20 : 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${Globals.getText('loginVehicleCondition')}',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: isSmallScreen ? 12 : 16),
             Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildImageInput(2, _image2, isSmallScreen),
-                    _buildImageInput(3, _image3, isSmallScreen),
+                    _buildImageInput(2, _imageFront, isSmallScreen),
+                    _buildImageInput(3, _imageBack, isSmallScreen),
                   ],
                 ),
                 SizedBox(height: isSmallScreen ? 8 : 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildImageInput(4, _image4, isSmallScreen),
-                    _buildImageInput(5, _image5, isSmallScreen),
+                    _buildImageInput(4, _imageBox, isSmallScreen),
                   ],
                 ),
               ],

@@ -662,7 +662,7 @@ class _DriverPageState extends State<DriverPage> {
               child: Column(
                 children: [
                   Icon(
-                    Icons.directions_subway_filled_rounded,
+                    Icons.directions_car_filled_outlined,
                     color: themeColor,
                     size: isSmallScreen ? 40 : 48,
                   ),
@@ -873,7 +873,7 @@ class _DriverPageState extends State<DriverPage> {
               );
             },
           ),
-          const Divider(),
+          
           if (!_vehicleLoggedIn) ...[
             FutureBuilder<SharedPreferences>(
               future: SharedPreferences.getInstance(),
@@ -904,7 +904,7 @@ class _DriverPageState extends State<DriverPage> {
                 Globals.getText('checkServerUpdate') ?? 'Check Server Update'),
             onTap: () {
               Navigator.pop(context);
-
+              Globals.isUpdateDialogShowing = true;
               showDialog(
                 context: context,
                 builder: (BuildContext context) => const ServerUpdateDialog(),
@@ -937,7 +937,7 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.8.1',
+              'Version 1.3.9',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: isSmallScreen ? 16.0 : 20.0,

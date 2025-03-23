@@ -471,6 +471,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                   ),
                 ),
                 child: DataTable(
+                  showCheckboxColumn: false, // This hides the checkbox column
                   columnSpacing: columnSpacing,
                   horizontalMargin: horizontalMargin,
                   border: const TableBorder(
@@ -531,83 +532,66 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                         .where((product) => product.productType == 'product')
                         .map((product) {
                       return DataRow(
+                        onSelectChanged: (_) => updateProductDetails(
+                          context,
+                          product.productId,
+                          product.productName,
+                          widget.orderId,
+                          _loadOrder,
+                          product.collection,
+                          product.quantity.toDouble(),
+                        ),
                         cells: [
                           DataCell(
-                            GestureDetector(
-                              onTap: () => updateCollectionUnit(
-                                context,
-                                product.productId,
+                            Container(
+                              width: maxNameWidth,
+                              alignment: Alignment.center,
+                              child: Text(
                                 product.productName,
-                                widget.orderId,
-                                _loadOrder,
-                              ),
-                              child: Container(
-                                width: maxNameWidth,
-                                alignment: Alignment.center,
-                                child: Text(
-                                  product.productName,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: isSmallScreen ? 1 : 2,
-                                  textAlign: TextAlign.center,
-                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: isSmallScreen ? 1 : 2,
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
                           DataCell(
-                            GestureDetector(
-                              onTap: () => updateCollectionUnit(
-                                context,
-                                product.productId,
-                                product.productName,
-                                widget.orderId,
-                                _loadOrder,
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  product.productUnit.toLowerCase() == 'kg'
-                                      ? '${product.ordered}kg'
-                                      : '${product.ordered}pc',
-                                  textAlign: TextAlign.center,
-                                ),
+                            Container(
+                              alignment: Alignment.center,
+                              child: Text(
+                                product.productUnit.toLowerCase() == 'kg'
+                                    ? '${product.ordered}kg'
+                                    : '${product.ordered}pc',
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
                           DataCell(
-                            GestureDetector(
-                              onTap: () => updateCollectionUnit(
-                                context,
-                                product.productId,
-                                product.productName,
-                                widget.orderId,
-                                _loadOrder,
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '${product.collection}',
-                                  textAlign: TextAlign.center,
-                                ),
+                            Container(
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${product.collection}',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                           DataCell(
-                            GestureDetector(
-                              onTap: () => updateCollectionUnit(
-                                context,
-                                product.productId,
-                                product.productName,
-                                widget.orderId,
-                                _loadOrder,
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  product.productUnit.toLowerCase() == 'kg'
-                                      ? '${product.quantity}kg'
-                                      : '${product.quantity}pc',
-                                  textAlign: TextAlign.center,
-                                ),
+                            Container(
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    product.productUnit.toLowerCase() == 'kg'
+                                        ? '${product.quantity}kg'
+                                        : '${product.quantity}pc',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -669,7 +653,6 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           ),
         ));
   }
-
   //UIT,EKR, INVOICE, CMR
 
   Widget _buildUitEkrInvCmr(
@@ -3459,7 +3442,7 @@ void updateCrates(
 
   Future<void> loadCrateTypes(StateSetter setState) async {
     try {
-      final types = await DeliveryService().getCollectionUnits('crate');
+      final types = await DeliveryService().getCollectionUnits('crate', '');
       setState(() {
         crateTypes = types;
         isLoading = false;
@@ -3746,164 +3729,489 @@ void updateCrates(
   );
 }
 
-void updateCollectionUnit(BuildContext context, int productId,
-    String productName, int orderId, Function reloadPage) {
+// void updateCollectionUnit(BuildContext context, int productId,
+//     String productName, int orderId, Function reloadPage) {
+//   final screenSize = MediaQuery.of(context).size;
+//   final isSmallScreen = screenSize.width < 600;
+//   TextEditingController numberController = TextEditingController();
+
+//   showDialog(
+//     context: context,
+//     builder: (BuildContext context) {
+//       return Dialog(
+//         shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(16.0),
+//         ),
+//         elevation: 0,
+//         backgroundColor: Colors.transparent,
+//         child: Container(
+//           padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+//           decoration: BoxDecoration(
+//             color: Colors.white,
+//             borderRadius: BorderRadius.circular(16),
+//             boxShadow: [
+//               BoxShadow(
+//                 color: Colors.black.withOpacity(0.1),
+//                 blurRadius: 10,
+//                 offset: const Offset(0, 4),
+//               ),
+//             ],
+//           ),
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               Row(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Container(
+//                     padding: const EdgeInsets.all(8),
+//                     decoration: BoxDecoration(
+//                       color: Colors.blue.withOpacity(0.1),
+//                       borderRadius: BorderRadius.circular(8),
+//                     ),
+//                     child: Icon(
+//                       Icons.warehouse_rounded,
+//                       size: isSmallScreen ? 40 : 44,
+//                       color: Colors.blue.shade700,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//               const SizedBox(height: 16),
+//               Text(
+//                 productName,
+//                 style: TextStyle(
+//                   fontSize: isSmallScreen ? 20.0 : 24.0,
+//                   fontWeight: FontWeight.bold,
+//                   color: Colors.grey.shade800,
+//                 ),
+//                 textAlign: TextAlign.center,
+//               ),
+//               const SizedBox(height: 20),
+//               Container(
+//                 padding: const EdgeInsets.all(16),
+//                 decoration: BoxDecoration(
+//                   color: Colors.grey.shade50,
+//                   borderRadius: BorderRadius.circular(12),
+//                   border: Border.all(color: Colors.grey.shade200),
+//                 ),
+//                 child: TextField(
+//                   controller: numberController,
+//                   keyboardType: TextInputType.number,
+//                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+//                   decoration: InputDecoration(
+//                     labelText: 'Collection Update',
+//                     filled: true,
+//                     fillColor: Colors.white,
+//                     border: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(8),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               const SizedBox(height: 24),
+//               Row(
+//                 mainAxisAlignment: MainAxisAlignment.end,
+//                 children: [
+//                   TextButton(
+//                     onPressed: () => Navigator.of(context).pop(),
+//                     style: TextButton.styleFrom(
+//                       padding: EdgeInsets.symmetric(
+//                         horizontal: isSmallScreen ? 20 : 24,
+//                         vertical: isSmallScreen ? 10 : 12,
+//                       ),
+//                       backgroundColor: Colors.grey.shade50,
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(8),
+//                       ),
+//                     ),
+//                     child: Text(
+//                       '${Globals.getText('orderCancel')}',
+//                       style: TextStyle(
+//                         fontSize: isSmallScreen ? 14.0 : 16.0,
+//                         color: Colors.grey.shade700,
+//                         fontWeight: FontWeight.w500,
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 12),
+//                   ElevatedButton(
+//                     onPressed: () async {
+//                       final newValue = int.tryParse(numberController.text);
+//                       if (newValue != null) {
+//                         try {
+//                           await DeliveryService().updateProductCollection(
+//                             orderId,
+//                             productId,
+//                             newValue,
+//                           );
+//                           if (context.mounted) {
+//                             Navigator.pop(context);
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               SnackBar(
+//                                 content: Text(Globals.getText(
+//                                     'orderPaletsUpdateSuccess')),
+//                               ),
+//                             );
+//                             reloadPage();
+//                           }
+//                         } catch (e) {
+//                           ScaffoldMessenger.of(context).showSnackBar(
+//                             SnackBar(
+//                               content: Text('Error: ${e.toString()}'),
+//                               backgroundColor: Colors.red,
+//                             ),
+//                           );
+//                         }
+//                       }
+//                     },
+//                     style: ElevatedButton.styleFrom(
+//                       backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+//                       padding: EdgeInsets.symmetric(
+//                         horizontal: isSmallScreen ? 20 : 24,
+//                         vertical: isSmallScreen ? 10 : 12,
+//                       ),
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(8),
+//                       ),
+//                     ),
+//                     child: Text(
+//                       '${Globals.getText('orderUpdate')}',
+//                       style: const TextStyle(
+//                         color: Colors.white,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//         ),
+//       );
+//     },
+//   );
+// }
+
+void updateProductDetails(
+    BuildContext context,
+    int productId,
+    String productName,
+    int orderId,
+    Function reloadPage,
+    int currentCollection,
+    double currentQuantity) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
-  TextEditingController numberController = TextEditingController();
+
+  // Controllers for the input fields
+  TextEditingController quantityController =
+      TextEditingController(text: currentQuantity.toString());
+  TextEditingController collectionController =
+      TextEditingController(text: currentCollection.toString());
+
+  String? selectedContainerType;
+  List<Map<String, dynamic>> containerTypes = [];
+  bool isLoading = true;
+
+  Future<void> loadContainerTypes(StateSetter setState) async {
+    try {
+      final types = await DeliveryService()
+          .getCollectionUnits('crate', productId.toString());
+      setState(() {
+        containerTypes = types;
+        isLoading = false;
+      });
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading container types: $error')),
+        );
+        setState(() => isLoading = false);
+      }
+    }
+  }
 
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.warehouse_rounded,
-                      size: isSmallScreen ? 40 : 44,
-                      color: Colors.blue.shade700,
-                    ),
+      return StatefulBuilder(
+        builder: (context, setState) {
+          if (isLoading) {
+            loadContainerTypes(setState);
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                productName,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 20.0 : 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: TextField(
-                  controller: numberController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    labelText: 'Collection Update',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 20 : 24,
-                        vertical: isSmallScreen ? 10 : 12,
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.inventory_2_outlined,
+                          size: isSmallScreen ? 40 : 44,
+                          color: Colors.blue.shade700,
+                        ),
                       ),
-                      backgroundColor: Colors.grey.shade50,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    productName,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 20.0 : 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
                     ),
-                    child: Text(
-                      '${Globals.getText('orderCancel')}',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Form fields container
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Container unit selection
+                        if (isLoading)
+                          Center(child: CircularProgressIndicator())
+                        else if (containerTypes.isEmpty)
+                          Center(
+                            child: Text(
+                              'No container types available',
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          )
+                        else
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${Globals.getText('collection_unit')}:',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14.0 : 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              DropdownButtonFormField<String>(
+                                value: selectedContainerType,
+                                hint: Text('Select container type'),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                ),
+                                items: containerTypes.map((type) {
+                                  return DropdownMenuItem(
+                                    value: type['id'].toString(),
+                                    child: Text(type['name']),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedContainerType = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+
+                        SizedBox(height: 16),
+
+                        // Collection quantity input
+                        Text(
+                          '${Globals.getText('collection_unit')} ${Globals.getText('productTableQuantity')}:',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        TextField(
+                          controller: collectionController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: 'Enter collection quantity',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Received quantity input
+                        Text(
+                          '${Globals.getText('order_received')} (kg):',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        TextField(
+                          controller: quantityController,
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            hintText: 'Enter received quantity',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final newValue = int.tryParse(numberController.text);
-                      if (newValue != null) {
-                        try {
-                          await DeliveryService().updateProductCollection(
-                            orderId,
-                            productId,
-                            newValue,
-                          );
-                          if (context.mounted) {
-                            Navigator.pop(context);
+                  const SizedBox(height: 24),
+
+                  // Action buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 20 : 24,
+                            vertical: isSmallScreen ? 10 : 12,
+                          ),
+                          backgroundColor: Colors.grey.shade50,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderCancel')}',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            final double receivedQuantity =
+                                double.tryParse(quantityController.text) ??
+                                    currentQuantity;
+                            final int collectionQuantity =
+                                int.tryParse(collectionController.text) ??
+                                    currentCollection;
+
+                            // Update the collection quantity if container type is selected
+                            if (selectedContainerType != null) {
+                              await DeliveryService().updateProductCollection(
+                                  orderId,
+                                  productId,
+                                  collectionQuantity,
+                                  selectedContainerType!);
+                            } else {
+                              // If no container type selected, just update the collection quantity
+                              await DeliveryService().updateProductCollection(
+                                orderId,
+                                productId,
+                                collectionQuantity,
+                                '',
+                              );
+                            }
+
+                            await DeliveryService()
+                                .updateProductReceivedQuantity(
+                              orderId,
+                              productId,
+                              receivedQuantity,
+                            );
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Product details updated successfully'),
+                                ),
+                              );
+                              reloadPage();
+                            }
+                          } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(Globals.getText(
-                                    'orderPaletsUpdateSuccess')),
+                                content: Text('Error: ${e.toString()}'),
+                                backgroundColor: Colors.red,
                               ),
                             );
-                            reloadPage();
                           }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error: ${e.toString()}'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 20 : 24,
-                        vertical: isSmallScreen ? 10 : 12,
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 20 : 24,
+                            vertical: isSmallScreen ? 10 : 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderUpdate')}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      '${Globals.getText('orderUpdate')}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );
@@ -3935,7 +4243,7 @@ void updatePalets(
 
   Future<void> loadPaletTypes(StateSetter setState) async {
     try {
-      final types = await DeliveryService().getCollectionUnits('pallet');
+      final types = await DeliveryService().getCollectionUnits('pallet', '');
       setState(() {
         paletTypes = types;
         isLoading = false;

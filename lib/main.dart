@@ -1,45 +1,119 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:foodex/ServerUpdate.dart';
 import 'package:foodex/driverPage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'globals.dart'; // Import your globals.dart file
 
-// Constants for task names
-const String uploadImageTask = "uploadImageTask";
-const String uploadExpenseTask = "uploadExpenseTask";
-
-// Handling image upload task
-Future<bool> handleImageUpload(Map<String, dynamic>? inputData) async {
+Future<void> checkForUpdates(BuildContext context) async {
   try {
-    await uploadImages(inputData);
-    return Future.value(true);
+    // Skip if a dialog is already showing
+    if (Globals.isUpdateDialogShowing) {
+      print('Update dialog is already visible, skipping update check');
+      return;
+    }
+
+    // Skip if updates are postponed
+    if (Globals.isUpdatePostponed) {
+      print(
+          'Updates postponed until ${Globals.updatePostponedUntil}, skipping check');
+      return;
+    }
+
+    // Get current app version
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String currentVersion = packageInfo.version;
+
+    // Make API request
+    final response = await http.post(
+      Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+      body: {
+        'action': 'get-application-data',
+      },
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+      if (responseData['success'] == true) {
+        final serverVersion = responseData['data']['version'];
+        final downloadLink = responseData['data']['link'];
+
+        // Compare versions
+        bool needsUpdate = _compareVersions(currentVersion, serverVersion);
+
+        // Only show dialog if update is needed
+        if (needsUpdate && context.mounted) {
+          Globals.isUpdateDialogShowing = true;
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (BuildContext context) => const ServerUpdateDialog(),
+          ).then((_) {
+            // Reset flag when dialog is closed
+            Globals.isUpdateDialogShowing = false;
+          });
+        }
+      }
+    }
   } catch (e) {
-    print('Error in image upload task check: $e');
-    return Future.value(false);
+    print('Error checking for updates on startup: $e');
+  }
+}
+
+// Compare version strings (returns true if server version is newer)
+bool _compareVersions(String currentVersion, String serverVersion) {
+  try {
+    List<int> current =
+        currentVersion.split('.').map((e) => int.parse(e)).toList();
+    List<int> server =
+        serverVersion.split('.').map((e) => int.parse(e)).toList();
+
+    // Ensure both lists have the same length
+    while (current.length < server.length) {
+      current.add(0);
+    }
+    while (server.length < current.length) {
+      server.add(0);
+    }
+
+    // Compare version components
+    for (int i = 0; i < current.length; i++) {
+      if (server[i] > current[i]) {
+        return true;
+      } else if (server[i] < current[i]) {
+        return false;
+      }
+    }
+
+    return false; // versions are equal
+  } catch (e) {
+    print('Error comparing versions: $e');
+    return false;
   }
 }
 
 // Function to upload images in the background
-Future<void> uploadImages(Map<String, dynamic>? inputData) async {
+Future<bool> uploadImages(Map<String, dynamic>? inputData) async {
   if (inputData == null) {
-    print("No input data for image upload");
-    return;
+    return false;
   }
-
   var request = http.MultipartRequest(
     'POST',
     Uri.parse('https://vinczefi.com/foodexim/functions.php'),
   );
 
   request.fields['action'] = 'photo-upload';
-  request.fields['driver'] = inputData['userId'] ?? '';
-  request.fields['vehicle'] = inputData['vehicleID'] ?? '';
-  request.fields['km'] = inputData['km'] ?? '';
+  request.fields['driver'] = Globals.userId.toString();
+  request.fields['vehicle'] = Globals.vehicleID.toString();
+  request.fields['km'] = Globals.kmValue.toString();
 
   print('Action: ${request.fields['action']}');
   print('Driver ID: ${request.fields['driver']}');
@@ -49,13 +123,11 @@ Future<void> uploadImages(Map<String, dynamic>? inputData) async {
   for (int i = 1; i <= 6; i++) {
     String? imagePath = inputData['image$i'];
     if (imagePath != null && imagePath.isNotEmpty) {
-      print(
-          'Adding photo$i: $imagePath'); // Print the path of the image being added
+      print('Adding photo$i: $imagePath');
       request.files
           .add(await http.MultipartFile.fromPath('photo$i', imagePath));
     } else {
-      print(
-          'No path provided for photo$i'); // Print a message if no path is provided
+      print('No path provided for photo$i');
     }
   }
 
@@ -64,13 +136,15 @@ Future<void> uploadImages(Map<String, dynamic>? inputData) async {
     var responseBody = await response.stream.bytesToString();
     if (response.statusCode == 200) {
       print("Image upload complete");
+      return true;
     } else {
       print("Image upload failed: ${response.statusCode}");
-      print(
-          "Response body: $responseBody"); // Print the full response body for debugging
+      print("Response body: $responseBody");
+      return false;
     }
   } catch (e) {
     print('Error uploading images: $e');
+    return false;
   }
 }
 
@@ -95,12 +169,10 @@ Future<bool> loginVehicle() async {
     if (jsonResponse['success'] == true) {
       return true;
     } else {
-      // Error handling
       print('Login Failed: ${jsonResponse['message']}');
       return false;
     }
   } catch (e) {
-    // Error handling
     print('Error during vehicle login: $e');
     return false;
   }
@@ -114,11 +186,25 @@ void main() async {
 
   if (isLoggedIn) {
     Globals.userId = int.tryParse(prefs.getString('userId') ?? '');
-    Globals.vehicleID = prefs.getInt('vehicleId'); // Correctly retrieve as int
-    await _loadImagesFromPrefs1();
+    Globals.vehicleID = prefs.getInt('vehicleId');
   }
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  // Load the update postpone time
+  await Globals.loadPostponeTime();
+
+  // Run the app first
+  final navigatorKey = GlobalKey<NavigatorState>();
+  runApp(MyApp(isLoggedIn: isLoggedIn, navigatorKey: navigatorKey));
+
+  // Schedule update check for after app is built, with a delay
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Add a small delay to ensure the app is fully initialized
+    Future.delayed(const Duration(seconds: 2), () {
+      if (navigatorKey.currentContext != null) {
+        checkForUpdates(navigatorKey.currentContext!);
+      }
+    });
+  });
 }
 
 // Function to load images from SharedPreferences
@@ -154,13 +240,16 @@ Future<void> _loadImagesFromPrefs1() async {
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
+  final GlobalKey<NavigatorState> navigatorKey;
 
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp(
+      {super.key, required this.isLoggedIn, required this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FoodEx Driver',
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 1, 160, 226),
         inputDecorationTheme: const InputDecorationTheme(
@@ -171,8 +260,60 @@ class MyApp extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.black),
         ),
       ),
-      home: isLoggedIn ? const DriverPage() : const MyHomePage(),
+      home: isLoggedIn
+          ? UpdateCheckWrapper(child: const DriverPage())
+          : UpdateCheckWrapper(child: const MyHomePage()),
     );
+  }
+}
+
+// New WidgetBindingObserver class to check for updates when app is resumed
+class UpdateCheckWrapper extends StatefulWidget {
+  final Widget child;
+
+  const UpdateCheckWrapper({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  State<UpdateCheckWrapper> createState() => _UpdateCheckWrapperState();
+}
+
+class _UpdateCheckWrapperState extends State<UpdateCheckWrapper>
+    with WidgetsBindingObserver {
+  bool _isCheckingForUpdates = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_isCheckingForUpdates) {
+      // Check for updates when app is resumed from background
+      // but only if we're not already checking
+      print('App resumed - checking for updates');
+      _isCheckingForUpdates = true;
+      // Use Future.delayed to allow the UI to settle
+      Future.delayed(Duration.zero, () async {
+        await checkForUpdates(context);
+        _isCheckingForUpdates = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
 
@@ -187,6 +328,31 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isObscure = true;
+
+  // Add ServerUpdateButton for direct access
+  Widget _buildServerUpdateButton() {
+    return ServerUpdateButton(
+      buttonColor: const Color.fromARGB(255, 1, 160, 226),
+      textColor: Colors.white,
+    );
+  }
+
+  void _showUpdateDialog() {
+    // Skip if a dialog is already showing
+    if (Globals.isUpdateDialogShowing) {
+      print('Update dialog is already visible');
+      return;
+    }
+
+    Globals.isUpdateDialogShowing = true;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => const ServerUpdateDialog(),
+    ).then((_) {
+      // Reset flag when dialog is closed
+      Globals.isUpdateDialogShowing = false;
+    });
+  }
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -260,7 +426,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const DriverPage(),
+            builder: (context) => const UpdateCheckWrapper(child: DriverPage()),
           ),
         );
       } else {
@@ -428,6 +594,34 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                               ),
                             ),
+                          ),
+
+                          // Additional buttons/options
+                          SizedBox(height: isSmallScreen ? 16 : 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _showUpdateDialog,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 1, 160, 226),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    Globals.getText('checkForUpdates') ??
+                                        'Check For Updates',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

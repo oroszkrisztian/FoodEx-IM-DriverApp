@@ -1,0 +1,1 @@
+ /home/kriszti/Desktop/FoodEx-IM-DriverApp/.dart_tool/flutter_build/c4761388d3559aeb4a73fb2ab3de5e8c/native_assets.yaml: 
