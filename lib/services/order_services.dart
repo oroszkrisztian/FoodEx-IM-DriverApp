@@ -279,6 +279,8 @@ class OrderService {
 
             if (parsedVehicleId != null) {
               Globals.vehicleID = parsedVehicleId;
+              //Globals.vehicleName = data['data']['vehicle_name'];
+
               debugPrint('Vehicle ID: $parsedVehicleId');
               return parsedVehicleId;
             }

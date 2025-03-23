@@ -3891,7 +3891,6 @@ void updateCrates(
 //     },
 //   );
 // }
-
 void updateProductDetails(
     BuildContext context,
     int productId,
@@ -3912,6 +3911,7 @@ void updateProductDetails(
   String? selectedContainerType;
   List<Map<String, dynamic>> containerTypes = [];
   bool isLoading = true;
+  bool updatedSomething = false;
 
   Future<void> loadContainerTypes(StateSetter setState) async {
     try {
@@ -3919,6 +3919,10 @@ void updateProductDetails(
           .getCollectionUnits('crate', productId.toString());
       setState(() {
         containerTypes = types;
+        // Autofill with first element if available
+        if (types.isNotEmpty) {
+          selectedContainerType = types[0]['id'].toString();
+        }
         isLoading = false;
       });
     } catch (error) {
@@ -4137,6 +4141,7 @@ void updateProductDetails(
                       ElevatedButton(
                         onPressed: () async {
                           try {
+                            // Parse the values from input fields
                             final double receivedQuantity =
                                 double.tryParse(quantityController.text) ??
                                     currentQuantity;
@@ -4144,47 +4149,73 @@ void updateProductDetails(
                                 int.tryParse(collectionController.text) ??
                                     currentCollection;
 
-                            // Update the collection quantity if container type is selected
+                            // First try to update the collection/container if needed
                             if (selectedContainerType != null) {
-                              await DeliveryService().updateProductCollection(
+                              try {
+                                await DeliveryService().updateProductCollection(
                                   orderId,
                                   productId,
                                   collectionQuantity,
-                                  selectedContainerType!);
-                            } else {
-                              // If no container type selected, just update the collection quantity
-                              await DeliveryService().updateProductCollection(
-                                orderId,
-                                productId,
-                                collectionQuantity,
-                                '',
-                              );
+                                  selectedContainerType!,
+                                );
+                                updatedSomething = true;
+                              } catch (e) {
+                                // If collection update fails but it's not the only update, continue
+                                if (receivedQuantity == currentQuantity) {
+                                  throw e; // Rethrow if this is the only update
+                                }
+                                // Otherwise log and continue with quantity update
+                                print('Warning: Collection update failed: $e');
+                              }
                             }
 
-                            await DeliveryService()
-                                .updateProductReceivedQuantity(
-                              orderId,
-                              productId,
-                              receivedQuantity,
-                            );
+                            // Then, separately update the received quantity if needed
+                            if (receivedQuantity != currentQuantity) {
+                              try {
+                                await DeliveryService()
+                                    .updateProductReceivedQuantity(
+                                  orderId,
+                                  productId,
+                                  receivedQuantity,
+                                );
+                                updatedSomething = true;
+                              } catch (e) {
+                                // If already updated collection, show warning but don't fail
+                                if (updatedSomething) {
+                                  print('Warning: Quantity update failed: $e');
+                                } else {
+                                  throw e; // Rethrow if nothing was updated
+                                }
+                              }
+                            }
 
                             if (context.mounted) {
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Product details updated successfully'),
-                                ),
-                              );
-                              reloadPage();
+                              if (updatedSomething) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Product details updated successfully'),
+                                  ),
+                                );
+                                reloadPage();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('No changes were made'),
+                                  ),
+                                );
+                              }
                             }
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error: ${e.toString()}'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(

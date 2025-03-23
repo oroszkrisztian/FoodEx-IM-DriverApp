@@ -348,9 +348,9 @@ class _LogoutPageState extends State<LogoutPage> {
   Widget _buildImageInput(int imageNumber, File? image, bool isSmallScreen) {
     final Map<int, String> labels = {
       1: 'loginVehicleDashboard',
-      2: 'loginVehicleFrontLeft',
-      3: 'loginVehicleFrontRight',
-      4: 'loginVehicleRearLeft',
+      2: 'loginVehicleFront',
+      3: 'loginVehicleBack',
+      4: 'loginVehicleBox',
       5: 'loginVehicleRearRight',
       6: 'loginVehicleLogbook',
     };
