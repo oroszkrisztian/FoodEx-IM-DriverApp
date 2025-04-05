@@ -14,6 +14,7 @@ class VehicleData {
   final String name;
   final String numberPlate;
   final int km;
+  final String consumption;
   final String insuranceStartDate;
   final String insuranceEndDate;
   final bool? insuranceValidity;
@@ -29,6 +30,7 @@ class VehicleData {
     required this.name,
     required this.numberPlate,
     required this.km,
+    required this.consumption,
     required this.insuranceStartDate,
     required this.insuranceEndDate,
     this.insuranceValidity,
@@ -46,6 +48,7 @@ class VehicleData {
       name: json['vehicle']['name'] ?? '',
       numberPlate: json['vehicle']['numberplate'] ?? '',
       km: json['vehicle']['km'] ?? 0,
+      consumption: json['vehicle']['consumption'] ?? '0',
       insuranceStartDate: json['insurance']['date_start'] ?? '',
       insuranceEndDate: json['insurance']['date_end'] ?? '',
       insuranceValidity: _parseValidity(json['insurance']['validity']),
@@ -138,6 +141,8 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
   DateTime? _startDate;
   DateTime? _endDate;
   final String baseUrl = 'https://vinczefi.com'; // Define your base URL here
+  bool _isTableVisible = false;
+  bool _isFilterVisible = false;
 
   @override
   void initState() {
@@ -449,23 +454,6 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
     );
   }
 
-  // Widget _buildImagePreviewButton(String label, File? image1) {
-  //   return ElevatedButton(
-  //     onPressed: () => _showImage1(image1),
-  //     style: ElevatedButton.styleFrom(
-  //       backgroundColor: Colors.white,
-  //       foregroundColor: Colors.black,
-  //       side:
-  //           const BorderSide(color: Color.fromARGB(255, 1, 160, 226), width: 1),
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(8.0),
-  //       ),
-  //     ),
-  //     child: Text(label, style: const TextStyle(color: Colors.black)),
-  //   );
-  // }
-
-  //moved items
   void _showImage1(File? image1) {
     if (image1 == null) {
       showDialog(
@@ -663,119 +651,158 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
                           ],
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                headingTextStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 1, 160, 226),
-                                ),
-                                dataTextStyle: const TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
-                                ),
-                                columnSpacing: 24,
-                                horizontalMargin: 12,
-                                columns: [
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataTopType')}',
-                                      style:
-                                          const TextStyle(color: Colors.black),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isTableVisible = !_isTableVisible;
+                                });
+                              },
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Vehicle Information',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 1, 160, 226),
                                     ),
                                   ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataTopStartDate')}',
-                                      style:
-                                          const TextStyle(color: Colors.black),
-                                    ),
+                                  Icon(
+                                    _isTableVisible
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
+                                    color:
+                                        const Color.fromARGB(255, 1, 160, 226),
                                   ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataTopUntil')}',
-                                      style:
-                                          const TextStyle(color: Colors.black),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataTopStatus')}',
-                                      style:
-                                          const TextStyle(color: Colors.black),
-                                    ),
-                                  ),
-                                ],
-                                rows: [
-                                  DataRow(cells: [
-                                    DataCell(Text(
-                                        '${Globals.getText('vehicleDataTopInsurance')}')),
-                                    DataCell(
-                                        Text(vehicleData.insuranceStartDate)),
-                                    DataCell(
-                                        Text(vehicleData.insuranceEndDate)),
-                                    DataCell(Text(
-                                      vehicleData.insuranceValidity != null &&
-                                              vehicleData.insuranceValidity!
-                                          ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                          : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                      style: TextStyle(
-                                        color: vehicleData.insuranceValidity !=
-                                                    null &&
-                                                vehicleData.insuranceValidity!
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                    )),
-                                  ]),
-                                  DataRow(cells: [
-                                    DataCell(Text(
-                                        '${Globals.getText('vehicleDataTopTUV')}')),
-                                    DataCell(Text(vehicleData.tuvStartDate)),
-                                    DataCell(Text(vehicleData.tuvEndDate)),
-                                    DataCell(Text(
-                                      vehicleData.tuvValidity != null &&
-                                              vehicleData.tuvValidity!
-                                          ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                          : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                      style: TextStyle(
-                                        color:
-                                            vehicleData.tuvValidity != null &&
-                                                    vehicleData.tuvValidity!
-                                                ? Colors.green
-                                                : Colors.red,
-                                      ),
-                                    )),
-                                  ]),
-                                  DataRow(cells: [
-                                    DataCell(Text(
-                                        '${Globals.getText('vehicleDataTopOil')}')),
-                                    DataCell(Text(vehicleData.oilStartDate)),
-                                    DataCell(Text(
-                                        '${vehicleData.oilUntilKm ?? 'N/A'} km')),
-                                    DataCell(Text(
-                                      vehicleData.isOilValid()
-                                          ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                          : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                      style: TextStyle(
-                                        color: vehicleData.isOilValid()
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                    )),
-                                  ]),
-                                  DataRow(cells: [
-                                    DataCell(Text(
-                                        '${Globals.getText('vehicleDataTopKM')}')),
-                                    DataCell(Text(vehicleData.km.toString())),
-                                    const DataCell(Text('')),
-                                    const DataCell(Text('')),
-                                  ]),
                                 ],
                               ),
                             ),
+                            if (_isTableVisible) ...[
+                              const SizedBox(height: 16),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  headingTextStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 1, 160, 226),
+                                  ),
+                                  dataTextStyle: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                  columnSpacing: 24,
+                                  horizontalMargin: 12,
+                                  columns: [
+                                    DataColumn(
+                                      label: Text(
+                                        '${Globals.getText('vehicleDataTopType')}',
+                                        style: const TextStyle(
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        '${Globals.getText('vehicleDataTopStartDate')}',
+                                        style: const TextStyle(
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        '${Globals.getText('vehicleDataTopUntil')}',
+                                        style: const TextStyle(
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        '${Globals.getText('vehicleDataTopStatus')}',
+                                        style: const TextStyle(
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: [
+                                    DataRow(cells: [
+                                      DataCell(Text(
+                                          '${Globals.getText('vehicleDataTopInsurance')}')),
+                                      DataCell(
+                                          Text(vehicleData.insuranceStartDate)),
+                                      DataCell(
+                                          Text(vehicleData.insuranceEndDate)),
+                                      DataCell(Text(
+                                        vehicleData.insuranceValidity != null &&
+                                                vehicleData.insuranceValidity!
+                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                                        style: TextStyle(
+                                          color: vehicleData
+                                                          .insuranceValidity !=
+                                                      null &&
+                                                  vehicleData.insuranceValidity!
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      )),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text(
+                                          '${Globals.getText('vehicleDataTopTUV')}')),
+                                      DataCell(Text(vehicleData.tuvStartDate)),
+                                      DataCell(Text(vehicleData.tuvEndDate)),
+                                      DataCell(Text(
+                                        vehicleData.tuvValidity != null &&
+                                                vehicleData.tuvValidity!
+                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                                        style: TextStyle(
+                                          color:
+                                              vehicleData.tuvValidity != null &&
+                                                      vehicleData.tuvValidity!
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                        ),
+                                      )),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text(
+                                          '${Globals.getText('vehicleDataTopOil')}')),
+                                      DataCell(Text(vehicleData.oilStartDate)),
+                                      DataCell(Text(
+                                          '${vehicleData.oilUntilKm ?? 'N/A'} km')),
+                                      DataCell(Text(
+                                        vehicleData.isOilValid()
+                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                                        style: TextStyle(
+                                          color: vehicleData.isOilValid()
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      )),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text(
+                                          '${Globals.getText('vehicleDataTopKM')}')),
+                                      DataCell(Text(vehicleData.km.toString())),
+                                      const DataCell(Text('')),
+                                      const DataCell(Text('')),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text(
+                                          '${Globals.getText('vehicleDataTopConsumption')}')),
+                                      DataCell(Text(
+                                          '${vehicleData.consumption} l/100km')),
+                                      const DataCell(Text('')),
+                                      const DataCell(Text('')),
+                                    ]),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -866,121 +893,156 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
                         ),
                         child: Column(
                           children: [
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    icon: const Icon(Icons.calendar_today,
-                                        size: 18),
-                                    label: Text(
-                                      _startDate != null
-                                          ? DateFormat('yyyy-MM-dd')
-                                              .format(_startDate!)
-                                          : '${Globals.getText('vehicleDataFrom')}',
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isFilterVisible = !_isFilterVisible;
+                                });
+                              },
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Filters',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 1, 160, 226),
                                     ),
-                                    onPressed: () => _selectStartDate(context),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.black87,
-                                      elevation: 2,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
+                                  ),
+                                  Icon(
+                                    _isFilterVisible
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
+                                    color:
+                                        const Color.fromARGB(255, 1, 160, 226),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_isFilterVisible) ...[
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.calendar_today,
+                                          size: 18),
+                                      label: Text(
+                                        _startDate != null
+                                            ? DateFormat('yyyy-MM-dd')
+                                                .format(_startDate!)
+                                            : '${Globals.getText('vehicleDataFrom')}',
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(
-                                          color: Colors.grey[300]!,
+                                      onPressed: () =>
+                                          _selectStartDate(context),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black87,
+                                        elevation: 2,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    icon: const Icon(Icons.calendar_today,
-                                        size: 18),
-                                    label: Text(
-                                      _endDate != null
-                                          ? DateFormat('yyyy-MM-dd')
-                                              .format(_endDate!)
-                                          : '${Globals.getText('vehicleDataTo')}',
-                                    ),
-                                    onPressed: () => _selectEndDate(context),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.black87,
-                                      elevation: 2,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.calendar_today,
+                                          size: 18),
+                                      label: Text(
+                                        _endDate != null
+                                            ? DateFormat('yyyy-MM-dd')
+                                                .format(_endDate!)
+                                            : '${Globals.getText('vehicleDataTo')}',
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(
-                                          color: Colors.grey[300]!,
+                                      onPressed: () => _selectEndDate(context),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: Colors.black87,
+                                        elevation: 2,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  child: _buildFilterDropdown(
-                                    label:
-                                        '${Globals.getText('vehicleDataStatus')}',
-                                    value: _selectedStatus,
-                                    items: ['All', 'Active', 'Expired'],
-                                    onChanged: _filterByStatus,
-                                    getDisplayText: _getStatusDisplayText,
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: _buildFilterDropdown(
+                                      label:
+                                          '${Globals.getText('vehicleDataStatus')}',
+                                      value: _selectedStatus,
+                                      items: ['All', 'Active', 'Expired'],
+                                      onChanged: _filterByStatus,
+                                      getDisplayText: _getStatusDisplayText,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildFilterDropdown(
-                                    label:
-                                        '${Globals.getText('vehicleDataType')}',
-                                    value: _selectedType,
-                                    items: ['All', 'Oil', 'TUV', 'Insurance'],
-                                    onChanged: _filterByType,
-                                    getDisplayText: _getTypeDisplayText,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildFilterDropdown(
+                                      label:
+                                          '${Globals.getText('vehicleDataType')}',
+                                      value: _selectedType,
+                                      items: ['All', 'Oil', 'TUV', 'Insurance'],
+                                      onChanged: _filterByType,
+                                      getDisplayText: _getTypeDisplayText,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _applyFilters,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 1, 160, 226),
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _applyFilters,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 1, 160, 226),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 3,
                                   ),
-                                  elevation: 3,
-                                ),
-                                child: Text(
-                                  '${Globals.getText('vehicleDataApply')}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                  child: Text(
+                                    '${Globals.getText('vehicleDataApply')}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

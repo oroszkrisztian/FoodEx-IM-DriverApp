@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
+import 'package:foodex/widgets/expense_filter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'globals.dart';
@@ -60,49 +61,30 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   List<ExpenseEntry> _expenseData = [];
   List<ExpenseEntry> _filteredExpenseData = [];
   bool _isLoadingData = false;
-  String _selectedType = 'All';
-  List<String> _expenseTypes = ['All']; // Store expense types
-  bool _isLoadingTypes = true; // Loading state
+  String _selectedType = 'all'; // Changed to lowercase
+  List<String> _expenseTypes = ['all']; // Changed to lowercase
+  bool _isLoadingTypes = true;
   DateTime? _startDate;
   DateTime? _endDate;
   final String baseUrl = 'https://vinczefi.com/';
 
+  int totalLogs = 0;
+  double totalCost = 0.0;
+  double totalAmount = 0.0;
+
   @override
   void initState() {
     super.initState();
-    _initializeData(); // New method to handle initialization
+    _initializeData();
   }
 
   // Initialize both expense types and data
   Future<void> _initializeData() async {
-    await _loadExpenseTypes(); // Load types first
-    await _fetchExpenseData(); // Then load expense data
+    await _loadExpenseTypes();
+    //await _fetchExpenseData();
   }
 
-  String _getStandardizedType(String selectedType) {
-    // Check for exact matches including special characters
-    switch (selectedType) {
-      case 'Mosás/Spălare':
-      case 'mosás/spălare':
-      case 'Mosás':
-      case 'Spălare':
-        return 'wash';
-
-      case 'Üzemanyag/Combustibil':
-      case 'üzemanyag/combustibil':
-      case 'Üzemanyag':
-      case 'Combustibil':
-        return 'fuel';
-
-      case 'All':
-        return 'all';
-
-      default:
-        return selectedType;
-    }
-  }
-
-  // Modified to store types in state
+  // Modified to store types in state with lowercase
   Future<void> _loadExpenseTypes() async {
     try {
       final response = await http.post(
@@ -118,12 +100,12 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = jsonDecode(response.body);
 
-        // Create the list of expense types, including 'All' as the first option
-        List<String> types = ['All'];
+        // Create the list of expense types in lowercase, including 'all' as the first option
+        List<String> types = ['all'];
         types.addAll(jsonData
             .where((type) =>
                 type is Map<String, dynamic> && type.containsKey('name'))
-            .map((type) => type['name'].toString())
+            .map((type) => type['name'].toString().toLowerCase())
             .toList());
 
         setState(() {
@@ -136,7 +118,7 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
     } catch (e) {
       print('Error loading expense types: $e');
       setState(() {
-        _expenseTypes = ['All'];
+        _expenseTypes = ['all'];
         _isLoadingTypes = false;
       });
     }
@@ -144,12 +126,10 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
 
   Future<void> _fetchExpenseData() async {
     setState(() {
-      _isLoadingData = true; // Start loading
+      _isLoadingData = true;
     });
 
-    print('Raw selected type: $_selectedType');
-    String standardizedType = _getStandardizedType(_selectedType);
-    print('Standardized type being sent: $standardizedType');
+    String typeToSend = _selectedType.toLowerCase();
 
     try {
       final response = await http.post(
@@ -165,44 +145,75 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
           'to': _endDate != null
               ? DateFormat('yyyy-MM-dd').format(_endDate!)
               : '',
-          'type': standardizedType,
+          'type': typeToSend,
           'driver': Globals.userId.toString(),
           'vehicle': Globals.vehicleID.toString(),
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        final List<dynamic> responseData = json.decode(response.body);
-        List<ExpenseEntry> fetchedData =
-            responseData.map((data) => ExpenseEntry.fromJson(data)).toList();
+        final dynamic responseData = json.decode(response.body);
 
-        // Sort the data by date (newest first)
-        fetchedData.sort((a, b) {
-          DateTime dateA = DateTime.tryParse(a.time) ?? DateTime(2000);
-          DateTime dateB = DateTime.tryParse(b.time) ?? DateTime(2000);
-          return dateB.compareTo(dateA); // Reverse order for newest first
-        });
+        // Initialize with default values
+        int logs = 0;
+        double cost = 0.0;
+        double amount = 0.0;
+
+        // Handle totals from the response
+        if (responseData['totals'] != null) {
+          logs = int.tryParse(
+                  responseData['totals']['nr_logs']?.toString() ?? '0') ??
+              0;
+          cost = double.tryParse(
+                  responseData['totals']['total_cost']?.toString() ?? '0') ??
+              0.0;
+          amount = double.tryParse(
+                  responseData['totals']['total_amount']?.toString() ?? '0') ??
+              0.0;
+        }
 
         setState(() {
-          _expenseData = fetchedData;
-          _filteredExpenseData = fetchedData;
-          _isLoadingData = false; // End loading
+          totalLogs = logs;
+          totalCost = cost;
+          totalAmount = amount;
+          _expenseData = [];
+          _filteredExpenseData = [];
+          _isLoadingData = false;
         });
+
+        // Only try to parse expense entries if there are any
+        if (responseData is Map &&
+            responseData.entries.any((e) => e.key != 'totals')) {
+          List<ExpenseEntry> fetchedData = responseData.entries
+              .where((e) => e.key != 'totals')
+              .map((e) => ExpenseEntry.fromJson(e.value))
+              .toList();
+
+          // Sort the data by date (newest first)
+          fetchedData.sort((a, b) {
+            DateTime dateA = DateTime.tryParse(a.time) ?? DateTime(2000);
+            DateTime dateB = DateTime.tryParse(b.time) ?? DateTime(2000);
+            return dateB.compareTo(dateA);
+          });
+
+          setState(() {
+            _expenseData = fetchedData;
+            _filteredExpenseData = fetchedData;
+          });
+        }
       } else {
-        throw Exception(
-            'Failed to load expense data. Status code: ${response.statusCode}');
+        throw Exception('Failed to load expense data');
       }
     } catch (e) {
       print('Error in _fetchExpenseData: $e');
       setState(() {
-        _isLoadingData = false; // End loading even on error
+        _isLoadingData = false;
         _expenseData = [];
         _filteredExpenseData = [];
+        totalLogs = 0;
+        totalCost = 0;
+        totalAmount = 0;
       });
-      _showErrorDialog('Error', 'Failed to load expense data: $e');
     }
   }
 
@@ -473,205 +484,179 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
     );
   }
 
+  Widget _buildSummaryCard() {
+    // Convert selected type to lowercase for comparison
+    String lowerType = _selectedType.toLowerCase();
+    bool showAmount = lowerType == 'adblue' ||
+        lowerType == 'üzemanyag/combustibil' ;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            '${Globals.getText('summary')}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 1, 160, 226),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildSummaryItem(
+                Icons.list_alt,
+                totalLogs.toString(),
+                '${Globals.getText('totalLogs')}',
+              ),
+              _buildSummaryItem(
+                Icons.attach_money,
+                '${totalCost.toStringAsFixed(2)}',
+                '${Globals.getText('totalCost')}',
+              ),
+              if (showAmount)
+                _buildSummaryItem(
+                  Icons.local_gas_station,
+                  '${totalAmount.toStringAsFixed(2)}',
+                  '${Globals.getText('totalAmount')}',
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryItem(IconData icon, String value, String label) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: const Color.fromARGB(255, 1, 160, 226),
+          size: 28,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DriverPage(),
-            ),
-          );
-          // Prevent defaultR back behavior since we're handling navigation
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DriverPage(),
-                  ),
-                );
-              },
-            ),
-            title: Text(
-              '${Globals.getText('expenseLog')}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            centerTitle: true,
-            elevation: 4,
-            backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DriverPage(),
           ),
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.grey[100]!,
-                  Colors.white,
-                ],
-              ),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 16.0),
-                  // Filter Container
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20.0),
-                      border: Border.all(
-                        width: 1,
-                        color: Colors.grey[300]!,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${Globals.getText('logsDate')}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 1, 160, 226),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                icon:
-                                    const Icon(Icons.calendar_today, size: 18),
-                                label: Text(
-                                  _startDate != null
-                                      ? DateFormat('yyyy-MM-dd')
-                                          .format(_startDate!)
-                                      : '${Globals.getText('logsFrom')}',
-                                ),
-                                onPressed: () => _selectStartDate(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black87,
-                                  elevation: 2,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                icon:
-                                    const Icon(Icons.calendar_today, size: 18),
-                                label: Text(
-                                  _endDate != null
-                                      ? DateFormat('yyyy-MM-dd')
-                                          .format(_endDate!)
-                                      : '${Globals.getText('logsTo')}',
-                                ),
-                                onPressed: () => _selectEndDate(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black87,
-                                  elevation: 2,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${Globals.getText('vehicleDataType')}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            buildTypeDropdown()
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _applyFilters,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 1, 160, 226),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 3,
-                            ),
-                            child: Text(
-                              '${Globals.getText('logsApply')}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Data Table Container
-                  _buildDataTable()
-                ],
-              ),
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverPage(),
+                ),
+              );
+            },
+          ),
+          title: Text(
+            '${Globals.getText('expenseLog')}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ));
+          centerTitle: true,
+          elevation: 4,
+          backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.grey[100]!,
+                Colors.white,
+              ],
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 16.0),
+
+                ExpenseFilterContainer(
+                  startDate: _startDate,
+                  endDate: _endDate,
+                  expenseTypes: _expenseTypes,
+                  selectedType: _selectedType,
+                  isLoadingTypes: _isLoadingTypes,
+                  onSelectStartDate: () => _selectStartDate(context),
+                  onSelectEndDate: () => _selectEndDate(context),
+                  onTypeChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedType = newValue;
+                      });
+                    }
+                  },
+                  onApplyFilters: _applyFilters,
+                ),
+                const SizedBox(height: 16.0),
+                if (!_isLoadingData && _filteredExpenseData.isNotEmpty)
+                  _buildSummaryCard(),
+                const SizedBox(height: 16.0),
+                // Data Table Container
+                _buildDataTable()
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildDataTable() {

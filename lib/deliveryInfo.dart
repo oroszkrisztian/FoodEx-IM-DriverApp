@@ -3935,310 +3935,338 @@ void updateProductDetails(
     }
   }
 
-  showDialog(
+  // Using showGeneralDialog instead of showDialog to have more control
+  showGeneralDialog(
     context: context,
-    builder: (BuildContext context) {
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 200),
+    pageBuilder: (BuildContext buildContext, Animation<double> animation,
+        Animation<double> secondaryAnimation) {
       return StatefulBuilder(
         builder: (context, setState) {
           if (isLoading) {
             loadContainerTypes(setState);
           }
 
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+          Future<void> processUpdate() async {
+            try {
+              // Dismiss keyboard first to prevent context issues
+              FocusScope.of(context).unfocus();
+
+              // Parse the values from input fields
+              final double receivedQuantity =
+                  double.tryParse(quantityController.text) ?? currentQuantity;
+              final int collectionQuantity =
+                  int.tryParse(collectionController.text) ?? currentCollection;
+
+              // First try to update the collection/container if needed
+              if (selectedContainerType != null) {
+                try {
+                  await DeliveryService().updateProductCollection(
+                    orderId,
+                    productId,
+                    collectionQuantity,
+                    selectedContainerType!,
+                  );
+                  updatedSomething = true;
+                } catch (e) {
+                  // If collection update fails but it's not the only update, continue
+                  if (receivedQuantity == currentQuantity) {
+                    throw e; // Rethrow if this is the only update
+                  }
+                  // Otherwise log and continue with quantity update
+                  print('Warning: Collection update failed: $e');
+                }
+              }
+
+              // Then, separately update the received quantity if needed
+              if (receivedQuantity != currentQuantity) {
+                try {
+                  await DeliveryService().updateProductReceivedQuantity(
+                    orderId,
+                    productId,
+                    receivedQuantity,
+                  );
+                  updatedSomething = true;
+                } catch (e) {
+                  // If already updated collection, show warning but don't fail
+                  if (updatedSomething) {
+                    print('Warning: Quantity update failed: $e');
+                  } else {
+                    throw e; // Rethrow if nothing was updated
+                  }
+                }
+              }
+
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                if (updatedSomething) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Product details updated successfully'),
+                    ),
+                  );
+                  reloadPage();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('No changes were made'),
+                    ),
+                  );
+                }
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    backgroundColor: Colors.red,
                   ),
-                ],
+                );
+              }
+            }
+          }
+
+          
+          return SafeArea(
+            child: Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              // Set insetPadding to control dialog position and ensure it stays accessible
+              insetPadding:
+                  EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+              child: SingleChildScrollView(
+                // Wrap in SingleChildScrollView to allow scrolling when keyboard appears
+                child: Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.inventory_2_outlined,
+                              size: isSmallScreen ? 40 : 44,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        productName,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 20.0 : 24.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Form fields container
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        child: Icon(
-                          Icons.inventory_2_outlined,
-                          size: isSmallScreen ? 40 : 44,
-                          color: Colors.blue.shade700,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Container unit selection
+                            if (isLoading)
+                              Center(child: CircularProgressIndicator())
+                            else if (containerTypes.isEmpty)
+                              Center(
+                                child: Text(
+                                  'No container types available',
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${Globals.getText('collection_unit')}:',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14.0 : 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade800,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  DropdownButtonFormField<String>(
+                                    value: selectedContainerType,
+                                    hint: Text('Select container type'),
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade300),
+                                      ),
+                                    ),
+                                    items: containerTypes.map((type) {
+                                      return DropdownMenuItem(
+                                        value: type['id'].toString(),
+                                        child: Text(type['name']),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedContainerType = value;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                            SizedBox(height: 16),
+
+                            // Collection quantity input
+                            Text(
+                              '${Globals.getText('collection_unit')} ${Globals.getText('productTableQuantity')}:',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14.0 : 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: collectionController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: 'Enter collection quantity',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              // Add onSubmitted to support keyboard update
+                              onSubmitted: (_) {
+                                processUpdate();
+                              },
+                            ),
+
+                            SizedBox(height: 16),
+
+                            // Received quantity input
+                            Text(
+                              '${Globals.getText('order_received')} (kg):',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14.0 : 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: quantityController,
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
+                              decoration: InputDecoration(
+                                hintText: 'Enter received quantity',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              // Add onSubmitted to support keyboard update
+                              onSubmitted: (_) {
+                                processUpdate();
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    productName,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 20.0 : 24.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                  // Form fields container
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Container unit selection
-                        if (isLoading)
-                          Center(child: CircularProgressIndicator())
-                        else if (containerTypes.isEmpty)
-                          Center(
+                      // Action buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              // Dismiss keyboard before closing dialog
+                              FocusScope.of(context).unfocus();
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isSmallScreen ? 20 : 24,
+                                vertical: isSmallScreen ? 10 : 12,
+                              ),
+                              backgroundColor: Colors.grey.shade50,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                             child: Text(
-                              'No container types available',
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          )
-                        else
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${Globals.getText('collection_unit')}:',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 14.0 : 16.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                ),
+                              '${Globals.getText('orderCancel')}',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14.0 : 16.0,
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w500,
                               ),
-                              SizedBox(height: 8),
-                              DropdownButtonFormField<String>(
-                                value: selectedContainerType,
-                                hint: Text('Select container type'),
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide:
-                                        BorderSide(color: Colors.grey.shade300),
-                                  ),
-                                ),
-                                items: containerTypes.map((type) {
-                                  return DropdownMenuItem(
-                                    value: type['id'].toString(),
-                                    child: Text(type['name']),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    selectedContainerType = value;
-                                  });
-                                },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: processUpdate,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 1, 160, 226),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isSmallScreen ? 20 : 24,
+                                vertical: isSmallScreen ? 10 : 12,
                               ),
-                            ],
-                          ),
-
-                        SizedBox(height: 16),
-
-                        // Collection quantity input
-                        Text(
-                          '${Globals.getText('collection_unit')} ${Globals.getText('productTableQuantity')}:',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          controller: collectionController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: 'Enter collection quantity',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                        ),
-
-                        SizedBox(height: 16),
-
-                        // Received quantity input
-                        Text(
-                          '${Globals.getText('order_received')} (kg):',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          controller: quantityController,
-                          keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
-                          decoration: InputDecoration(
-                            hintText: 'Enter received quantity',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                            child: Text(
+                              '${Globals.getText('orderUpdate')}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                              ),
                             ),
-                            filled: true,
-                            fillColor: Colors.white,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Action buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 20 : 24,
-                            vertical: isSmallScreen ? 10 : 12,
-                          ),
-                          backgroundColor: Colors.grey.shade50,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          '${Globals.getText('orderCancel')}',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.grey.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            // Parse the values from input fields
-                            final double receivedQuantity =
-                                double.tryParse(quantityController.text) ??
-                                    currentQuantity;
-                            final int collectionQuantity =
-                                int.tryParse(collectionController.text) ??
-                                    currentCollection;
-
-                            // First try to update the collection/container if needed
-                            if (selectedContainerType != null) {
-                              try {
-                                await DeliveryService().updateProductCollection(
-                                  orderId,
-                                  productId,
-                                  collectionQuantity,
-                                  selectedContainerType!,
-                                );
-                                updatedSomething = true;
-                              } catch (e) {
-                                // If collection update fails but it's not the only update, continue
-                                if (receivedQuantity == currentQuantity) {
-                                  throw e; // Rethrow if this is the only update
-                                }
-                                // Otherwise log and continue with quantity update
-                                print('Warning: Collection update failed: $e');
-                              }
-                            }
-
-                            // Then, separately update the received quantity if needed
-                            if (receivedQuantity != currentQuantity) {
-                              try {
-                                await DeliveryService()
-                                    .updateProductReceivedQuantity(
-                                  orderId,
-                                  productId,
-                                  receivedQuantity,
-                                );
-                                updatedSomething = true;
-                              } catch (e) {
-                                // If already updated collection, show warning but don't fail
-                                if (updatedSomething) {
-                                  print('Warning: Quantity update failed: $e');
-                                } else {
-                                  throw e; // Rethrow if nothing was updated
-                                }
-                              }
-                            }
-
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              if (updatedSomething) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Product details updated successfully'),
-                                  ),
-                                );
-                                reloadPage();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('No changes were made'),
-                                  ),
-                                );
-                              }
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 20 : 24,
-                            vertical: isSmallScreen ? 10 : 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          '${Globals.getText('orderUpdate')}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
           );
