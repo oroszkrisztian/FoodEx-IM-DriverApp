@@ -29,7 +29,7 @@ final defaultPickupWarehouse = Warehouse(
 
 final defaultCompany = Company(
   companyName: 'Unknown',
-  type: 'unknown',
+  type: 'unknown', id: 0,
 );
 
 final defaultContactPerson = ContactPerson(

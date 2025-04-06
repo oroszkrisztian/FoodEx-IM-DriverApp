@@ -5,6 +5,38 @@ import 'package:http/http.dart' as http;
 class DeliveryService {
   final String baseUrl = 'https://vinczefi.com/foodexim/functions.php';
 
+  Future<Map<String, dynamic>> getPartnerDetails(int partnerId) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      body: {
+        'action': 'get-company-details',
+        'company-id': partnerId.toString(),
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load partner details');
+    }
+
+    final decodedResponse = json.decode(response.body);
+    if (decodedResponse['success'] == true) {
+      final data = decodedResponse['data'];
+      
+      if (data['contact_people'] is String) {
+        data['contact_people'] = json.decode(data['contact_people'] ?? '[]');
+      }
+    
+      if (data['photos'] is String) {
+        data['photos'] =
+            data['photos'].split(',').where((p) => p.isNotEmpty).toList();
+      }
+      return data;
+    }
+
+    throw Exception(
+        decodedResponse['message'] ?? 'Failed to load partner details');
+  }
+
   Future<void> pickupOrder(int orderId, bool isAdmin) async {
     final response = await http.post(
       Uri.parse('$baseUrl/update-order.php'),
@@ -328,14 +360,15 @@ class DeliveryService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getCollectionUnits(String type, String productId) async {
+  Future<List<Map<String, dynamic>>> getCollectionUnits(
+      String type, String productId) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         body: {
           'action': 'get-collection-units',
           'type': type,
-          'product_id' : productId
+          'product_id': productId
         },
       );
       print(response.body);
@@ -347,7 +380,6 @@ class DeliveryService {
         if (decodedResponse is Map && decodedResponse.containsKey('success')) {
           if (decodedResponse['success'] == true &&
               decodedResponse.containsKey('data')) {
-            
             final List<dynamic> data = decodedResponse['data'];
             return List<Map<String, dynamic>>.from(data);
           } else {

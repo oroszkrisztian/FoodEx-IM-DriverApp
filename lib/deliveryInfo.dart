@@ -47,6 +47,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     super.initState();
     _loadOrder();
     _loadCollections();
+
     widget.myRoutesPage;
   }
 
@@ -72,6 +73,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       print('Error loading collections: $e');
     }
   }
+
+  
 
   Future<void> _loadOrder() async {
     try {
@@ -1084,6 +1087,204 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     );
   }
 
+  void showCompanyDetails(BuildContext context, Company company) async {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
+    try {
+      final companyData = await deliveryService.getPartnerDetails(company.id);
+
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Company Name
+                  Text(
+                    companyData['name'] ?? '',
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 20.0 : 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Address
+                  if (companyData['address']?.isNotEmpty ?? false) ...[
+                    GestureDetector(
+                      onTap: () async {
+                        final address =
+                            companyData['coordinates']?.isNotEmpty ?? false
+                                ? companyData['coordinates']
+                                : companyData['address'];
+                        final Uri launchUri = Uri(
+                          scheme: 'geo',
+                          path: '0,0',
+                          queryParameters: {'q': address},
+                        );
+                        try {
+                          await launchUrl(launchUri);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Could not open Google Maps.')),
+                            );
+                          }
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.location_on, color: Colors.blue.shade700),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              companyData['address'] ?? '',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14.0 : 16.0,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Phone
+                  if (companyData['telephone']?.isNotEmpty ?? false) ...[
+                    GestureDetector(
+                      onTap: () =>
+                          openDialer(context, companyData['telephone']),
+                      child: Row(
+                        children: [
+                          Icon(Icons.phone, color: Colors.green.shade700),
+                          const SizedBox(width: 8),
+                          Text(
+                            companyData['telephone'] ?? '',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14.0 : 16.0,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Contact People
+                  if (companyData['contact_people'] is List &&
+                      companyData['contact_people'].isNotEmpty) ...[
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Contact People:',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 16.0 : 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...List.generate(
+                      companyData['contact_people'].length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: GestureDetector(
+                          onTap: () => openDialer(
+                            context,
+                            companyData['contact_people'][index]['telephone'],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.person, color: Colors.grey.shade700),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      companyData['contact_people'][index]
+                                          ['name'],
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14.0 : 16.0,
+                                      ),
+                                    ),
+                                    Text(
+                                      companyData['contact_people'][index]
+                                          ['telephone'],
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 12.0 : 14.0,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.grey.shade100,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(
+                        '${Globals.getText('orderClose')}',
+                        style: TextStyle(color: Colors.grey.shade800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading company details: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -1114,6 +1315,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       orElse: () => Company(
         companyName: 'Unknown',
         type: 'pickup',
+        id: 0,
       ),
     );
 
@@ -1122,6 +1324,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       orElse: () => Company(
         companyName: 'Unknown',
         type: 'delivery',
+        id: 0,
       ),
     );
 
@@ -1257,12 +1460,16 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      pickupCompany.companyName,
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 18.0 : 22.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.orange,
+                                    GestureDetector(
+                                      onTap: () => showCompanyDetails(
+                                          context, pickupCompany),
+                                      child: Text(
+                                        pickupCompany.companyName,
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 18.0 : 22.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.orange,
+                                        ),
                                       ),
                                     ),
                                     Text(
@@ -1478,12 +1685,16 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      deliveryCompany.companyName,
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 18.0 : 22.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green,
+                                    GestureDetector(
+                                      onTap: () => showCompanyDetails(
+                                          context, deliveryCompany),
+                                      child: Text(
+                                        deliveryCompany.companyName,
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 18.0 : 22.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
                                       ),
                                     ),
                                     Text(
@@ -4029,7 +4240,6 @@ void updateProductDetails(
             }
           }
 
-          
           return SafeArea(
             child: Dialog(
               shape: RoundedRectangleBorder(
