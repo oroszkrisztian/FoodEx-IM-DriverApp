@@ -1,4 +1,4 @@
-#Sun Apr 06 12:45:04 EEST 2025
+#Mon Apr 07 20:06:11 EEST 2025
 base.0=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeLibDexDebug/0/classes.dex
 base.2=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex

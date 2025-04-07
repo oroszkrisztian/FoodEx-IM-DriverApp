@@ -207,6 +207,7 @@ class Translations {
       'noSummaryData': 'No summary data available for selected period',
       'totalAmount': 'Total Amount',
       'totalCost': 'Total Cost',
+      'companyNotesTitle': 'Warehouse Note',
     },
     'hu': {
       'driverPage': 'Sofőr Oldal',
@@ -413,6 +414,7 @@ class Translations {
       'noSummaryData': 'Nincs összesítés a választott időszakra',
       'totalAmount': 'Teljes Mennyiség',
       'totalCost': 'Teljes Költség',
+      'companyNotesTitle': 'Raktár Megjegyzés',
     },
     'ro': {
       'driverPage': 'Pagina Șofer',
@@ -621,6 +623,7 @@ class Translations {
       'noSummaryData': 'Nu există date sumare pentru perioada selectată',
       'totalAmount': 'Cantitate Totală',
       'totalCost': 'Cost Total',
+      'companyNotesTitle': 'Notițe Depozit',
     },
   };
 

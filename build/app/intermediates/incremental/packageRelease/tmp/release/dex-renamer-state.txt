@@ -1,0 +1,4 @@
+#Mon Apr 07 20:10:49 EEST 2025
+base.0=/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
