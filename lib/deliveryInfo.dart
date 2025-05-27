@@ -46,32 +46,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   void initState() {
     super.initState();
     _loadOrder();
-    _loadCollections();
 
     widget.myRoutesPage;
-  }
-
-  Future<void> _loadCollections() async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
-        body: {
-          'action': 'get-order-collection-units',
-          'order-id': widget.orderId.toString(),
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        if (decodedResponse['success'] == true) {
-          setState(() {
-            collectionUnitsData = decodedResponse['data'];
-          });
-        }
-      }
-    } catch (e) {
-      print('Error loading collections: $e');
-    }
   }
 
   Future<void> _loadOrder() async {
@@ -81,19 +57,31 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         _error = null;
       });
 
-      final orderData = await orderService.getOrderById(widget.orderId);
+      // Load orders from cache
+      await orderService.loadOrdersFromCache();
+
+      // Find the complete order in cached data
+      final cachedOrder = [
+        ...orderService.activeOrders,
+        ...orderService.inactiveOrders
+      ].where((order) => order.orderId == widget.orderId).firstOrNull;
 
       if (mounted) {
         setState(() {
-          order = orderData ?? Order.empty();
+          order = cachedOrder ?? Order.empty();
           _isLoading = false;
+          if (cachedOrder == null) {
+            _error = 'Order not found in cache';
+          }
         });
       }
     } catch (e) {
+      debugPrint('Error loading order from cache: $e');
       if (mounted) {
         setState(() {
           _error = e.toString();
           _isLoading = false;
+          order = Order.empty();
         });
       }
     }
@@ -1085,774 +1073,789 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     );
   }
 
-  void showCompanyDetails(BuildContext context, Company company) async {
+  void showCompanyDetails(BuildContext context, Company company) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    try {
-      final companyData = await deliveryService.getPartnerDetails(company.id);
-      print(companyData);
-      if (!context.mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with Company Name and Icon
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.business,
-                            size: isSmallScreen ? 24 : 30,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            companyData['name'] ?? '',
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 20.0 : 24.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Photos Gallery Section
-                    if ((companyData['photos'] as List?)?.isNotEmpty ??
-                        false) ...[
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with Company Name and Icon
+                  Row(
+                    children: [
                       Container(
-                        height: 200,
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: (companyData['photos'] as List).length,
-                            itemBuilder: (context, index) {
-                              String photoUrl =
-                                  'https://vinczefi.com/foodexim/' +
-                                      companyData['photos'][index];
-                              return GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return Dialog(
-                                        backgroundColor: Colors.transparent,
-                                        insetPadding: EdgeInsets.zero,
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            InteractiveViewer(
-                                              panEnabled: true,
-                                              boundaryMargin:
-                                                  EdgeInsets.all(20),
-                                              minScale: 0.5,
-                                              maxScale: 4,
-                                              child: Image.network(
-                                                photoUrl,
-                                                fit: BoxFit.contain,
-                                                loadingBuilder: (context, child,
-                                                    loadingProgress) {
-                                                  if (loadingProgress == null)
-                                                    return child;
-                                                  return Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      value: loadingProgress
-                                                                  .expectedTotalBytes !=
-                                                              null
-                                                          ? loadingProgress
-                                                                  .cumulativeBytesLoaded /
-                                                              loadingProgress
-                                                                  .expectedTotalBytes!
-                                                          : null,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                            Positioned(
-                                              right: 8,
-                                              top: 8,
-                                              child: IconButton(
-                                                icon: Container(
-                                                  padding: EdgeInsets.all(8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black
-                                                        .withOpacity(0.5),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Icon(Icons.close,
-                                                      color: Colors.white),
-                                                ),
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Container(
-                                  width: 160,
-                                  margin: EdgeInsets.only(right: 8),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      photoUrl,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                        child: Icon(
+                          Icons.business,
+                          size: isSmallScreen ? 24 : 30,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          company.companyName,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 20.0 : 24.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
                     ],
+                  ),
+                  const SizedBox(height: 20),
 
-                    // Contact Information Section
+                  // Photos Gallery Section - UPDATED
+                  if (company.photos.isNotEmpty) ...[
                     Container(
-                      padding: EdgeInsets.all(16),
+                      height: 200,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: company.photos.length,
+                          itemBuilder: (context, index) {
+                            String photoData = company.photos[index];
+                            return GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return Dialog(
+                                      backgroundColor: Colors.transparent,
+                                      insetPadding: EdgeInsets.zero,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          InteractiveViewer(
+                                            panEnabled: true,
+                                            boundaryMargin: EdgeInsets.all(20),
+                                            minScale: 0.5,
+                                            maxScale: 4,
+                                            child: _buildPhotoWidget(photoData),
+                                          ),
+                                          Positioned(
+                                            right: 8,
+                                            top: 8,
+                                            child: IconButton(
+                                              icon: Container(
+                                                padding: EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withOpacity(0.5),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(Icons.close,
+                                                    color: Colors.white),
+                                              ),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                width: 160,
+                                margin: EdgeInsets.only(right: 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: _buildPhotoWidget(
+                                    photoData,
+                                    width: 160,
+                                    height: 184,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Company Info Container
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (company.address.isNotEmpty)
+                          GestureDetector(
+                            onTap: () async {
+                              final address = company.coordinates.isNotEmpty
+                                  ? company.coordinates
+                                  : company.address;
+                              final Uri launchUri = Uri(
+                                scheme: 'geo',
+                                path: '0,0',
+                                queryParameters: {'q': address},
+                              );
+                              try {
+                                await launchUrl(launchUri);
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Could not open Google Maps.')),
+                                  );
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_on,
+                                      color: Colors.blue.shade700),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      company.address,
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14.0 : 16.0,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (company.telephone.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () => openDialer(context, company.telephone),
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.phone,
+                                      color: Colors.green.shade700),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    company.telephone,
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14.0 : 16.0,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // Contact People Section
+                  if (company.contactPeople.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      Globals.getText('orderDeliveryContact'),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 16.0 : 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...company.contactPeople.map((contact) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: GestureDetector(
+                            onTap: () =>
+                                openDialer(context, contact['telephone'] ?? ''),
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.person,
+                                        color: Colors.grey.shade700, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          contact['name'] ?? '',
+                                          style: TextStyle(
+                                            fontSize:
+                                                isSmallScreen ? 14.0 : 16.0,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          contact['telephone'] ?? '',
+                                          style: TextStyle(
+                                            fontSize:
+                                                isSmallScreen ? 12.0 : 14.0,
+                                            color: Colors.blue.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.phone,
+                                      color: Colors.green.shade700),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                  ],
+
+                  // Details Section
+                  if (company.details.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.yellow.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.yellow.shade200),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (companyData['address']?.isNotEmpty ?? false)
-                            GestureDetector(
-                              onTap: () async {
-                                final address =
-                                    companyData['coordinates']?.isNotEmpty ??
-                                            false
-                                        ? companyData['coordinates']
-                                        : companyData['address'];
-                                final Uri launchUri = Uri(
-                                  scheme: 'geo',
-                                  path: '0,0',
-                                  queryParameters: {'q': address},
-                                );
-                                try {
-                                  await launchUrl(launchUri);
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Could not open Google Maps.')),
-                                    );
-                                  }
-                                }
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.location_on,
-                                        color: Colors.blue.shade700),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        companyData['address'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: isSmallScreen ? 14.0 : 16.0,
-                                          color: Colors.blue.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.amber.shade700,
+                                size: isSmallScreen ? 20 : 24,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                '${Globals.getText('companyNotesTitle')}:',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 16.0 : 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
                                 ),
                               ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            company.details,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14.0 : 16.0,
+                              color: Colors.grey.shade800,
+                              height: 1.5,
                             ),
-                          if (companyData['telephone']?.isNotEmpty ??
-                              false) ...[
-                            const SizedBox(height: 12),
-                            GestureDetector(
-                              onTap: () =>
-                                  openDialer(context, companyData['telephone']),
-                              child: Container(
-                                padding: EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.phone,
-                                        color: Colors.green.shade700),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      companyData['telephone'] ?? '',
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                                        color: Colors.green.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
+                  ],
 
-                    // Contact People Section
-                    if (companyData['contact_people'] is List &&
-                        companyData['contact_people'].isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      Text(
-                        Globals.getText('orderDeliveryContact'),
+                  const SizedBox(height: 20),
+                  // Close Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blue.shade800,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        '${Globals.getText('orderClose')}',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 16.0 : 18.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ...List.generate(
-                        companyData['contact_people'].length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: GestureDetector(
-                            onTap: () => openDialer(
-                                context,
-                                companyData['contact_people'][index]
-                                    ['telephone']),
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(Icons.person,
-                                        color: Colors.grey.shade700, size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          companyData['contact_people'][index]
-                                              ['name'],
-                                          style: TextStyle(
-                                            fontSize:
-                                                isSmallScreen ? 14.0 : 16.0,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        Text(
-                                          companyData['contact_people'][index]
-                                              ['telephone'],
-                                          style: TextStyle(
-                                            fontSize:
-                                                isSmallScreen ? 12.0 : 14.0,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(Icons.phone,
-                                      color: Colors.green.shade700),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 20),
-                    // Close Button
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.blue.shade800,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          '${Globals.getText('orderClose')}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                          ),
+                          color: Colors.white,
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading company details: $e')),
-      );
-    }
-  }
-
-  void showWarehouseDetails(BuildContext context, Warehouse warehouse) async {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 600;
-
-    try {
-      final warehouseData =
-          await deliveryService.getWarehouseDetails(warehouse.id);
-      print(warehouseData);
-      if (!context.mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.warehouse,
-                            size: isSmallScreen ? 24 : 30,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            warehouseData['name'] ?? '',
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 20.0 : 24.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-                    // Photo Gallery Section
-                    if ((warehouseData['photos'] as List?)?.isNotEmpty ??
-                        false) ...[
+  void showWarehouseDetails(BuildContext context, Warehouse warehouse) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with Warehouse Name and Icon
+                  Row(
+                    children: [
                       Container(
-                        height: 200,
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: (warehouseData['photos'] as List).length,
-                            itemBuilder: (context, index) {
-                              String photoUrl =
-                                  'https://vinczefi.com/foodexim/' +
-                                      warehouseData['photos'][index];
-                              return GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return Dialog(
-                                        backgroundColor: Colors.transparent,
-                                        insetPadding: EdgeInsets.zero,
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            InteractiveViewer(
-                                              panEnabled: true,
-                                              boundaryMargin:
-                                                  EdgeInsets.all(20),
-                                              minScale: 0.5,
-                                              maxScale: 4,
-                                              child: Image.network(
-                                                photoUrl,
-                                                fit: BoxFit.contain,
-                                                loadingBuilder: (context, child,
-                                                    loadingProgress) {
-                                                  if (loadingProgress == null)
-                                                    return child;
-                                                  return Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                            Positioned(
-                                              right: 8,
-                                              top: 8,
-                                              child: IconButton(
-                                                icon: Container(
-                                                  padding: EdgeInsets.all(8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black
-                                                        .withOpacity(0.5),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Icon(Icons.close,
-                                                      color: Colors.white),
-                                                ),
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Container(
-                                  width: 160,
-                                  margin: EdgeInsets.only(right: 8),
-                                  child: Image.network(
-                                    photoUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
+                        child: Icon(
+                          Icons.warehouse,
+                          size: isSmallScreen ? 24 : 30,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          warehouse.warehouseName,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 20.0 : 24.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade800,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
                     ],
+                  ),
+                  const SizedBox(height: 20),
 
-                    // Address Section
+                  // Photos Gallery Section - UPDATED TO SUPPORT BASE64
+                  if (warehouse.photos.isNotEmpty) ...[
                     Container(
-                      padding: EdgeInsets.all(16),
+                      height: 200,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: GestureDetector(
-                        onTap: () async {
-                          final address =
-                              warehouseData['coordinates']?.isNotEmpty ?? false
-                                  ? warehouseData['coordinates']
-                                  : warehouseData['address'];
-                          final Uri launchUri = Uri(
-                            scheme: 'geo',
-                            path: '0,0',
-                            queryParameters: {'q': address},
-                          );
-                          try {
-                            await launchUrl(launchUri);
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Could not open Google Maps.')),
-                              );
-                            }
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.location_on,
-                                color: Colors.blue.shade700),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                warehouseData['address'] ?? '',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 14.0 : 16.0,
-                                  color: Colors.blue.shade700,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: warehouse.photos.length,
+                          itemBuilder: (context, index) {
+                            String photoData = warehouse.photos[index];
+                            return GestureDetector(
+                              onTap: () {
+                                // Show full screen photo
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return Dialog(
+                                      backgroundColor: Colors.transparent,
+                                      insetPadding: EdgeInsets.zero,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          InteractiveViewer(
+                                            panEnabled: true,
+                                            boundaryMargin: EdgeInsets.all(20),
+                                            minScale: 0.5,
+                                            maxScale: 4,
+                                            child: _buildPhotoWidget(photoData),
+                                          ),
+                                          Positioned(
+                                            right: 8,
+                                            top: 8,
+                                            child: IconButton(
+                                              icon: Container(
+                                                padding: EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withOpacity(0.5),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(Icons.close,
+                                                    color: Colors.white),
+                                              ),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                width: 160,
+                                margin: EdgeInsets.only(right: 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: _buildPhotoWidget(
+                                    photoData,
+                                    width: 160,
+                                    height: 184,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                  ],
 
-                    // Contact People Section
-                    if (warehouseData['contact_people'] is List &&
-                        warehouseData['contact_people'].isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      Text(
-                        Globals.getText('orderDeliveryContact'),
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 16.0 : 18.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ...List.generate(
-                        warehouseData['contact_people'].length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: GestureDetector(
-                            onTap: () => openDialer(
-                                context,
-                                warehouseData['contact_people'][index]
-                                    ['telephone']),
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(Icons.person,
-                                        color: Colors.grey.shade700, size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          warehouseData['contact_people'][index]
-                                              ['name'],
-                                          style: TextStyle(
-                                            fontSize:
-                                                isSmallScreen ? 14.0 : 16.0,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        Text(
-                                          warehouseData['contact_people'][index]
-                                              ['telephone'],
-                                          style: TextStyle(
-                                            fontSize:
-                                                isSmallScreen ? 12.0 : 14.0,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(Icons.phone,
-                                      color: Colors.green.shade700),
-                                ],
-                              ),
+                  // Address and Phone Section
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        // Address
+                        GestureDetector(
+                          onTap: () async {
+                            final address =
+                                warehouse.coordinates?.isNotEmpty ?? false
+                                    ? warehouse.coordinates!
+                                    : warehouse.warehouseAddress;
+                            final Uri launchUri = Uri(
+                              scheme: 'geo',
+                              path: '0,0',
+                              queryParameters: {'q': address},
+                            );
+                            try {
+                              await launchUrl(launchUri);
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Could not open Google Maps.')),
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Details Section
-                    if (warehouseData['details']?.isNotEmpty ?? false) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.yellow.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.yellow.shade200),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                            child: Row(
                               children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Colors.amber.shade700,
-                                  size: isSmallScreen ? 20 : 24,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  '${Globals.getText('companyNotesTitle')}:',
-                                  style: TextStyle(
-                                    fontSize: isSmallScreen ? 16.0 : 18.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey.shade800,
+                                Icon(Icons.location_on,
+                                    color: Colors.blue.shade700),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    warehouse.warehouseAddress,
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14.0 : 16.0,
+                                      color: Colors.blue.shade700,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                              warehouseData['details'],
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 14.0 : 16.0,
-                                color: Colors.grey.shade800,
-                                height: 1.5,
+                          ),
+                        ),
+
+                        // Phone Number (if available)
+                        if (warehouse.telephone.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () =>
+                                openDialer(context, warehouse.telephone),
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.phone,
+                                      color: Colors.green.shade700),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    warehouse.telephone,
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14.0 : 16.0,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // Contact People Section
+                  if (warehouse.contactPeople.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      Globals.getText('orderDeliveryContact'),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 16.0 : 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...warehouse.contactPeople.map((contact) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: GestureDetector(
+                            onTap: () =>
+                                openDialer(context, contact['telephone'] ?? ''),
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.person,
+                                        color: Colors.grey.shade700, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          contact['name'] ?? '',
+                                          style: TextStyle(
+                                            fontSize:
+                                                isSmallScreen ? 14.0 : 16.0,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        if (contact['telephone']?.isNotEmpty ??
+                                            false)
+                                          Text(
+                                            contact['telephone']!,
+                                            style: TextStyle(
+                                              fontSize:
+                                                  isSmallScreen ? 12.0 : 14.0,
+                                              color: Colors.blue.shade700,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.phone,
+                                      color: Colors.green.shade700),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                  ],
+
+                  const SizedBox(height: 20),
+
+                  // Close Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blue.shade800,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.blue.shade800,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          '${Globals.getText('orderClose')}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                          ),
+                      child: Text(
+                        '${Globals.getText('orderClose')}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPhotoWidget(String photoData, {double? width, double? height}) {
+    // Check if photoData is base64 or URL
+    if (photoData.startsWith('data:image') || !photoData.startsWith('http')) {
+      // It's base64 data
+      try {
+        // Remove data:image/jpeg;base64, prefix if present
+        String base64String = photoData;
+        if (photoData.contains(',')) {
+          base64String = photoData.split(',').last;
+        }
+
+        final bytes = base64Decode(base64String);
+        return Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: width,
+              height: height,
+              color: Colors.grey.shade200,
+              child: Icon(Icons.error, color: Colors.grey.shade600),
+            );
+          },
+        );
+      } catch (e) {
+        debugPrint('Error loading base64 image: $e');
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey.shade200,
+          child: Icon(Icons.error, color: Colors.grey.shade600),
+        );
+      }
+    } else {
+      // It's a URL
+      String photoUrl = photoData;
+      if (!photoUrl.startsWith('http')) {
+        photoUrl = 'https://vinczefi.com/foodexim/' + photoData;
+      }
+
+      return Image.network(
+        photoUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
             ),
           );
         },
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading warehouse details: $e')),
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: Colors.grey.shade200,
+            child: Icon(Icons.error, color: Colors.grey.shade600),
+          );
+        },
       );
     }
   }
@@ -2170,8 +2173,10 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                         // New contact person button
                                         GestureDetector(
                                           onTap: () {
-                                            openContactPerson(context,
-                                                pickupContact.name, pickupContact.telephone);
+                                            openContactPerson(
+                                                context,
+                                                pickupContact.name,
+                                                pickupContact.telephone);
                                           },
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
@@ -2332,12 +2337,13 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       child: Text(
                                         deliveryWarehouse.warehouseAddress,
                                         style: TextStyle(
-                                          fontSize: isSmallScreen ? 16.0 : 18.0,
-                                          color: Colors
-                                              .black, // Change color to indicate it's tappable
-                                          decoration: TextDecoration
-                                              .none // Add underline to show it's clickable
-                                        ),
+                                            fontSize:
+                                                isSmallScreen ? 16.0 : 18.0,
+                                            color: Colors
+                                                .black, // Change color to indicate it's tappable
+                                            decoration: TextDecoration
+                                                .none // Add underline to show it's clickable
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -2410,8 +2416,10 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                         // New contact person button
                                         GestureDetector(
                                           onTap: () {
-                                            openContactPerson(context,
-                                                deliveryContact.name, deliveryContact.telephone);
+                                            openContactPerson(
+                                                context,
+                                                deliveryContact.name,
+                                                deliveryContact.telephone);
                                           },
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
@@ -4540,168 +4548,6 @@ void updateCrates(
   );
 }
 
-// void updateCollectionUnit(BuildContext context, int productId,
-//     String productName, int orderId, Function reloadPage) {
-//   final screenSize = MediaQuery.of(context).size;
-//   final isSmallScreen = screenSize.width < 600;
-//   TextEditingController numberController = TextEditingController();
-
-//   showDialog(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return Dialog(
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(16.0),
-//         ),
-//         elevation: 0,
-//         backgroundColor: Colors.transparent,
-//         child: Container(
-//           padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-//           decoration: BoxDecoration(
-//             color: Colors.white,
-//             borderRadius: BorderRadius.circular(16),
-//             boxShadow: [
-//               BoxShadow(
-//                 color: Colors.black.withOpacity(0.1),
-//                 blurRadius: 10,
-//                 offset: const Offset(0, 4),
-//               ),
-//             ],
-//           ),
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Container(
-//                     padding: const EdgeInsets.all(8),
-//                     decoration: BoxDecoration(
-//                       color: Colors.blue.withOpacity(0.1),
-//                       borderRadius: BorderRadius.circular(8),
-//                     ),
-//                     child: Icon(
-//                       Icons.warehouse_rounded,
-//                       size: isSmallScreen ? 40 : 44,
-//                       color: Colors.blue.shade700,
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//               const SizedBox(height: 16),
-//               Text(
-//                 productName,
-//                 style: TextStyle(
-//                   fontSize: isSmallScreen ? 20.0 : 24.0,
-//                   fontWeight: FontWeight.bold,
-//                   color: Colors.grey.shade800,
-//                 ),
-//                 textAlign: TextAlign.center,
-//               ),
-//               const SizedBox(height: 20),
-//               Container(
-//                 padding: const EdgeInsets.all(16),
-//                 decoration: BoxDecoration(
-//                   color: Colors.grey.shade50,
-//                   borderRadius: BorderRadius.circular(12),
-//                   border: Border.all(color: Colors.grey.shade200),
-//                 ),
-//                 child: TextField(
-//                   controller: numberController,
-//                   keyboardType: TextInputType.number,
-//                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-//                   decoration: InputDecoration(
-//                     labelText: 'Collection Update',
-//                     filled: true,
-//                     fillColor: Colors.white,
-//                     border: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(8),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(height: 24),
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.end,
-//                 children: [
-//                   TextButton(
-//                     onPressed: () => Navigator.of(context).pop(),
-//                     style: TextButton.styleFrom(
-//                       padding: EdgeInsets.symmetric(
-//                         horizontal: isSmallScreen ? 20 : 24,
-//                         vertical: isSmallScreen ? 10 : 12,
-//                       ),
-//                       backgroundColor: Colors.grey.shade50,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(8),
-//                       ),
-//                     ),
-//                     child: Text(
-//                       '${Globals.getText('orderCancel')}',
-//                       style: TextStyle(
-//                         fontSize: isSmallScreen ? 14.0 : 16.0,
-//                         color: Colors.grey.shade700,
-//                         fontWeight: FontWeight.w500,
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(width: 12),
-//                   ElevatedButton(
-//                     onPressed: () async {
-//                       final newValue = int.tryParse(numberController.text);
-//                       if (newValue != null) {
-//                         try {
-//                           await DeliveryService().updateProductCollection(
-//                             orderId,
-//                             productId,
-//                             newValue,
-//                           );
-//                           if (context.mounted) {
-//                             Navigator.pop(context);
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               SnackBar(
-//                                 content: Text(Globals.getText(
-//                                     'orderPaletsUpdateSuccess')),
-//                               ),
-//                             );
-//                             reloadPage();
-//                           }
-//                         } catch (e) {
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             SnackBar(
-//                               content: Text('Error: ${e.toString()}'),
-//                               backgroundColor: Colors.red,
-//                             ),
-//                           );
-//                         }
-//                       }
-//                     },
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-//                       padding: EdgeInsets.symmetric(
-//                         horizontal: isSmallScreen ? 20 : 24,
-//                         vertical: isSmallScreen ? 10 : 12,
-//                       ),
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(8),
-//                       ),
-//                     ),
-//                     child: Text(
-//                       '${Globals.getText('orderUpdate')}',
-//                       style: const TextStyle(
-//                         color: Colors.white,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ],
-//           ),
-//         ),
-//       );
-//     },
-//   );
-// }
 void updateProductDetails(
     BuildContext context,
     int productId,

@@ -26,23 +26,33 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     try {
       return Product(
-        productId: json['product_id'] ?? 0, // Provide default value
-        productName: json['product_name'] ?? '', // Provide default value
-        productUnit: json['product_unit'] ?? '', // Provide default value
-        productType: json['product_type'] ?? '', // Provide default value
-        productWeight: (json['product_weight'] as num?)?.toDouble() ??
-            0.0, // Handle null and type casting
-        quantity: json['quantity'] ?? 0, // Provide default value
-        price: (json['price'] as num?)?.toDouble() ??
-            0.0, // Handle null and type casting
-        collection: json['collection_quantity'] ?? 0, // Provide default value
-        ordered: json['ordered'] ?? 0, // Provide default value
+        productId: json['product_id'] ?? 0,
+        productName: json['product_name'] ?? '',
+        productUnit: json['product_unit'] ?? '',
+        productType: json['product_type'] ?? '',
+        productWeight: (json['product_weight'] as num?)?.toDouble() ?? 0.0,
+        quantity: json['quantity'] ?? 0,
+        price: (json['price'] as num?)?.toDouble() ?? 0.0,
+        collection: json['collection_quantity'] ?? 0,
+        ordered: json['ordered'] ?? 0,
       );
     } catch (e) {
       debugPrint('Error parsing Product: $e, JSON: $json');
-      rethrow; // Very important for debugging
+      rethrow;
     }
   }
 
-  // Optional: Override toString() for easier debugging
+  Map<String, dynamic> toJson() {
+    return {
+      'product_id': productId,
+      'product_name': productName,
+      'product_unit': productUnit,
+      'product_type': productType,
+      'product_weight': productWeight,
+      'quantity': quantity,
+      'price': price,
+      'collection_quantity': collection,
+      'ordered': ordered,
+    };
+  }
 }

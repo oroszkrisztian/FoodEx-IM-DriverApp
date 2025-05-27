@@ -31,12 +31,14 @@ final defaultPickupWarehouse = Warehouse(
   warehouseName: 'Unknown Pickup Warehouse',
   warehouseAddress: 'N/A',
   type: 'pickup',
-  coordinates: 'N/A', id: 0,
+  coordinates: 'N/A',
+  id: 0,
 );
 
 final defaultCompany = Company(
   companyName: 'Unknown',
-  type: 'unknown', id: 0,
+  type: 'unknown',
+  id: 0,
 );
 
 final defaultContactPerson = ContactPerson(
@@ -162,13 +164,22 @@ class _DriverPageState extends State<DriverPage> {
 
     try {
       await _checkLoginStatus();
-      final user = await userService.loadUser(Globals.userId!);
-      setState(() {
-        _user = user;
-      });
+
+      // Try to load user, but don't fail if it doesn't work
+      try {
+        final user = await userService.loadUser(Globals.userId!);
+        setState(() {
+          _user = user;
+        });
+      } catch (userError) {
+        debugPrint(
+            'Error loading user, continuing with cached user data: $userError');
+      }
+
       await _syncVehicleStatus();
       if (_isLoggedIn && _vehicleLoggedIn) {
-        await fetchInitialOrders();
+       
+        await _loadOrdersWithFallback();
       }
     } catch (e) {
       debugPrint('Error in initialization: $e');
@@ -179,6 +190,50 @@ class _DriverPageState extends State<DriverPage> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+// New method that tries API first, then falls back to cache
+  Future<void> _loadOrdersWithFallback() async {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    DateTime pastDate = DateTime(today.year, today.month, today.day, 0, 1);
+    String formattedPastDate = DateFormat('yyyy-MM-dd').format(pastDate);
+
+    try {
+      // First, try to fetch fresh data from API
+      debugPrint('Attempting to fetch fresh orders from API...');
+      await _orderService.fetchAllOrders(
+          fromDate: formattedPastDate, toDate: formattedPastDate);
+
+      debugPrint('Successfully fetched fresh orders from API');
+      setState(() {
+        hasOrders = _orderService.activeOrders.isNotEmpty;
+        errorMessage = null; // Clear any previous error
+      });
+    } catch (e) {
+      // API failed, try to load from cache
+      debugPrint('API failed, loading from cache: $e');
+      try {
+        await _orderService.loadOrdersFromCache();
+        debugPrint('Successfully loaded orders from cache');
+
+        setState(() {
+          hasOrders = _orderService.activeOrders.isNotEmpty;
+          if (_orderService.activeOrders.isEmpty) {
+            errorMessage = 'No cached orders found.';
+          } else {
+            errorMessage = 'Using cached data (offline mode)';
+          }
+        });
+      } catch (cacheError) {
+        // Both API and cache failed
+        debugPrint('Both API and cache failed: $cacheError');
+        setState(() {
+          hasOrders = false;
+          errorMessage = 'No orders available (API failed and no cache)';
+        });
+      }
     }
   }
 
@@ -196,57 +251,47 @@ class _DriverPageState extends State<DriverPage> {
         _vehicleLoggedIn = vehicleId != null;
       });
     } catch (e) {
-      setState(() {
-        _vehicleLoggedIn = false;
-      });
-    }
-  }
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final savedVehicleId = prefs.getInt('selected_vehicle_id');
 
-  Future<void> fetchInitialOrders() async {
-    setState(() {
-      _isLoading = true;
-      errorMessage = null;
-    });
-
-    DateTime now = DateTime.now();
-    DateTime today = DateTime(now.year, now.month, now.day);
-    DateTime pastDate = DateTime(today.year, today.month, today.day, 0, 1);
-    String formattedPastDate = DateFormat('yyyy-MM-dd').format(pastDate);
-
-    try {
-      await _orderService.fetchAllOrders(
-          fromDate: formattedPastDate, toDate: formattedPastDate);
-
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        hasOrders = false;
-        errorMessage = 'No orders found for today.';
-      });
+        if (savedVehicleId != null) {
+          Globals.vehicleID = savedVehicleId;
+          debugPrint(
+              'Using saved vehicle ID from SharedPreferences: $savedVehicleId');
+          setState(() {
+            _vehicleLoggedIn = true;
+          });
+        } else {
+          debugPrint('No saved vehicle ID found');
+          setState(() {
+            _vehicleLoggedIn = false;
+          });
+        }
+      } catch (prefsError) {
+        debugPrint('Error accessing SharedPreferences: $prefsError');
+        setState(() {
+          _vehicleLoggedIn = false;
+        });
+      }
     }
   }
 
   Future<void> _refreshOrderData() async {
     try {
-      // Show loading state if needed
       setState(() {
         _isLoading = true;
       });
 
-      // Refresh orders
-      await fetchInitialOrders();
+      // Use the same API-first, cache-fallback logic
+      await _loadOrdersWithFallback();
 
-      // Update loading state
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      // Handle any errors during refresh
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -754,6 +799,8 @@ class _DriverPageState extends State<DriverPage> {
   Widget _buildDrawer() {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
+    final vehcileId = Globals.vehicleID;
+
     return Drawer(
       child: Column(
         children: [
@@ -805,7 +852,7 @@ class _DriverPageState extends State<DriverPage> {
               );
             },
           ),
-          if (_vehicleLoggedIn) ...[
+          if (vehcileId != null) ...[
             ListTile(
               leading: const Icon(Icons.directions_car,
                   color: Color.fromARGB(255, 1, 160, 226)),
@@ -873,8 +920,8 @@ class _DriverPageState extends State<DriverPage> {
               );
             },
           ),
-          
-          if (!_vehicleLoggedIn) ...[
+
+          if (vehcileId == null) ...[
             FutureBuilder<SharedPreferences>(
               future: SharedPreferences.getInstance(),
               builder: (context, snapshot) {

@@ -565,8 +565,11 @@ class _LogoutPageState extends State<LogoutPage> {
 
         // Clear vehicle ID
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.remove('vehicleId');
+        await prefs.remove('selected_vehicle_id');
+        await prefs.remove('selected_vehicle_name');
+
         Globals.vehicleID = null;
+        Globals.vehicleName = null;
 
         // Navigate to driver page
         if (!mounted) return;

@@ -26,8 +26,19 @@ class DeliveryService {
         data['contact_people'] = json.decode(data['contact_people'] ?? '[]');
       }
 
+      if (data['contact_people'] is List) {
+        data['contact_people'] = (data['contact_people'] as List).map((person) {
+          if (person is Map) {
+            return {
+              'name': person['name'] ?? 'Unknown',
+              'telephone': person['telephone'] ?? 'N/A',
+            };
+          }
+          return person;
+        }).toList();
+      }
+
       if (data['photos'] is String && data['photos'] != null) {
-        
         final photosString = data['photos'] as String;
         if (photosString.isNotEmpty) {
           data['photos'] = photosString
@@ -47,7 +58,7 @@ class DeliveryService {
     throw Exception(
         decodedResponse['message'] ?? 'Failed to load partner details');
   }
-  
+
   Future<Map<String, dynamic>> getWarehouseDetails(int warehouseId) async {
     final response = await http.post(
       Uri.parse(baseUrl),
@@ -67,6 +78,18 @@ class DeliveryService {
 
       if (data['contact_people'] is String) {
         data['contact_people'] = json.decode(data['contact_people'] ?? '[]');
+      }
+
+      if (data['contact_people'] is List) {
+        data['contact_people'] = (data['contact_people'] as List).map((person) {
+          if (person is Map) {
+            return {
+              'name': person['name'] ?? 'Unknown',
+              'telephone': person['telephone'] ?? 'N/A',
+            };
+          }
+          return person;
+        }).toList();
       }
 
       if (data['photos'] is String && data['photos'] != null) {

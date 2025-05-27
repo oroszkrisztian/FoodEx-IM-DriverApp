@@ -154,6 +154,32 @@ class Order {
     );
   }
 
+  // Convert Order object to JSON for caching
+  Map<String, dynamic> toJson() {
+    return {
+      'order_id': orderId,
+      'driver': driver,
+      'vehicle': vehicle,
+      'pickup_time': pickupTime,
+      'delivery_time': deliveryTime,
+      'picked_up': pickedUp,
+      'delivered': delivered,
+      'up_notes': upNotes,
+      'down_notes': downNotes,
+      'uit': uit,
+      'ekr': ekr,
+      'invoice': invoice,
+      'cmr': cmr,
+      'existsPhoto': existsPhotos,
+      'user_notes': orderNote,
+      'companies': companies.map((company) => company.toJson()).toList(),
+      'warehouses': warehouses.map((warehouse) => warehouse.toJson()).toList(),
+      'products': products.map((product) => product.toJson()).toList(),
+      'contact_people': contactPeople.map((contact) => contact.toJson()).toList(),
+      'collection_units': collectionUnits.map((unit) => unit.toJson()).toList(),
+    };
+  }
+
   // Method to calculate the total quantity of products
   double getTotalOrderedQuantity() {
     return products.fold<double>(0.0,

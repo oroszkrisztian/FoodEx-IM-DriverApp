@@ -17,20 +17,58 @@ class Warehouse {
     this.coordinates,
     List<String>? photos,
     List<Map<String, String>>? contactPeople,
-  })  : photos = photos ?? [],
-        contactPeople = contactPeople ?? [];
+  }) : photos = photos ?? [],
+       contactPeople = contactPeople ?? [];
 
   factory Warehouse.fromJson(Map<String, dynamic> json) {
+    // Handle photos - convert from various types to List<String>
+    List<String> photosList = [];
+    if (json['photos'] is List) {
+      photosList = (json['photos'] as List)
+          .map((photo) => photo.toString())
+          .toList();
+    }
+
+    // Handle contact_people - convert from various types to List<Map<String, String>>
+    List<Map<String, String>> contactPeopleList = [];
+    if (json['contact_people'] is List) {
+      contactPeopleList = (json['contact_people'] as List)
+          .map((contact) {
+            if (contact is Map) {
+              return {
+                'name': contact['name']?.toString() ?? '',
+                'telephone': contact['telephone']?.toString() ?? '',
+              };
+            }
+            return <String, String>{};
+          })
+          .where((contact) => contact.isNotEmpty)
+          .toList();
+    }
+
     return Warehouse(
-      id: json['warehouse_id'],
-      warehouseName: json['warehouse_name'],
-      warehouseAddress: json['warehouse_address'],
-      type: json['type'],
-      telephone: json['telephone'] ?? '',
-      coordinates: json['coordinates'],
-      photos: List<String>.from(json['photos'] ?? []),
-      contactPeople:
-          List<Map<String, String>>.from(json['contact_people'] ?? []),
+      id: json['warehouse_id'] ?? json['id'] ?? 0,
+      warehouseName: json['warehouse_name']?.toString() ?? '',
+      warehouseAddress: json['warehouse_address']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      telephone: json['telephone']?.toString() ?? '',
+      coordinates: json['coordinates']?.toString(),
+      photos: photosList,
+      contactPeople: contactPeopleList,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'warehouse_id': id,
+      'id': id, // For compatibility
+      'warehouse_name': warehouseName,
+      'warehouse_address': warehouseAddress,
+      'type': type,
+      'telephone': telephone,
+      'coordinates': coordinates,
+      'photos': photos,
+      'contact_people': contactPeople,
+    };
   }
 }

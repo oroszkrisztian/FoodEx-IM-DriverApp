@@ -107,7 +107,8 @@ class _LoginPageState extends State<LoginPage> {
               if (_cars.isNotEmpty && _selectedCarId == null) {
                 _selectedCarId = _cars[0].id;
                 Globals.vehicleID = _selectedCarId;
-                Globals.vehicleName = '${_cars[0].make} ${_cars[0].model} - ${_cars[0].licencePlate}';
+                Globals.vehicleName =
+                    '${_cars[0].make} ${_cars[0].model} - ${_cars[0].licencePlate}';
 
                 // Get last KM for selected vehicle
                 if (Globals.userId != null && _selectedCarId != null) {
@@ -234,7 +235,6 @@ class _LoginPageState extends State<LoginPage> {
           int lastKm = int.parse(data.toString());
           setState(() {
             _lastKm = lastKm;
-            
           });
           return true;
         } else {
@@ -597,6 +597,7 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      Globals.vehicleID = _selectedCarId;
       Globals.image1 = _image1;
       Globals.image2 = _imageFront;
       Globals.image3 = _imageBack;
@@ -729,7 +730,6 @@ class _LoginPageState extends State<LoginPage> {
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
-          Globals.vehicleID = null;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -744,7 +744,6 @@ class _LoginPageState extends State<LoginPage> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
-                Globals.vehicleID = null;
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -950,7 +949,25 @@ class _LoginPageState extends State<LoginPage> {
               onChanged: (newValue) async {
                 setState(() {
                   _selectedCarId = newValue;
+                  Globals.vehicleID = newValue;
                 });
+
+                // Save to SharedPreferences
+                if (newValue != null) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setInt('selected_vehicle_id', newValue);
+
+                  // Also save vehicle name if needed
+                  Car? selectedCar =
+                      _cars.firstWhere((car) => car.id == newValue);
+                  if (selectedCar != null) {
+                    Globals.vehicleName =
+                        '${selectedCar.make} ${selectedCar.model} - ${selectedCar.licencePlate}';
+                    await prefs.setString(
+                        'selected_vehicle_name', Globals.vehicleName!);
+                  }
+                }
+
                 int? driverId = Globals.userId;
                 if (_selectedCarId != null && driverId != null) {
                   await getLastKm(driverId, _selectedCarId);

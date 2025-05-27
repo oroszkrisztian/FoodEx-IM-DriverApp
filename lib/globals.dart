@@ -1,5 +1,4 @@
-// This is the fix for the Globals.dart file
-// The issue is that you have global flags for update dialog in both main.dart and Globals class
+
 
 import 'dart:io';
 import 'package:foodex/translations.dart';

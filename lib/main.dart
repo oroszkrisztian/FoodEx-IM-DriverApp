@@ -186,7 +186,8 @@ void main() async {
 
   if (isLoggedIn) {
     Globals.userId = int.tryParse(prefs.getString('userId') ?? '');
-    Globals.vehicleID = prefs.getInt('vehicleId');
+    Globals.vehicleID = prefs.getInt('selected_vehicle_id');
+    Globals.vehicleName = prefs.getString('selected_vehicle_name');
   }
 
   // Load the update postpone time
@@ -613,7 +614,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   ),
                                   child: Text(
-                                    Globals.getText('checkForUpdates') ??
+                                    Globals.getText('checkServerUpdate') ??
                                         'Check For Updates',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
