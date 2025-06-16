@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="/home/kriszti/.pub-cache/hosted/pub.dev/flutter_pdfview-1.4.0/android"
+    name=":flutter_pdfview"
+    type="LIBRARY"
+    maven="io.endigo.plugins.pdfview:flutter_pdfview:"
+    agpVersion="8.2.1"
+    buildFolder="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview"
+    bootClassPath="/home/kriszti/Android/Sdk/platforms/android-34/android.jar:/home/kriszti/Android/Sdk/build-tools/34.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      disable="InvalidPackage"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>

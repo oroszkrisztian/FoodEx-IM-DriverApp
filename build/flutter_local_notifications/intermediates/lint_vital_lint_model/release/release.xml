@@ -1,0 +1,32 @@
+<variant
+    name="release"
+    package="com.dexterous.flutterlocalnotifications"
+    minSdkVersion="16"
+    targetSdkVersion="16"
+    mergedManifest="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml"
+    manifestMergeReport="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/outputs/logs/manifest-merger-release-report.txt"
+    proguardFiles="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/default_proguard_files/global/proguard-android.txt-8.2.1"
+    partialResultsDir="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/lint_vital_partial_results/release/out">
+  <buildFeatures
+      coreLibraryDesugaring="true"
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="src/main/AndroidManifest.xml"
+        javaDirectories="src/main/java:src/release/java:src/main/kotlin:src/release/kotlin"
+        resDirectories="src/main/res:src/release/res"
+        assetsDirectories="src/main/assets:src/release/assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      classOutputs="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/javac/release/classes:/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/compile_r_class_jar/release/R.jar"
+      type="MAIN"
+      applicationId="com.dexterous.flutterlocalnotifications"
+      generatedSourceFolders="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/generated/ap_generated_sources/release/out"
+      generatedResourceFolders="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/generated/res/resValues/release"
+      desugaredMethodsFiles="/home/kriszti/.gradle/caches/transforms-3/20e8d4de66ff5f62711077476128bc1c/transformed/desugar_jdk_libs_configuration-1.2.2-desugar-lint.txt:/home/kriszti/.gradle/caches/transforms-3/5f8ee50e3dff89a660ae0dd7d1f6f9c5/transformed/D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

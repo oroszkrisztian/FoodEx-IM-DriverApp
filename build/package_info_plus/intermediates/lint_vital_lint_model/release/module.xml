@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="/home/kriszti/.pub-cache/hosted/pub.dev/package_info_plus-4.2.0/android"
+    name=":package_info_plus"
+    type="LIBRARY"
+    maven="dev.fluttercommunity.plus.packageinfo:package_info_plus:"
+    agpVersion="8.2.1"
+    buildFolder="/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/package_info_plus"
+    bootClassPath="/home/kriszti/Android/Sdk/platforms/android-33/android.jar:/home/kriszti/Android/Sdk/build-tools/34.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-33"
+    neverShrinking="true">
+  <lintOptions
+      disable="InvalidPackage"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>
