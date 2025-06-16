@@ -2,6 +2,7 @@ class Warehouse {
   final int id;
   final String warehouseName;
   final String warehouseAddress;
+  final String warehouseLocation;
   final String type;
   final String? coordinates;
   String telephone;
@@ -12,6 +13,7 @@ class Warehouse {
     required this.id,
     required this.warehouseName,
     required this.warehouseAddress,
+    required this.warehouseLocation,
     required this.type,
     this.telephone = '',
     this.coordinates,
@@ -21,7 +23,6 @@ class Warehouse {
        contactPeople = contactPeople ?? [];
 
   factory Warehouse.fromJson(Map<String, dynamic> json) {
-    // Handle photos - convert from various types to List<String>
     List<String> photosList = [];
     if (json['photos'] is List) {
       photosList = (json['photos'] as List)
@@ -29,7 +30,6 @@ class Warehouse {
           .toList();
     }
 
-    // Handle contact_people - convert from various types to List<Map<String, String>>
     List<Map<String, String>> contactPeopleList = [];
     if (json['contact_people'] is List) {
       contactPeopleList = (json['contact_people'] as List)
@@ -50,6 +50,7 @@ class Warehouse {
       id: json['warehouse_id'] ?? json['id'] ?? 0,
       warehouseName: json['warehouse_name']?.toString() ?? '',
       warehouseAddress: json['warehouse_address']?.toString() ?? '',
+      warehouseLocation: json['warehouse_location']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
       telephone: json['telephone']?.toString() ?? '',
       coordinates: json['coordinates']?.toString(),
@@ -61,9 +62,10 @@ class Warehouse {
   Map<String, dynamic> toJson() {
     return {
       'warehouse_id': id,
-      'id': id, // For compatibility
+      'id': id, 
       'warehouse_name': warehouseName,
       'warehouse_address': warehouseAddress,
+      'warehouse_location' : warehouseLocation,
       'type': type,
       'telephone': telephone,
       'coordinates': coordinates,

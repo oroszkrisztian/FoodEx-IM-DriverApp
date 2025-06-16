@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
 import 'package:foodex/models/summary.dart';
+import 'package:foodex/services/carService.dart';
 import 'package:foodex/widgets/logs_summary_card.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'globals.dart'; // Assuming you have a globals.dart file for global variables
+import 'globals.dart';
+import 'models/cars.dart';
 
 class LogEntry {
   final String inShiftDate;
@@ -60,30 +62,6 @@ class LogEntry {
   }
 }
 
-class Car {
-  final int id;
-  final String make;
-  final String model;
-  final String licencePlate;
-
-  Car({
-    required this.id,
-    required this.make,
-    required this.model,
-    required this.licencePlate,
-  });
-
-  factory Car.fromJson(Map<String, dynamic> json) {
-    return Car(
-      id: json['id'] as int,
-      make: json['make'] as String,
-      model: json['model'] as String,
-      licencePlate:
-          json['license_plate'] as String, // Adjusted to match backend
-    );
-  }
-}
-
 class MyLogPage extends StatefulWidget {
   const MyLogPage({super.key});
 
@@ -102,78 +80,66 @@ class _MyLogPageState extends State<MyLogPage> {
   bool _isLoading = false;
   LogSummary _summary = LogSummary.empty();
 
-  final String baseUrl = 'https://vinczefi.com/'; // Define your base URL here
+  // Create instance of CarInformation service
+  final CarInformation _carService = CarInformation();
+
+  final String baseUrl = 'https://vinczefi.com/';
 
   @override
   void initState() {
     super.initState();
     _selectedCarId = -1; // Default to "All Vehicles"
-    getCars();
+    _initializePage();
   }
 
-  Future<void> getCars() async {
+  // Initialize page with pre-filtering
+  Future<void> _initializePage() async {
+    // Set default date range: 1st of current month to today
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+
     setState(() {
+      _startDate = firstDayOfMonth;
+      _endDate = now;
       _isLoading = true;
     });
 
+    // Load cars first, then fetch log data
+    await _loadCars();
+    await _fetchLogData();
+  }
+
+  // Load cars using the CarInformation service
+  Future<void> _loadCars() async {
     try {
-      final response = await http.post(
-        Uri.parse('${baseUrl}foodexim/functions.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'action': 'get-cars',
-        },
-      );
+      final cars = await _carService.getCars();
 
-      if (response.statusCode == 200) {
-        if (response.body.isNotEmpty) {
-          var jsonResponse = jsonDecode(response.body);
+      // Add "All Vehicles" option at the beginning
+      List<Car> allCars = [
+        Car(
+          id: -1,
+          make: '${Globals.getText('logsVehiclesSelect')}',
+          model: '',
+          licencePlate: '',
+        ),
+        ...cars,
+      ];
 
-          // Check if jsonResponse is a list
-          if (jsonResponse is List) {
-            List<Car> cars = jsonResponse
-                .map((json) => Car.fromJson(json as Map<String, dynamic>))
-                .toList();
-
-            // Add "All Vehicles" option
-            cars.insert(
-                0,
-                Car(
-                  id: -1,
-                  make: 'All Vehicles',
-                  model: '',
-                  licencePlate: '',
-                ));
-
-            setState(() {
-              _cars = cars;
-              _isLoading = false;
-            });
-          } else if (jsonResponse is Map) {
-            // Handle the case where the response is a map
-            setState(() {
-              _errorMessage = 'Unexpected data format';
-              _isLoading = false;
-            });
-          }
-        } else {
-          setState(() {
-            _errorMessage = 'No cars data received.';
-            _isLoading = false;
-          });
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to load cars: ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _cars = allCars;
+      });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error fetching cars: $e';
-        _isLoading = false;
+        _errorMessage = 'Failed to load cars: $e';
+        // Ensure we still have the "All Vehicles" option even if loading fails
+        _cars = [
+          Car(
+            id: -1,
+            make: '${Globals.getText('logsVehiclesSelect')}',
+            model: '',
+            licencePlate: '',
+          ),
+        ];
       });
     }
   }
@@ -263,7 +229,6 @@ class _MyLogPageState extends State<MyLogPage> {
 
   @override
   void dispose() {
-    // Clean up resources here
     super.dispose();
   }
 
@@ -321,7 +286,7 @@ class _MyLogPageState extends State<MyLogPage> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color.fromARGB(255, 1, 160, 226), // Blue theme color
+              primary: Color.fromARGB(255, 1, 160, 226),
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -348,7 +313,7 @@ class _MyLogPageState extends State<MyLogPage> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color.fromARGB(255, 1, 160, 226), // Blue theme color
+              primary: Color.fromARGB(255, 1, 160, 226),
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -393,10 +358,8 @@ class _MyLogPageState extends State<MyLogPage> {
                     itemCount: photoUrls.length,
                     itemBuilder: (context, index) {
                       String photo = photoUrls[index].trim();
-                      String imageUrl =
-                          baseUrl + 'foodexim/' + photo; // Ensure full URL
+                      String imageUrl = baseUrl + 'foodexim/' + photo;
 
-                      // Print the full image URL to the console
                       print('Image URL: $imageUrl');
 
                       return InteractiveViewer(
@@ -419,8 +382,7 @@ class _MyLogPageState extends State<MyLogPage> {
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(
-                        255, 1, 160, 226), // Blue theme color
+                    backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Close'),
@@ -514,12 +476,13 @@ class _MyLogPageState extends State<MyLogPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16.0),
-                      // Add the summary widget here
                       LogSummaryCard(
                         summary: _summary,
                         hasData: _startDate != null &&
                             _endDate != null &&
                             _filteredLogData.isNotEmpty,
+                        startDate: _startDate,
+                        endDate: _endDate,
                       ),
                       const SizedBox(height: 16.0),
                       DateSelectionContainer(
@@ -540,6 +503,8 @@ class _MyLogPageState extends State<MyLogPage> {
                       LogDataTable(
                         logData: _filteredLogData,
                         onImageTap: _showImageDialog,
+                        startDate: _startDate,
+                        endDate: _endDate,
                       ),
                     ],
                   ),
@@ -638,7 +603,7 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         setState(() {
           isExpanded = !isExpanded;
@@ -664,8 +629,8 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
         ),
         child: Column(
           children: [
-            // Header
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 children: [
@@ -673,35 +638,26 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
                     child: Text(
                       '${Globals.getText('logsApply')}',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 1, 160, 226),
                       ),
                     ),
                   ),
                   Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
                     color: const Color.fromARGB(255, 1, 160, 226),
                   ),
                 ],
               ),
             ),
-
-            // Expandable Content
             if (isExpanded) ...[
-              Container(
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[300]!),
-                  ),
-                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date Selection Row
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         Expanded(
@@ -754,8 +710,6 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // Vehicle Selection
                     Text(
                       '${Globals.getText('logsVehicles')}',
                       style: const TextStyle(
@@ -786,16 +740,21 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
                             value: car.id,
                             child: Text(
                               car.id == -1
-                                  ? '${Globals.getText('logsVehiclesSelect')}'
-                                  : '${car.make} ${car.model} - ${car.licencePlate}',
+                                  ? car
+                                      .make // This will be the localized "All Vehicles" text
+                                  : car.licencePlate.isEmpty
+                                      ? '${car.make} ${car.model}'
+                                      : '${car.make} ${car.model} - ${car.licencePlate}',
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                              ),
                             ),
                           );
                         }).toList(),
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // Apply Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -830,78 +789,40 @@ class _DateSelectionContainerState extends State<DateSelectionContainer> {
   }
 }
 
-class LogDataTable extends StatelessWidget {
+class LogDataTable extends StatefulWidget {
   final List<LogEntry> logData;
   final ValueChanged<List<String>> onImageTap;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   const LogDataTable({
     super.key,
     required this.logData,
     required this.onImageTap,
+    this.startDate,
+    this.endDate,
   });
+
+  @override
+  State<LogDataTable> createState() => _LogDataTableState();
+}
+
+class _LogDataTableState extends State<LogDataTable> {
+  bool isExpanded = true;
 
   String formatDateTime(String date, String time) {
     try {
-      // Combine date and time
       DateTime dateTime = DateFormat('yyyy-MM-dd HH:mm').parse('$date $time');
-      // Format to show both date and time
       return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
     } catch (e) {
-      return '$date $time'; // Fallback if parsing fails
+      return '$date $time';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (logData.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            width: 1,
-            color: Colors.grey[300]!,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.search_off_rounded,
-                  size: 48,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '${Globals.getText('noDataForDateAndType')}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
@@ -918,59 +839,173 @@ class LogDataTable extends StatelessWidget {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingTextStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 1, 160, 226),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isExpanded = !isExpanded;
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${Globals.getText('logs')}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 1, 160, 226),
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: const Color.fromARGB(255, 1, 160, 226),
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
           ),
-          dataTextStyle: const TextStyle(
-            color: Colors.black87,
-            fontSize: 14,
-          ),
-          columnSpacing: 24,
-          horizontalMargin: 12,
-          columns: [
-            DataColumn(label: Text('${Globals.getText('logsTableDate')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableVehicle')}')),
-            //DataColumn(label: Text('${Globals.getText('logsTableDriver')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableFrom')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableTo')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableTime')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableStartKm')}')),
-            DataColumn(label: Text('${Globals.getText('logsTableEndKm')}')),
-            DataColumn(
-                label: Text('${Globals.getText('logsTableDifference')}')),
-            DataColumn(label: Text('${Globals.getText('logsTablePhotos')}')),
-          ],
-          rows: logData.map((log) {
-            return DataRow(
-              cells: [
-                DataCell(Text(log.inShiftDate)),
-                DataCell(Text(log.vehicle)),
-                //DataCell(Text(log.driver)),
-                DataCell(Text(formatDateTime(log.inShiftDate, log.from))),
-                DataCell(Text(formatDateTime(log.outShiftDate, log.to))),
-                DataCell(Text(log.totalTime)),
-                DataCell(Text(log.startKm.toString())),
-                DataCell(Text(log.endKm.toString())),
-                DataCell(Text(log.kmDifference)),
-                DataCell(
-                  log.photos.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () => onImageTap(log.photos),
-                          child: const Icon(
-                            Icons.image,
-                            color: Color.fromARGB(255, 1, 160, 226),
+          if (isExpanded) ...[
+            if (widget.logData.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '${Globals.getText('noDataForDateAndType')}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
                           ),
-                        )
-                      : const Icon(Icons.no_photography, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
-            );
-          }).toList(),
-        ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingTextStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 1, 160, 226),
+                    ),
+                    dataTextStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 14,
+                    ),
+                    columnSpacing: 24,
+                    horizontalMargin: 12,
+                    columns: [
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableDate')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableVehicle')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableFrom')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableTo')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableTime')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableStartKm')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableEndKm')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTableDifference')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '${Globals.getText('logsTablePhotos')}',
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ],
+                    rows: widget.logData.map((log) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(log.inShiftDate)),
+                          DataCell(Text(log.vehicle)),
+                          DataCell(
+                              Text(formatDateTime(log.inShiftDate, log.from))),
+                          DataCell(
+                              Text(formatDateTime(log.outShiftDate, log.to))),
+                          DataCell(Text(log.totalTime)),
+                          DataCell(Text(log.startKm.toString())),
+                          DataCell(Text(log.endKm.toString())),
+                          DataCell(Text(log.kmDifference)),
+                          DataCell(
+                            log.photos.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () => widget.onImageTap(log.photos),
+                                    child: const Icon(
+                                      Icons.image,
+                                      color: Color.fromARGB(255, 1, 160, 226),
+                                    ),
+                                  )
+                                : const Icon(Icons.no_photography,
+                                    color: Colors.grey),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+          ],
+        ],
       ),
     );
   }

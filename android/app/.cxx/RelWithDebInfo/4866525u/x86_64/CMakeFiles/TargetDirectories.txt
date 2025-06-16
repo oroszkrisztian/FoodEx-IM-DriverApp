@@ -1,0 +1,2 @@
+/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/.cxx/RelWithDebInfo/4866525u/x86_64/CMakeFiles/edit_cache.dir
+/home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/.cxx/RelWithDebInfo/4866525u/x86_64/CMakeFiles/rebuild_cache.dir

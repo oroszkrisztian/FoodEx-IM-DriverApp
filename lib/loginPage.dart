@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foodex/models/cars.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -9,29 +10,6 @@ import 'dart:convert';
 import 'globals.dart';
 
 import 'main.dart';
-
-class Car {
-  final int id;
-  final String make;
-  final String model;
-  final String licencePlate;
-
-  Car(
-      {required this.id,
-      required this.make,
-      required this.model,
-      required this.licencePlate});
-
-  factory Car.fromJson(Map<String, dynamic> json) {
-    return Car(
-      id: json['id'] as int,
-      make: json['make'] as String,
-      model: json['model'] as String,
-      licencePlate:
-          json['license_plate'] as String, // Adjusted to match backend
-    );
-  }
-}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,10 +41,6 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     getCars();
-    if (Globals.vehicleID != null) {
-      _selectedCarId = Globals.vehicleID;
-      getLastKm(Globals.userId, Globals.vehicleID);
-    }
   }
 
   Future<void> getCars() async {
@@ -106,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
               // Select the first car as default if available
               if (_cars.isNotEmpty && _selectedCarId == null) {
                 _selectedCarId = _cars[0].id;
-                Globals.vehicleID = _selectedCarId;
+
                 Globals.vehicleName =
                     '${_cars[0].make} ${_cars[0].model} - ${_cars[0].licencePlate}';
 
@@ -162,9 +136,6 @@ class _LoginPageState extends State<LoginPage> {
           'vehicle_id': vehicleId.toString(),
         },
       );
-
-      Globals.vehicleID = vehicleId;
-      print('Setting Vehicle ID: ${Globals.vehicleID}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -587,7 +558,7 @@ class _LoginPageState extends State<LoginPage> {
 
       // Validate user ID and vehicle ID
       int? userID = Globals.userId;
-      int? carId = Globals.vehicleID;
+      int? carId = _selectedCarId;
 
       print('Setting User ID: ${Globals.userId}');
       print('Setting Vehicle ID: ${Globals.vehicleID}');
@@ -744,6 +715,7 @@ class _LoginPageState extends State<LoginPage> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
+                Globals.vehicleID == null;
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -938,7 +910,9 @@ class _LoginPageState extends State<LoginPage> {
                 return DropdownMenuItem<int>(
                   value: car.id,
                   child: Text(
-                    '${car.make} ${car.model} - ${car.licencePlate}',
+                    car.licencePlate.isEmpty
+                        ? '${car.make} ${car.model}'
+                        : '${car.make} ${car.model} - ${car.licencePlate}',
                     style: TextStyle(
                       fontSize: isSmallScreen ? 13 : 15,
                       fontWeight: FontWeight.w500,
@@ -949,7 +923,7 @@ class _LoginPageState extends State<LoginPage> {
               onChanged: (newValue) async {
                 setState(() {
                   _selectedCarId = newValue;
-                  Globals.vehicleID = newValue;
+                  //Globals.vehicleID = newValue;
                 });
 
                 // Save to SharedPreferences

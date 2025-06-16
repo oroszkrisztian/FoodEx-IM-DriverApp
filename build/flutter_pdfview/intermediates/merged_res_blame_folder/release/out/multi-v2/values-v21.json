@@ -4,7 +4,7 @@
             "outputFile": "io.endigo.plugins.pdfviewflutter.flutter_pdfview-merged_res-26:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "/home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/res/values-v21/values-v21.xml",
+                    "source": "/home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/res/values-v21/values-v21.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",
@@ -20,7 +20,7 @@
             "outputFile": "io.endigo.plugins.pdfviewflutter.flutter_pdfview-mergeReleaseResources-24:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "/home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/res/values-v21/values-v21.xml",
+                    "source": "/home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/res/values-v21/values-v21.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",

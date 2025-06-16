@@ -1,0 +1,1 @@
+/home/kriszti/Desktop/FoodEx-IM-DriverApp/build/app/intermediates/cxx/RelWithDebInfo/4866525u/obj/x86_64

@@ -1,28 +1,22 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:foodex/deliveryInfo.dart';
-import 'package:foodex/driverPage.dart';
 import 'package:foodex/globals.dart';
 import 'package:foodex/models/company.dart';
 import 'package:foodex/models/contact_person.dart';
 import 'package:foodex/models/order.dart';
-import 'package:foodex/models/product.dart';
 import 'package:foodex/models/warehouse.dart';
 import 'package:foodex/services/order_services.dart';
 import 'package:foodex/shiftsPage.dart';
 import 'package:foodex/widgets/shared_indicators.dart';
-import 'package:intl/intl.dart'; // To format dates
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart'; 
 
 enum OrderFilter { all, active, inactive }
 
 final defaultPickupWarehouse = Warehouse(
   warehouseName: 'Unknown Pickup Warehouse',
   warehouseAddress: 'N/A',
+  warehouseLocation: 'N/A',
   type: 'pickup',
   coordinates: 'N/A', id: 0,
 );
@@ -43,10 +37,10 @@ class MyRoutesPage extends StatefulWidget {
   final DateTime endDate;
 
   const MyRoutesPage({
-    Key? key,
+    super.key,
     required this.startDate,
     required this.endDate,
-  }) : super(key: key);
+  });
 
   @override
   _MyRoutesPageState createState() => _MyRoutesPageState();
@@ -87,7 +81,6 @@ class _MyRoutesPageState extends State<MyRoutesPage>
     DateTime fromDate = widget.startDate;
     DateTime toDate = widget.endDate;
 
-    // Format dates exactly as expected by the backend
     String formattedFromDate = DateFormat('yyyy-MM-dd').format(fromDate);
     String formattedToDate = DateFormat('yyyy-MM-dd').format(toDate);
 
@@ -137,15 +130,12 @@ class _MyRoutesPageState extends State<MyRoutesPage>
     );
   }
 
-  //listfunctions
 
   @override
   void dispose() {
-    // Dispose all animation controllers
     super.dispose();
   }
 
-// Keep the original buildProductsTable for compatibility with existing checks
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +150,6 @@ class _MyRoutesPageState extends State<MyRoutesPage>
           MaterialPageRoute(builder: (context) => const ShiftsPage()),
         );
 
-        // Prevent default back behavior since we're handling navigation
       },
       child: Scaffold(
           appBar: AppBar(
@@ -265,6 +254,8 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                   builder: (context) => DeliveryInfo(
                                         orderId: order.orderId,
                                         myRoutesPage: true,
+                                        startDateRoutes: widget.startDate,
+                                        endDateRoutes: widget.endDate
                                       )),
                             ),
                             child: Stack(
@@ -272,7 +263,7 @@ class _MyRoutesPageState extends State<MyRoutesPage>
                                 Card(
                                   color: order.pickedUp == '0000-00-00 00:00:00'
                                       ? const Color.fromARGB(255, 255, 189,
-                                          189) // Changed to red tint for pickup
+                                          189) 
                                       : Color.fromARGB(255, 166, 250, 118),
                                   elevation: 2.0,
                                   margin: EdgeInsets.symmetric(

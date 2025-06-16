@@ -189,7 +189,7 @@ class Order {
   //get order by id
   int getTotalCollection() {
     return products.fold<int>(
-        0, (total, product) => total + product.collection);
+        0, (total, product) => total + product.collectionQuantity);
   }
 
   // Calculate total weight

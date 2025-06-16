@@ -6,22 +6,22 @@ MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/bu
 MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:8:5-32:19
 MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:7:5-12:19
 MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:7:5-12:19
-MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:22:5-29:19
-MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:22:5-29:19
-MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
-MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
-MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
-MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/ee01e2b20f52029a052c42ac95f9e8b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/ee01e2b20f52029a052c42ac95f9e8b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:22:5-29:19
+MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:22:5-29:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/b7b3a1bbbb30b5d54cf6f5d6d81db306/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/b7b3a1bbbb30b5d54cf6f5d6d81db306/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml
 	android:appComponentFactory
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 	android:label
 		ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:10:9-37
 	android:icon
@@ -34,52 +34,78 @@ ADDED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/Androi
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-54:12
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-54:12
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml:1:1-54:12
-MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
 MERGED from [:flutter_image_compress_common] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_image_compress_common/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-10:12
-MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-10:12
-MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
-MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-34:12
-MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
-MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
 MERGED from [:package_info_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/package_info_plus/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-10:12
+MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-34:12
+MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-14:12
+MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:connectivity_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/connectivity_plus/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-9:12
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
+MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
 MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
-MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
-MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-7:12
-MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:2:1-14:12
-MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:17:1-24:12
-MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:2:1-9:12
-MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.activity:activity:1.9.2] /home/kriszti/.gradle/caches/transforms-3/2d91bc83866874eb6317ae5ae27d2dc9/transformed/jetified-activity-1.9.2/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/9a7a783aa8682aaa028c57031d48c15e/transformed/browser-1.8.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:17:1-31:12
-MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/bf78d940cc78ca45c77421e3af64376e/transformed/jetified-window-java-1.2.0/AndroidManifest.xml:17:1-21:12
-MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/2b9c9404689a5c622c078d5da9ff626f/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/878dadbdc8c0f130b446b0870752f824/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/4befdc7f9fed1e5c6647eae72672d219/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9c28b5c7a2d23237247570dbf8382af1/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9ec76326f098fb11057ae8a1fda52a48/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/52dfd6d7c21c1e36dbdf0d304093d642/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/ca2eed4266fd24517e583e6618aa3924/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/58accd456bc756075136cc5a7dae18d3/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.customview:customview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86808e134507e15e9d79206184913f8b/transformed/customview-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
-MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/c8996eb6ce8efabee1883fe1486006c9/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:17:1-35:12
-MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/010887bb3359843376c02ecf4bf2ef43/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.datastore:datastore-preferences:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7374f32381d954e34124ee720ff47df8/transformed/jetified-datastore-preferences-1.0.0/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.datastore:datastore:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1471cc351ba4f9046368b464c95dce27/transformed/jetified-datastore-1.0.0/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/384cd7978ad534f5c6bb4ec44f96c537/transformed/heifwriter-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/a2372249e209203821b1165d3e2f3c5b/transformed/exifinterface-1.3.7/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
-MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/fee79d0d8ef3af5dbc14ef6d22d028cf/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de4e1f54747892e0930cd2e3ecf5513e/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/ee01e2b20f52029a052c42ac95f9e8b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
-MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/08235bf0a8760a790ea7b8b4eab82236/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/6dde453803d512b3f23cc981e264e9e0/transformed/jetified-core-1.0.0/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
-MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/df86eb10e237fb804435a475c003d699/transformed/media-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/8e8c0e0208baab8b1d59eb13c11438db/transformed/android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.preference:preference:1.2.1] /home/kriszti/.gradle/caches/transforms-3/e6656d8dc6e34701ad92fa0c2b0916c7/transformed/preference-1.2.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat:1.1.0] /home/kriszti/.gradle/caches/transforms-3/6fe34ff8ef8a0275eae83d9f03220b2f/transformed/appcompat-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] /home/kriszti/.gradle/caches/transforms-3/395dc436c8d2266a370318d5370e97d7/transformed/fragment-ktx-1.7.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/f7f8b85db2e18e4f174a6b6ca1eb2799/transformed/fragment-1.7.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-ktx:1.9.3] /home/kriszti/.gradle/caches/transforms-3/bcef9dee79b76eb9c9aa8c87354f2ac1/transformed/activity-ktx-1.9.3/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity:1.9.3] /home/kriszti/.gradle/caches/transforms-3/a3b531a76f2996e1a9ed37f37686adc5/transformed/activity-1.9.3/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/bae7ac9831602762a9b6c80e15d840fc/transformed/browser-1.8.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/aa2e9cf52074d7835d0ab6e6c5995eed/transformed/recyclerview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/kriszti/.gradle/caches/transforms-3/9771e107ccb2dcf98b3aa210d1448262/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /home/kriszti/.gradle/caches/transforms-3/8806ecdec6df402f3f83f918eadd35d1/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:17:1-31:12
+MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/2010cbb59ad6bba012e51d41fd55f2f1/transformed/window-java-1.2.0/AndroidManifest.xml:17:1-21:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/kriszti/.gradle/caches/transforms-3/a41aa60396a87b0fb678bdf30a277e95/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/18d2e27b6b4f6cd0dbffe5aaa3d94f98/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/e24c6d7a81a44932509b6764277e9f33/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/0ecd8a17ba3ad4031fef8a0becef2f14/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5da345255dec53ee50c3122a04738c12/transformed/lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/e6d2067efa62dd206587a4ad65bcc511/transformed/lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/f0d0a3a8a7917f5f40660c6405a74856/transformed/lifecycle-runtime-ktx-2.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/61bbb804554cd4173e210d9abaa4e46a/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/adaffe3c73e36d3b027e0dd50067dca6/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/63cf0e1da2eb6794920883091b9d2e92/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/kriszti/.gradle/caches/transforms-3/739c76ee5a1c0e5b1c5ce29696cd4cc3/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/103e7a4bed59e06ec3fdbaa526c904cd/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5bcc89769570be24615080af143ae214/transformed/lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/90554aa910c0f06c40aa9a51fb85a964/transformed/core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] /home/kriszti/.gradle/caches/transforms-3/591e6f5824d56a3bad0b675271f6136d/transformed/appcompat-resources-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86d501925c4544d1ea32b35230a07768/transformed/drawerlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/796f5db84dc0ab26bbb97c3aa32c6798/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.1.0] /home/kriszti/.gradle/caches/transforms-3/ea9b171df654346231911de0faacbede/transformed/customview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.transition:transition:1.4.1] /home/kriszti/.gradle/caches/transforms-3/1e9abc008acb3c1ada49b8756a77111c/transformed/transition-1.4.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/kriszti/.gradle/caches/transforms-3/967ff89949df704db280fa51ad234bef/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/kriszti/.gradle/caches/transforms-3/da5d73f144a69931a79388645b3daa00/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/66ddd0a0db4c5c534329322264813fa0/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/kriszti/.gradle/caches/transforms-3/754567cac4d6316b65b67f9f617654eb/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/83d5d7b0a94af88b2bf512f0286d0e25/transformed/heifwriter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/49ebdfc2c97c064f4bf557c0c56ff97c/transformed/exifinterface-1.3.7/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/879c5e137d4490b01f4b643647f3d5bb/transformed/tracing-1.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de0e6b8ef1fcbc61184e3ca62daf8a2e/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/b7b3a1bbbb30b5d54cf6f5d6d81db306/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.datastore:datastore-core-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/117b0168107b13ed0b2b1d2c4a217887/transformed/datastore-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/559710c0ff2cafeaef4fb4f880c129b1/transformed/datastore-preferences-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/85ba3ebb0fcb188dd964b9fb9aea8266/transformed/datastore-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/2769bcee4df64c74fe173b68eb6a781b/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7fc071c8804ba432a26cb653582ab490/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/28afa084c34815f224b8a593c0bde071/transformed/core-1.0.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/kriszti/.gradle/caches/transforms-3/cc5ee3988ffab4c1089150f084230e48/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1a938b0d5491cb6640aee3c7c66d06a4/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /home/kriszti/.gradle/caches/transforms-3/d769f5bb15b76dd7089cfdabc4cdb467/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/e303ec60aff81ef3b23b25e724342062/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] /home/kriszti/.gradle/caches/transforms-3/fff6225f194377063851385c0d0daba0/transformed/relinker-1.4.5/AndroidManifest.xml:2:1-7:12
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/ca5439f3ec5426503b5471bd143c1ca6/transformed/pdfium-android-1.9.2/AndroidManifest.xml:2:1-9:12
 	package
 		INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml
 	android:versionName
@@ -172,98 +198,150 @@ uses-sdk
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml
 INJECTED from /home/kriszti/Desktop/FoodEx-IM-DriverApp/android/app/src/main/AndroidManifest.xml
-MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:flutter_image_compress_common] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_image_compress_common/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-8:55
 MERGED from [:flutter_image_compress_common] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_image_compress_common/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-8:55
-MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-44
-MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-44
-MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:package_info_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/package_info_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:package_info_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/package_info_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:fluttertoast] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/fluttertoast/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_local_notifications/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-44
+MERGED from [:image_picker_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/image_picker_android/intermediates/merged_manifest/release/AndroidManifest.xml:6:5-44
+MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:android_intent_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/android_intent_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:connectivity_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/connectivity_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:connectivity_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/connectivity_plus/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_pdfview] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_pdfview/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
+MERGED from [:flutter_plugin_android_lifecycle] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_plugin_android_lifecycle/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/path_provider_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
 MERGED from [:permission_handler_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/permission_handler_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:restart_app] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/restart_app/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:shared_preferences_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/shared_preferences_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/f3615c261f79a58e2f6398389ecca2f8/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
-MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
-MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/ddc4993417e6465c56c0d30ebc7ca82c/transformed/jetified-android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
-MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/a49cd171355a6a39687e69f028c8bcbc/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.activity:activity:1.9.2] /home/kriszti/.gradle/caches/transforms-3/2d91bc83866874eb6317ae5ae27d2dc9/transformed/jetified-activity-1.9.2/AndroidManifest.xml:20:5-44
-MERGED from [androidx.activity:activity:1.9.2] /home/kriszti/.gradle/caches/transforms-3/2d91bc83866874eb6317ae5ae27d2dc9/transformed/jetified-activity-1.9.2/AndroidManifest.xml:20:5-44
-MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/9a7a783aa8682aaa028c57031d48c15e/transformed/browser-1.8.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/9a7a783aa8682aaa028c57031d48c15e/transformed/browser-1.8.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/bf78d940cc78ca45c77421e3af64376e/transformed/jetified-window-java-1.2.0/AndroidManifest.xml:19:5-44
-MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/bf78d940cc78ca45c77421e3af64376e/transformed/jetified-window-java-1.2.0/AndroidManifest.xml:19:5-44
-MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/2b9c9404689a5c622c078d5da9ff626f/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/2b9c9404689a5c622c078d5da9ff626f/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/878dadbdc8c0f130b446b0870752f824/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/878dadbdc8c0f130b446b0870752f824/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/4befdc7f9fed1e5c6647eae72672d219/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/4befdc7f9fed1e5c6647eae72672d219/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9c28b5c7a2d23237247570dbf8382af1/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9c28b5c7a2d23237247570dbf8382af1/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9ec76326f098fb11057ae8a1fda52a48/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/9ec76326f098fb11057ae8a1fda52a48/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/52dfd6d7c21c1e36dbdf0d304093d642/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/52dfd6d7c21c1e36dbdf0d304093d642/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/ca2eed4266fd24517e583e6618aa3924/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/ca2eed4266fd24517e583e6618aa3924/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/58accd456bc756075136cc5a7dae18d3/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/58accd456bc756075136cc5a7dae18d3/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.customview:customview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86808e134507e15e9d79206184913f8b/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.customview:customview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86808e134507e15e9d79206184913f8b/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/c8996eb6ce8efabee1883fe1486006c9/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/c8996eb6ce8efabee1883fe1486006c9/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/010887bb3359843376c02ecf4bf2ef43/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/010887bb3359843376c02ecf4bf2ef43/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.datastore:datastore-preferences:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7374f32381d954e34124ee720ff47df8/transformed/jetified-datastore-preferences-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.datastore:datastore-preferences:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7374f32381d954e34124ee720ff47df8/transformed/jetified-datastore-preferences-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.datastore:datastore:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1471cc351ba4f9046368b464c95dce27/transformed/jetified-datastore-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.datastore:datastore:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1471cc351ba4f9046368b464c95dce27/transformed/jetified-datastore-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/384cd7978ad534f5c6bb4ec44f96c537/transformed/heifwriter-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/384cd7978ad534f5c6bb4ec44f96c537/transformed/heifwriter-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/a2372249e209203821b1165d3e2f3c5b/transformed/exifinterface-1.3.7/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/a2372249e209203821b1165d3e2f3c5b/transformed/exifinterface-1.3.7/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
-MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/fee79d0d8ef3af5dbc14ef6d22d028cf/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/fee79d0d8ef3af5dbc14ef6d22d028cf/transformed/jetified-tracing-1.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de4e1f54747892e0930cd2e3ecf5513e/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de4e1f54747892e0930cd2e3ecf5513e/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/ee01e2b20f52029a052c42ac95f9e8b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/ee01e2b20f52029a052c42ac95f9e8b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/08235bf0a8760a790ea7b8b4eab82236/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/08235bf0a8760a790ea7b8b4eab82236/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/6dde453803d512b3f23cc981e264e9e0/transformed/jetified-core-1.0.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/6dde453803d512b3f23cc981e264e9e0/transformed/jetified-core-1.0.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/6707c561045b071954f9f1d8398a2530/transformed/jetified-annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
-MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
-MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/b021facd4831692d14981ca8fd15b587/transformed/jetified-pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/df86eb10e237fb804435a475c003d699/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.media:media:1.1.0] /home/kriszti/.gradle/caches/transforms-3/df86eb10e237fb804435a475c003d699/transformed/media-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/8e8c0e0208baab8b1d59eb13c11438db/transformed/android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.mhiew:android-pdf-viewer:3.2.0-beta.3] /home/kriszti/.gradle/caches/transforms-3/8e8c0e0208baab8b1d59eb13c11438db/transformed/android-pdf-viewer-3.2.0-beta.3/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.preference:preference:1.2.1] /home/kriszti/.gradle/caches/transforms-3/e6656d8dc6e34701ad92fa0c2b0916c7/transformed/preference-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.2.1] /home/kriszti/.gradle/caches/transforms-3/e6656d8dc6e34701ad92fa0c2b0916c7/transformed/preference-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.1.0] /home/kriszti/.gradle/caches/transforms-3/6fe34ff8ef8a0275eae83d9f03220b2f/transformed/appcompat-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.1.0] /home/kriszti/.gradle/caches/transforms-3/6fe34ff8ef8a0275eae83d9f03220b2f/transformed/appcompat-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] /home/kriszti/.gradle/caches/transforms-3/395dc436c8d2266a370318d5370e97d7/transformed/fragment-ktx-1.7.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] /home/kriszti/.gradle/caches/transforms-3/395dc436c8d2266a370318d5370e97d7/transformed/fragment-ktx-1.7.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/f7f8b85db2e18e4f174a6b6ca1eb2799/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.7.1] /home/kriszti/.gradle/caches/transforms-3/f7f8b85db2e18e4f174a6b6ca1eb2799/transformed/fragment-1.7.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.3] /home/kriszti/.gradle/caches/transforms-3/bcef9dee79b76eb9c9aa8c87354f2ac1/transformed/activity-ktx-1.9.3/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.3] /home/kriszti/.gradle/caches/transforms-3/bcef9dee79b76eb9c9aa8c87354f2ac1/transformed/activity-ktx-1.9.3/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity:1.9.3] /home/kriszti/.gradle/caches/transforms-3/a3b531a76f2996e1a9ed37f37686adc5/transformed/activity-1.9.3/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.9.3] /home/kriszti/.gradle/caches/transforms-3/a3b531a76f2996e1a9ed37f37686adc5/transformed/activity-1.9.3/AndroidManifest.xml:20:5-44
+MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/bae7ac9831602762a9b6c80e15d840fc/transformed/browser-1.8.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.browser:browser:1.8.0] /home/kriszti/.gradle/caches/transforms-3/bae7ac9831602762a9b6c80e15d840fc/transformed/browser-1.8.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/aa2e9cf52074d7835d0ab6e6c5995eed/transformed/recyclerview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] /home/kriszti/.gradle/caches/transforms-3/aa2e9cf52074d7835d0ab6e6c5995eed/transformed/recyclerview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/kriszti/.gradle/caches/transforms-3/9771e107ccb2dcf98b3aa210d1448262/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/kriszti/.gradle/caches/transforms-3/9771e107ccb2dcf98b3aa210d1448262/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /home/kriszti/.gradle/caches/transforms-3/8806ecdec6df402f3f83f918eadd35d1/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /home/kriszti/.gradle/caches/transforms-3/8806ecdec6df402f3f83f918eadd35d1/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/2010cbb59ad6bba012e51d41fd55f2f1/transformed/window-java-1.2.0/AndroidManifest.xml:19:5-44
+MERGED from [androidx.window:window-java:1.2.0] /home/kriszti/.gradle/caches/transforms-3/2010cbb59ad6bba012e51d41fd55f2f1/transformed/window-java-1.2.0/AndroidManifest.xml:19:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/kriszti/.gradle/caches/transforms-3/a41aa60396a87b0fb678bdf30a277e95/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/kriszti/.gradle/caches/transforms-3/a41aa60396a87b0fb678bdf30a277e95/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/18d2e27b6b4f6cd0dbffe5aaa3d94f98/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/kriszti/.gradle/caches/transforms-3/18d2e27b6b4f6cd0dbffe5aaa3d94f98/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/e24c6d7a81a44932509b6764277e9f33/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/e24c6d7a81a44932509b6764277e9f33/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/0ecd8a17ba3ad4031fef8a0becef2f14/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] /home/kriszti/.gradle/caches/transforms-3/0ecd8a17ba3ad4031fef8a0becef2f14/transformed/lifecycle-livedata-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5da345255dec53ee50c3122a04738c12/transformed/lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5da345255dec53ee50c3122a04738c12/transformed/lifecycle-livedata-core-ktx-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/e6d2067efa62dd206587a4ad65bcc511/transformed/lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/e6d2067efa62dd206587a4ad65bcc511/transformed/lifecycle-viewmodel-ktx-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/f0d0a3a8a7917f5f40660c6405a74856/transformed/lifecycle-runtime-ktx-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] /home/kriszti/.gradle/caches/transforms-3/f0d0a3a8a7917f5f40660c6405a74856/transformed/lifecycle-runtime-ktx-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/61bbb804554cd4173e210d9abaa4e46a/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] /home/kriszti/.gradle/caches/transforms-3/61bbb804554cd4173e210d9abaa4e46a/transformed/lifecycle-livedata-core-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/adaffe3c73e36d3b027e0dd50067dca6/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] /home/kriszti/.gradle/caches/transforms-3/adaffe3c73e36d3b027e0dd50067dca6/transformed/lifecycle-viewmodel-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/63cf0e1da2eb6794920883091b9d2e92/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] /home/kriszti/.gradle/caches/transforms-3/63cf0e1da2eb6794920883091b9d2e92/transformed/lifecycle-runtime-2.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/kriszti/.gradle/caches/transforms-3/739c76ee5a1c0e5b1c5ce29696cd4cc3/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/kriszti/.gradle/caches/transforms-3/739c76ee5a1c0e5b1c5ce29696cd4cc3/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/103e7a4bed59e06ec3fdbaa526c904cd/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/kriszti/.gradle/caches/transforms-3/103e7a4bed59e06ec3fdbaa526c904cd/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5bcc89769570be24615080af143ae214/transformed/lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5bcc89769570be24615080af143ae214/transformed/lifecycle-viewmodel-savedstate-2.7.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/90554aa910c0f06c40aa9a51fb85a964/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /home/kriszti/.gradle/caches/transforms-3/90554aa910c0f06c40aa9a51fb85a964/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] /home/kriszti/.gradle/caches/transforms-3/591e6f5824d56a3bad0b675271f6136d/transformed/appcompat-resources-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] /home/kriszti/.gradle/caches/transforms-3/591e6f5824d56a3bad0b675271f6136d/transformed/appcompat-resources-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86d501925c4544d1ea32b35230a07768/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/86d501925c4544d1ea32b35230a07768/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/796f5db84dc0ab26bbb97c3aa32c6798/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/796f5db84dc0ab26bbb97c3aa32c6798/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.1.0] /home/kriszti/.gradle/caches/transforms-3/ea9b171df654346231911de0faacbede/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] /home/kriszti/.gradle/caches/transforms-3/ea9b171df654346231911de0faacbede/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.4.1] /home/kriszti/.gradle/caches/transforms-3/1e9abc008acb3c1ada49b8756a77111c/transformed/transition-1.4.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.4.1] /home/kriszti/.gradle/caches/transforms-3/1e9abc008acb3c1ada49b8756a77111c/transformed/transition-1.4.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/kriszti/.gradle/caches/transforms-3/967ff89949df704db280fa51ad234bef/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/kriszti/.gradle/caches/transforms-3/967ff89949df704db280fa51ad234bef/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/kriszti/.gradle/caches/transforms-3/da5d73f144a69931a79388645b3daa00/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/kriszti/.gradle/caches/transforms-3/da5d73f144a69931a79388645b3daa00/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/66ddd0a0db4c5c534329322264813fa0/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/kriszti/.gradle/caches/transforms-3/66ddd0a0db4c5c534329322264813fa0/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/kriszti/.gradle/caches/transforms-3/754567cac4d6316b65b67f9f617654eb/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/kriszti/.gradle/caches/transforms-3/754567cac4d6316b65b67f9f617654eb/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/83d5d7b0a94af88b2bf512f0286d0e25/transformed/heifwriter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/83d5d7b0a94af88b2bf512f0286d0e25/transformed/heifwriter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/49ebdfc2c97c064f4bf557c0c56ff97c/transformed/exifinterface-1.3.7/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] /home/kriszti/.gradle/caches/transforms-3/49ebdfc2c97c064f4bf557c0c56ff97c/transformed/exifinterface-1.3.7/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/879c5e137d4490b01f4b643647f3d5bb/transformed/tracing-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.2.0] /home/kriszti/.gradle/caches/transforms-3/879c5e137d4490b01f4b643647f3d5bb/transformed/tracing-1.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de0e6b8ef1fcbc61184e3ca62daf8a2e/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/kriszti/.gradle/caches/transforms-3/de0e6b8ef1fcbc61184e3ca62daf8a2e/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/b7b3a1bbbb30b5d54cf6f5d6d81db306/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/kriszti/.gradle/caches/transforms-3/b7b3a1bbbb30b5d54cf6f5d6d81db306/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.datastore:datastore-core-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/117b0168107b13ed0b2b1d2c4a217887/transformed/datastore-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/117b0168107b13ed0b2b1d2c4a217887/transformed/datastore-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/559710c0ff2cafeaef4fb4f880c129b1/transformed/datastore-preferences-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/559710c0ff2cafeaef4fb4f880c129b1/transformed/datastore-preferences-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/85ba3ebb0fcb188dd964b9fb9aea8266/transformed/datastore-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.3] /home/kriszti/.gradle/caches/transforms-3/85ba3ebb0fcb188dd964b9fb9aea8266/transformed/datastore-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/2769bcee4df64c74fe173b68eb6a781b/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/kriszti/.gradle/caches/transforms-3/2769bcee4df64c74fe173b68eb6a781b/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7fc071c8804ba432a26cb653582ab490/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/kriszti/.gradle/caches/transforms-3/7fc071c8804ba432a26cb653582ab490/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/28afa084c34815f224b8a593c0bde071/transformed/core-1.0.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.window.extensions.core:core:1.0.0] /home/kriszti/.gradle/caches/transforms-3/28afa084c34815f224b8a593c0bde071/transformed/core-1.0.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/kriszti/.gradle/caches/transforms-3/cc5ee3988ffab4c1089150f084230e48/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/kriszti/.gradle/caches/transforms-3/cc5ee3988ffab4c1089150f084230e48/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1a938b0d5491cb6640aee3c7c66d06a4/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/kriszti/.gradle/caches/transforms-3/1a938b0d5491cb6640aee3c7c66d06a4/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/kriszti/.gradle/caches/transforms-3/d769f5bb15b76dd7089cfdabc4cdb467/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/kriszti/.gradle/caches/transforms-3/d769f5bb15b76dd7089cfdabc4cdb467/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/e303ec60aff81ef3b23b25e724342062/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/kriszti/.gradle/caches/transforms-3/e303ec60aff81ef3b23b25e724342062/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] /home/kriszti/.gradle/caches/transforms-3/fff6225f194377063851385c0d0daba0/transformed/relinker-1.4.5/AndroidManifest.xml:5:5-43
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] /home/kriszti/.gradle/caches/transforms-3/fff6225f194377063851385c0d0daba0/transformed/relinker-1.4.5/AndroidManifest.xml:5:5-43
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/ca5439f3ec5426503b5471bd143c1ca6/transformed/pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.mhiew:pdfium-android:1.9.2] /home/kriszti/.gradle/caches/transforms-3/ca5439f3ec5426503b5471bd143c1ca6/transformed/pdfium-android-1.9.2/AndroidManifest.xml:5:5-7:41
 	tools:overrideLibrary
 		ADDED from [:flutter_image_compress_common] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/flutter_image_compress_common/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-52
 	android:targetSdkVersion
@@ -316,97 +394,101 @@ ADDED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/bui
 		ADDED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-71
 	android:name
 		ADDED from [:url_launcher_android] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/url_launcher_android/intermediates/merged_manifest/release/AndroidManifest.xml:9:13-74
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from [:connectivity_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/connectivity_plus/intermediates/merged_manifest/release/AndroidManifest.xml:7:5-79
+	android:name
+		ADDED from [:connectivity_plus] /home/kriszti/Desktop/FoodEx-IM-DriverApp/build/connectivity_plus/intermediates/merged_manifest/release/AndroidManifest.xml:7:22-76
 uses-library#androidx.window.extensions
-ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:23:9-25:40
+ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:23:9-25:40
 	android:required
-		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:25:13-37
+		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:25:13-37
 	android:name
-		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:24:13-54
+		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:24:13-54
 uses-library#androidx.window.sidecar
-ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:26:9-28:40
+ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:26:9-28:40
 	android:required
-		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:28:13-37
+		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:28:13-37
 	android:name
-		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/3e108fe9d597d03770ae82acaebb5b63/transformed/jetified-window-1.2.0/AndroidManifest.xml:27:13-51
-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
-ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
-	android:protectionLevel
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
-	android:name
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
-permission#com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
-ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
-	android:protectionLevel
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
-	android:name
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
-uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
-ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
-	android:name
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
-uses-permission#com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
-ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
-	android:name
-		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/c666c258fca39b3353b46678a6b928ab/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+		ADDED from [androidx.window:window:1.2.0] /home/kriszti/.gradle/caches/transforms-3/94a072da545a6e46ac8a6378a37bca29/transformed/window-1.2.0/AndroidManifest.xml:27:13-51
 provider#androidx.startup.InitializationProvider
-ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
-MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/53f114d110e356c36b5f50ab357f361f/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/kriszti/.gradle/caches/transforms-3/714bf8a065a9890a762afc38c63e79ae/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
 	tools:node
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:28:13-31
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:28:13-31
 	android:authorities
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
 	android:exported
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37
 	android:name
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
 meta-data#androidx.lifecycle.ProcessLifecycleInitializer
-ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
 	android:value
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
 	android:name
-		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/5d9083683aa46ad6646ca7a884bd56df/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/kriszti/.gradle/caches/transforms-3/394de2775ed40fed15be954f5e909d63/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+permission#com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+uses-permission#com.oroszkrisztian.foodex.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/kriszti/.gradle/caches/transforms-3/ceb0b9cb600ef1ebfcd008ffa3171afe/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 meta-data#androidx.profileinstaller.ProfileInstallerInitializer
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
 	android:value
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
 receiver#androidx.profileinstaller.ProfileInstallReceiver
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
 	android:enabled
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
 	android:exported
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
 	android:permission
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
 	android:directBootAware
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
 intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
 action#androidx.profileinstaller.action.INSTALL_PROFILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
 intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
 action#androidx.profileinstaller.action.SKIP_FILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
 intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
 action#androidx.profileinstaller.action.SAVE_PROFILE
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
 intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
 action#androidx.profileinstaller.action.BENCHMARK_OPERATION
-ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
 	android:name
-		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/1e1e8719823df11c58e964840aa823f6/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/kriszti/.gradle/caches/transforms-3/9ef232ade23cbeebf986f1c692427aaf/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92

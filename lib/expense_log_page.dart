@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
+import 'package:foodex/models/cars.dart';
+import 'package:foodex/services/carService.dart';
 import 'package:foodex/widgets/expense_filter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -58,7 +60,10 @@ class ExpenseLogPage extends StatefulWidget {
 }
 
 class _ExpenseLogPageState extends State<ExpenseLogPage> {
-  List<ExpenseEntry> _expenseData = [];
+  final CarInformation _carService = CarInformation();
+  List<Car> _cars = [];
+  int? _selectedCarId;
+  bool _isLoadingCars = false;
   List<ExpenseEntry> _filteredExpenseData = [];
   bool _isLoadingData = false;
   String _selectedType = 'all'; // Changed to lowercase
@@ -75,13 +80,59 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _initializePage();
   }
 
   // Initialize both expense types and data
-  Future<void> _initializeData() async {
+  Future<void> _initializePage() async {
+    // Set default date range: 1st of current month to today
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+
+    setState(() {
+      _startDate = firstDayOfMonth;
+      _endDate = now;
+    });
+
+    // Load cars and expense types, then fetch expense data
+    await _loadCars();
     await _loadExpenseTypes();
-    //await _fetchExpenseData();
+    await _fetchExpenseData();
+  }
+
+  Future<void> _loadCars() async {
+    setState(() {
+      _isLoadingCars = true;
+    });
+
+    try {
+      final cars = await _carService.getCars();
+      setState(() {
+        _cars = cars;
+        _isLoadingCars = false;
+
+        // Set selected car based on Globals.vehicleID
+        if (Globals.vehicleID != null && Globals.vehicleID != 0) {
+          // Find the car with matching ID
+          final matchingCar = _cars.firstWhere(
+            (car) => car.id == Globals.vehicleID,
+            orElse: () => _cars.isNotEmpty
+                ? _cars.first
+                : Car(
+                    id: -1, make: 'All Vehicles', model: '', licencePlate: ''),
+          );
+          _selectedCarId = matchingCar.id;
+        } else {
+          // Default to first car if available
+          _selectedCarId = _cars.isNotEmpty ? _cars.first.id : -1;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingCars = false;
+        _selectedCarId = -1;
+      });
+    }
   }
 
   // Modified to store types in state with lowercase
@@ -147,7 +198,7 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
               : '',
           'type': typeToSend,
           'driver': Globals.userId.toString(),
-          'vehicle': Globals.vehicleID.toString(),
+          'vehicle': _selectedCarId == -1 ? 'all' : _selectedCarId.toString(),
         },
       );
 
@@ -176,7 +227,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
           totalLogs = logs;
           totalCost = cost;
           totalAmount = amount;
-          _expenseData = [];
           _filteredExpenseData = [];
           _isLoadingData = false;
         });
@@ -197,7 +247,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
           });
 
           setState(() {
-            _expenseData = fetchedData;
             _filteredExpenseData = fetchedData;
           });
         }
@@ -208,7 +257,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
       print('Error in _fetchExpenseData: $e');
       setState(() {
         _isLoadingData = false;
-        _expenseData = [];
         _filteredExpenseData = [];
         totalLogs = 0;
         totalCost = 0;
@@ -221,31 +269,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   void dispose() {
     // Clean up resources here
     super.dispose();
-  }
-
-  void _showErrorDialog(String title, String message) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[Text(message)],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _showThemedDialog(String title, String message) {
@@ -312,12 +335,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
       return;
     }
     _fetchExpenseData();
-  }
-
-  void _filterByType(String type) {
-    setState(() {
-      _selectedType = type;
-    });
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
@@ -430,6 +447,105 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
     );
   }
 
+  Widget _buildVehicleSelectionCard(bool isSmallScreen, Color primaryColor) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.directions_car,
+                color: const Color.fromARGB(255, 1, 160, 226),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${Globals.getText('loginVehicleSelect')}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 1, 160, 226),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _isLoadingCars
+              ? Container(
+                  height: 56,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color.fromARGB(255, 1, 160, 226),
+                      ),
+                    ),
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                    color: Colors.white,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: DropdownButton<int>(
+                    value: _selectedCarId,
+                    isExpanded: true,
+                    underline: Container(),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Color.fromARGB(255, 1, 160, 226),
+                    ),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedCarId = newValue;
+                      });
+
+                      _fetchExpenseData();
+                    },
+                    items: _cars.map((Car car) {
+                      return DropdownMenuItem<int>(
+                        value: car.id,
+                        child: Text(
+                          car.id == -1
+                              ? car.make
+                              : car.licencePlate.isEmpty
+                                  ? '${car.make} ${car.model}'
+                                  : '${car.make} ${car.model} - ${car.licencePlate}',
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
   // Replace the FutureBuilder with this widget
   Widget buildTypeDropdown() {
     return Container(
@@ -487,8 +603,8 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   Widget _buildSummaryCard() {
     // Convert selected type to lowercase for comparison
     String lowerType = _selectedType.toLowerCase();
-    bool showAmount = lowerType == 'adblue' ||
-        lowerType == 'üzemanyag/combustibil' ;
+    bool showAmount =
+        lowerType == 'adblue' || lowerType == 'üzemanyag/combustibil';
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(20.0),
@@ -511,13 +627,40 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            '${Globals.getText('summary')}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 1, 160, 226),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${Globals.getText('summary')}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 1, 160, 226),
+                ),
+              ),
+              if (_startDate != null && _endDate != null)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color:
+                        const Color.fromARGB(255, 1, 160, 226).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color.fromARGB(255, 1, 160, 226)
+                          .withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    '${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd, yyyy').format(_endDate!)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 20),
           Row(
@@ -627,7 +770,12 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
             child: Column(
               children: [
                 const SizedBox(height: 16.0),
-
+                if (!_isLoadingData)
+                  _buildVehicleSelectionCard(
+                    MediaQuery.of(context).size.width < 600,
+                    const Color.fromARGB(255, 1, 160, 226),
+                  ),
+                const SizedBox(height: 16.0),
                 ExpenseFilterContainer(
                   startDate: _startDate,
                   endDate: _endDate,
@@ -660,103 +808,6 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
   }
 
   Widget _buildDataTable() {
-    if (_isLoadingData) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            width: 1,
-            color: Colors.grey[300]!,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color.fromARGB(255, 1, 160, 226),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '${Globals.getText('loading')}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    if (_filteredExpenseData.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            width: 1,
-            color: Colors.grey[300]!,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.search_off_rounded,
-                  size: 48,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '${Globals.getText('noDataForDateAndType')}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(20.0),
@@ -776,94 +827,180 @@ class _ExpenseLogPageState extends State<ExpenseLogPage> {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingTextStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 1, 160, 226),
-          ),
-          dataTextStyle: const TextStyle(
-            color: Colors.black87,
-            fontSize: 14,
-          ),
-          columnSpacing: 24,
-          horizontalMargin: 12,
-          columns: [
-            DataColumn(
-              label: Text(
-                '${Globals.getText('logsTableVehicle')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            const DataColumn(
-              label: Text(
-                'KM',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('vehicleDataBottomType')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('expenseSelectCost')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('expenseSelectAmount')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('logsTableTime')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('expenseSelectRemarks')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '${Globals.getText('vehicleDataBottomPhoto')}',
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-          ],
-          rows: _filteredExpenseData.map((data) {
-            return DataRow(
-              cells: [
-                DataCell(Text(data.vehicle)),
-                DataCell(Text(data.km.toString())),
-                DataCell(Text(data.type)),
-                DataCell(Text(data.cost.toString())),
-                DataCell(Text(data.amount.toString())),
-                DataCell(Text(data.time)),
-                DataCell(Text(data.remarks)),
-                DataCell(
-                  data.photo.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () => _showImageDialog([data.photo]),
-                          child: const Icon(
-                            Icons.image,
-                            color: Color.fromARGB(255, 1, 160, 226),
-                          ),
-                        )
-                      : const Text('No photos'),
+      child: Column(
+        children: [
+          // Header with title and arrow (always visible)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${Globals.getText('myLogs')}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 1, 160, 226),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward,
+                  color: const Color.fromARGB(255, 1, 160, 226),
+                  size: 20,
                 ),
               ],
-            );
-          }).toList(),
-        ),
+            ),
+          ),
+
+          // Content (always visible)
+          if (_isLoadingData)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color.fromARGB(255, 1, 160, 226),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '${Globals.getText('loading')}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_filteredExpenseData.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.search_off_rounded,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '${Globals.getText('noDataForDateAndType')}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingTextStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 1, 160, 226),
+                ),
+                dataTextStyle: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                ),
+                columnSpacing: 24,
+                horizontalMargin: 12,
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('logsTableVehicle')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  const DataColumn(
+                    label: Text(
+                      'KM',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('vehicleDataBottomType')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('expenseSelectCost')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('expenseSelectAmount')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('logsTableTime')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('expenseSelectRemarks')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      '${Globals.getText('vehicleDataBottomPhoto')}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ],
+                rows: _filteredExpenseData.map((data) {
+                  return DataRow(
+                    cells: [
+                      DataCell(Text(data.vehicle)),
+                      DataCell(Text(data.km.toString())),
+                      DataCell(Text(data.type)),
+                      DataCell(Text(data.cost.toString())),
+                      DataCell(Text(data.amount.toString())),
+                      DataCell(Text(data.time)),
+                      DataCell(Text(data.remarks)),
+                      DataCell(
+                        data.photo.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () => _showImageDialog([data.photo]),
+                                child: const Icon(
+                                  Icons.image,
+                                  color: Color.fromARGB(255, 1, 160, 226),
+                                ),
+                              )
+                            : const Text('No photos'),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:foodex/globals.dart';
 import 'package:foodex/models/summary.dart';
+import 'package:intl/intl.dart';
 
 class LogSummaryCard extends StatelessWidget {
   final LogSummary summary;
   final bool hasData;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   const LogSummaryCard({
     super.key,
     required this.summary,
     required this.hasData,
+    this.startDate,
+    this.endDate,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -36,13 +40,40 @@ class LogSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            '${Globals.getText('summary')}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 1, 160, 226),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${Globals.getText('summary')}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 1, 160, 226),
+                ),
+              ),
+              if (startDate != null && endDate != null)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color:
+                        const Color.fromARGB(255, 1, 160, 226).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color.fromARGB(255, 1, 160, 226)
+                          .withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    '${DateFormat('MMM dd').format(startDate!)} - ${DateFormat('MMM dd, yyyy').format(endDate!)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 20),
           hasData

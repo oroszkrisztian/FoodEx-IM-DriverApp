@@ -1,0 +1,9 @@
+android {
+    lintOptions {
+        disable 'InvalidPackage'
+        disable 'UnsafeOptInUsageError'
+        disable 'unchecked'
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

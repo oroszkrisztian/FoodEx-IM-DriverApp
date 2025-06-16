@@ -1,126 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foodex/driverPage.dart';
 import 'package:foodex/my_routes_page.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'globals.dart';
-
-class VehicleData {
-  final int vehicleId;
-  final String name;
-  final String numberPlate;
-  final int km;
-  final String consumption;
-  final String insuranceStartDate;
-  final String insuranceEndDate;
-  final bool? insuranceValidity;
-  final String tuvStartDate;
-  final String tuvEndDate;
-  final bool? tuvValidity;
-  final String oilStartDate;
-  final int? oilUntilKm;
-  final bool? oilValidity;
-
-  VehicleData({
-    required this.vehicleId,
-    required this.name,
-    required this.numberPlate,
-    required this.km,
-    required this.consumption,
-    required this.insuranceStartDate,
-    required this.insuranceEndDate,
-    this.insuranceValidity,
-    required this.tuvStartDate,
-    required this.tuvEndDate,
-    this.tuvValidity,
-    required this.oilStartDate,
-    this.oilUntilKm,
-    this.oilValidity,
-  });
-
-  factory VehicleData.fromJson(Map<String, dynamic> json) {
-    return VehicleData(
-      vehicleId: json['vehicle']['vehicle_id'] ?? 0,
-      name: json['vehicle']['name'] ?? '',
-      numberPlate: json['vehicle']['numberplate'] ?? '',
-      km: json['vehicle']['km'] ?? 0,
-      consumption: json['vehicle']['consumption'] ?? '0',
-      insuranceStartDate: json['insurance']['date_start'] ?? '',
-      insuranceEndDate: json['insurance']['date_end'] ?? '',
-      insuranceValidity: _parseValidity(json['insurance']['validity']),
-      tuvStartDate: json['tuv']['date_start'] ?? '',
-      tuvEndDate: json['tuv']['date_end'] ?? '',
-      tuvValidity: _parseValidity(json['tuv']['validity']),
-      oilStartDate: json['oil']['date_start'] ?? '',
-      oilUntilKm: json['oil']['until'] ?? 0,
-      oilValidity: null, // This will be calculated later
-    );
-  }
-
-  static bool? _parseValidity(String? value) {
-    if (value == null) return null;
-    return value.toLowerCase() == 'valid';
-  }
-
-  bool isOilValid() {
-    if (oilUntilKm == null) return false;
-    return km <= oilUntilKm!;
-  }
-}
-
-class VehicleEntry {
-  final int id;
-  final String make;
-  final String model;
-  final String licensePlate;
-  final String type;
-  final int mileage;
-  final String startDate;
-  final String endDate;
-  final String details;
-  final String photo;
-
-  VehicleEntry({
-    required this.id,
-    required this.make,
-    required this.model,
-    required this.licensePlate,
-    required this.type,
-    required this.mileage,
-    required this.startDate,
-    required this.endDate,
-    required this.details,
-    required this.photo,
-  });
-
-  factory VehicleEntry.fromJson(Map<String, dynamic> json) {
-    return VehicleEntry(
-      id: json['id'] ?? 0,
-      make: json['make'] ?? '',
-      model: json['model'] ?? '',
-      licensePlate: json['license_plate'] ?? '',
-      type: json['type'] ?? '',
-      mileage: json['mileage'] ?? 0,
-      startDate: json['start_date'] ?? '',
-      endDate: json['end_date'] ?? '',
-      details: json['details'] ?? '',
-      photo: json['photo'] ?? '',
-    );
-  }
-}
-
-void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: VehicleDataPage(),
-    ),
-  );
-}
+import 'package:foodex/services/carService.dart'; // Updated import to match your structure
+import 'package:foodex/models/cars.dart'; // Import Car model
 
 class VehicleDataPage extends StatefulWidget {
   const VehicleDataPage({super.key});
@@ -130,8 +17,9 @@ class VehicleDataPage extends StatefulWidget {
 }
 
 class _VehicleDataPageState extends State<VehicleDataPage> {
+  final CarInformation _carInformation = CarInformation();
   Future<VehicleData>? _vehicleDataFuture;
-  VehicleData? _selectedCar;
+  VehicleData? _selectedCarData; // This holds the detailed vehicle data
   Timer? _timer;
   bool _dataLoaded = false;
   List<VehicleEntry> _vehicleData = [];
@@ -141,64 +29,107 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
   DateTime? _startDate;
   DateTime? _endDate;
   final String baseUrl = 'https://vinczefi.com'; // Define your base URL here
-  bool _isTableVisible = false;
+  bool _isTableVisible = true;
   bool _isFilterVisible = false;
+  // bool _isMaintenanceVisible = true; // Removed maintenance visibility variable
+
+  // Car selection variables
+  List<Car> _cars = [];
+  Car? _selectedCar; // This holds the selected car from dropdown
+  bool _isLoadingCars = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchVehicleData(); // Fetch data initially
-    _checkLoginStatus();
+
+    // Auto-fill dates from 1st of current month until today
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+    _startDate = firstDayOfMonth;
+    _endDate = now;
+
+    _loadCars();
   }
 
-  Future<VehicleData> fetchVehicleData() async {
+  Future<void> _loadCars() async {
     try {
-      final response = await http.post(
-        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'action': 'driver-vehicle-data',
-          'driver': Globals.userId.toString(),
-        },
-      );
+      setState(() {
+        _isLoadingCars = true;
+      });
 
-      if (response.statusCode == 200) {
-        if (response.body.isEmpty) {
-          throw Exception('Empty response from server');
+      List<Car> cars = await _carInformation.getCars();
+      setState(() {
+        _cars = cars;
+        _isLoadingCars = false;
+
+        // Set initial selected car
+        if (Globals.vehicleID != null && _cars.isNotEmpty) {
+          // Try to find the car from Globals
+          try {
+            _selectedCar = _cars.firstWhere(
+              (car) => car.id == Globals.vehicleID,
+            );
+          } catch (e) {
+            // If car with Globals.vehicleID not found, use first car
+            _selectedCar = _cars.first;
+            // Update Globals to match the selected car
+            Globals.vehicleID = _cars.first.id;
+          }
+        } else if (_cars.isNotEmpty) {
+          // Select first car if available and update Globals
+          _selectedCar = _cars.first;
+          Globals.vehicleID = _cars.first.id;
+        } else {
+          // No cars available
+          _selectedCar = null;
+          Globals.vehicleID = null;
         }
 
-        var jsonData = jsonDecode(response.body);
-        _dataLoaded = true;
-        return VehicleData.fromJson(jsonData);
-      } else {
-        throw Exception(
-            'Failed to load vehicle data: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load vehicle data: $e');
-    }
-  }
-
-  Future<void> _checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
-    setState(() {});
-
-    if (isLoggedIn && Globals.vehicleID != null) {
-      _vehicleDataFuture = fetchVehicleData();
-      _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        if (!_dataLoaded) {
-          setState(() {
-            _vehicleDataFuture = fetchVehicleData();
-          });
-        } else {
-          _timer?.cancel();
+        // Load vehicle data for selected car
+        if (_selectedCar != null) {
+          _initializeData();
         }
       });
+    } catch (e) {
+      print('Error loading cars: $e');
+      setState(() {
+        _isLoadingCars = false;
+      });
+      _showErrorDialog('Error', 'Failed to load vehicles: $e');
     }
+  }
+
+  Future<void> _onCarSelectionChanged(Car? newCar) async {
+    if (newCar != null && newCar != _selectedCar) {
+      setState(() {
+        _selectedCar = newCar;
+        Globals.vehicleID = newCar.id != -1 ? newCar.id : null;
+      });
+
+      // Reload vehicle data for new selection
+      if (newCar.id != -1) {
+        await _initializeData();
+        await _fetchVehicleData();
+      } else {
+        // Clear data if "All Vehicles" is selected
+        setState(() {
+          _vehicleDataFuture = null;
+          _selectedCarData = null;
+        });
+        await _fetchVehicleData();
+      }
+    }
+  }
+
+  Future<void> _initializeData() async {
+    if (Globals.vehicleID != null) {
+      _vehicleDataFuture = _carInformation.getVehicleData(Globals.vehicleID!);
+    } else if (_selectedCar != null && _selectedCar!.id != -1) {
+      _vehicleDataFuture = _carInformation.getVehicleData(_selectedCar!.id);
+      // Update Globals with the first car's ID
+      Globals.vehicleID = _selectedCar!.id;
+    }
+    await _fetchVehicleData();
   }
 
   // Helper function to get the display text for status
@@ -215,7 +146,7 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
     }
   }
 
-// Helper function to get the display text for type
+  // Helper function to get the display text for type
   String _getTypeDisplayText(String type) {
     switch (type) {
       case 'All':
@@ -239,63 +170,28 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
 
   Future<void> _fetchVehicleData() async {
     try {
-      final response = await http.post(
-        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'action': 'vehicle-data-filter',
-          'from': _startDate != null
-              ? DateFormat('yyyy-MM-dd').format(_startDate!)
-              : '',
-          'to': _endDate != null
-              ? DateFormat('yyyy-MM-dd').format(_endDate!)
-              : '',
-          'status': _selectedStatus.toLowerCase(),
-          'type': _selectedType.toLowerCase(),
-          'vehicle': Globals.vehicleID?.toString() ?? 'all',
-        },
+      List<VehicleEntry> fetchedData =
+          await _carInformation.getFilteredVehicleData(
+        startDate: _startDate,
+        endDate: _endDate,
+        status: _selectedStatus,
+        type: _selectedType,
+        vehicleId: _selectedCar?.id != -1 ? _selectedCar?.id : null,
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> responseData = json.decode(response.body);
-        List<VehicleEntry> fetchedData =
-            responseData.map((data) => VehicleEntry.fromJson(data)).toList();
-
+      setState(() {
         _vehicleData = fetchedData;
+        _filteredVehicleData = _carInformation.filterVehicleEntriesByDate(
+          _vehicleData,
+          _startDate,
+          _endDate,
+        );
+      });
 
-        _filterData();
-
-        setState(() {
-          _filteredVehicleData = _vehicleData;
-        });
-
-        print('Response Body _fetchVehicleData: ${response.body}');
-      } else {
-        _showErrorDialog('Failed to load vehicle data',
-            'Status code: ${response.statusCode}');
-      }
+      print('Fetched ${fetchedData.length} vehicle entries');
     } catch (e) {
       _showErrorDialog('Error', 'Failed to load vehicle data: $e');
     }
-  }
-
-  void _filterData() {
-    setState(() {
-      _filteredVehicleData = _vehicleData.where((vehicle) {
-        DateTime startDate =
-            DateTime.tryParse(vehicle.startDate) ?? DateTime(2000);
-        DateTime endDate = DateTime.tryParse(vehicle.endDate) ?? DateTime(2100);
-        if (_startDate != null && startDate.isBefore(_startDate!)) {
-          return false;
-        }
-        if (_endDate != null && endDate.isAfter(_endDate!)) {
-          return false;
-        }
-        return true;
-      }).toList();
-    });
   }
 
   void _showErrorDialog(String title, String message) {
@@ -326,11 +222,10 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
   void _applyFilters() {
     _fetchVehicleData().then((_) {
       setState(() {
-        _filteredVehicleData.sort((a, b) {
-          DateTime dateA = DateTime.tryParse(a.endDate) ?? DateTime(2000);
-          DateTime dateB = DateTime.tryParse(b.endDate) ?? DateTime(2000);
-          return dateB.compareTo(dateA);
-        });
+        _filteredVehicleData = _carInformation.sortVehicleEntriesByDate(
+          _filteredVehicleData,
+          descending: true,
+        );
       });
     });
   }
@@ -443,7 +338,7 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
                       backgroundColor: const Color.fromARGB(255, 1, 160, 226),
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('Close'),
+                    child: Text('${Globals.getText('close')}'),
                   ),
                 ],
               ),
@@ -454,68 +349,99 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
     );
   }
 
-  void _showImage1(File? image1) {
-    if (image1 == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('No Picture'),
-            content: const Text('There is no picture available.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
+  Widget _buildVehicleSelectionCard() {
+    // Filter out cars with model "Livezeni 18"
+    final filteredCars =
+        _cars.where((car) => car.model != "Livezeni 18").toList();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.directions_car,
+                color: Color.fromARGB(255, 1, 160, 226),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${Globals.getText('loginVehicleSelect')}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 1, 160, 226),
+                ),
               ),
             ],
-          );
-        },
-      );
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
           ),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: constraints.maxHeight *
-                            0.8, // Adjust the value as needed
-                      ),
-                      child: Image.file(
-                        image1,
-                        fit: BoxFit.contain,
+          const SizedBox(height: 16),
+          _isLoadingCars
+              ? Container(
+                  height: 56,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color.fromARGB(255, 1, 160, 226),
                       ),
                     ),
-                    const SizedBox(height: 8.0),
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                            255, 1, 160, 226), // Light blue color
-                        foregroundColor: Colors.white, // White text
-                      ),
-                      child: const Text('Close'),
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                    color: Colors.white,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: DropdownButton<Car>(
+                    value: _selectedCar?.model == "Livezeni 18"
+                        ? null
+                        : _selectedCar,
+                    isExpanded: true,
+                    underline: Container(),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Color.fromARGB(255, 1, 160, 226),
                     ),
-                  ],
+                    hint: Text('${Globals.getText('loginVehicleSelect')}'),
+                    onChanged: _onCarSelectionChanged,
+                    items: [
+                      ...filteredCars.map((car) => DropdownMenuItem<Car>(
+                            value: car,
+                            child: Text(
+                              '${car.make} ${car.model} - ${car.licencePlate}',
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                              ),
+                            ),
+                          )),
+                    ],
+                  ),
                 ),
-              );
-            },
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -528,8 +454,6 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
             context,
             MaterialPageRoute(builder: (context) => const DriverPage()),
           );
-
-          // Prevent default back behavior since we're handling navigation
         },
         child: Scaffold(
           appBar: AppBar(
@@ -583,637 +507,675 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
             ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
-              child: FutureBuilder<VehicleData>(
-                future: _vehicleDataFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color.fromARGB(255, 1, 160, 226),
-                          ),
-                        ),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Text(
-                          'Error: ${snapshot.error}',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    );
-                  } else if (!snapshot.hasData) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Text(
-                          'No data found.',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
+              child: Column(
+                children: [
+                  // Vehicle Selection Dropdown - ALWAYS VISIBLE
+                  _buildVehicleSelectionCard(),
 
-                  VehicleData vehicleData = snapshot.data!;
-                  _selectedCar = vehicleData;
-
-                  return Column(
-                    children: [
-                      // Vehicle Information Table
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            width: 1,
-                            color: Colors.grey[300]!,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isTableVisible = !_isTableVisible;
-                                });
-                              },
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Vehicle Information',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 1, 160, 226),
-                                    ),
+                  // Show content only if not loading cars and vehicle data is ready
+                  if (!_isLoadingCars) ...[
+                    // Vehicle Information Table (only show if specific car is selected)
+                    if (_selectedCar != null && _selectedCar!.id != -1)
+                      FutureBuilder<VehicleData>(
+                        future: _vehicleDataFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color.fromARGB(255, 1, 160, 226),
                                   ),
-                                  Icon(
-                                    _isTableVisible
-                                        ? Icons.expand_less
-                                        : Icons.expand_more,
-                                    color:
-                                        const Color.fromARGB(255, 1, 160, 226),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                            if (_isTableVisible) ...[
-                              const SizedBox(height: 16),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  headingTextStyle: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 1, 160, 226),
-                                  ),
-                                  dataTextStyle: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 14,
-                                  ),
-                                  columnSpacing: 24,
-                                  horizontalMargin: 12,
-                                  columns: [
-                                    DataColumn(
-                                      label: Text(
-                                        '${Globals.getText('vehicleDataTopType')}',
-                                        style: const TextStyle(
-                                            color: Colors.black),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Error: ${snapshot.error}',
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                    DataColumn(
-                                      label: Text(
-                                        '${Globals.getText('vehicleDataTopStartDate')}',
-                                        style: const TextStyle(
-                                            color: Colors.black),
-                                      ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          if (_selectedCar != null &&
+                                              _selectedCar!.id != -1) {
+                                            _vehicleDataFuture =
+                                                _carInformation.getVehicleData(
+                                                    _selectedCar!.id);
+                                          }
+                                        });
+                                      },
+                                      child:
+                                          Text('${Globals.getText('retry')}'),
                                     ),
-                                    DataColumn(
-                                      label: Text(
-                                        '${Globals.getText('vehicleDataTopUntil')}',
-                                        style: const TextStyle(
-                                            color: Colors.black),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        '${Globals.getText('vehicleDataTopStatus')}',
-                                        style: const TextStyle(
-                                            color: Colors.black),
-                                      ),
-                                    ),
-                                  ],
-                                  rows: [
-                                    DataRow(cells: [
-                                      DataCell(Text(
-                                          '${Globals.getText('vehicleDataTopInsurance')}')),
-                                      DataCell(
-                                          Text(vehicleData.insuranceStartDate)),
-                                      DataCell(
-                                          Text(vehicleData.insuranceEndDate)),
-                                      DataCell(Text(
-                                        vehicleData.insuranceValidity != null &&
-                                                vehicleData.insuranceValidity!
-                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                        style: TextStyle(
-                                          color: vehicleData
-                                                          .insuranceValidity !=
-                                                      null &&
-                                                  vehicleData.insuranceValidity!
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      )),
-                                    ]),
-                                    DataRow(cells: [
-                                      DataCell(Text(
-                                          '${Globals.getText('vehicleDataTopTUV')}')),
-                                      DataCell(Text(vehicleData.tuvStartDate)),
-                                      DataCell(Text(vehicleData.tuvEndDate)),
-                                      DataCell(Text(
-                                        vehicleData.tuvValidity != null &&
-                                                vehicleData.tuvValidity!
-                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                        style: TextStyle(
-                                          color:
-                                              vehicleData.tuvValidity != null &&
-                                                      vehicleData.tuvValidity!
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                        ),
-                                      )),
-                                    ]),
-                                    DataRow(cells: [
-                                      DataCell(Text(
-                                          '${Globals.getText('vehicleDataTopOil')}')),
-                                      DataCell(Text(vehicleData.oilStartDate)),
-                                      DataCell(Text(
-                                          '${vehicleData.oilUntilKm ?? 'N/A'} km')),
-                                      DataCell(Text(
-                                        vehicleData.isOilValid()
-                                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
-                                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
-                                        style: TextStyle(
-                                          color: vehicleData.isOilValid()
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      )),
-                                    ]),
-                                    DataRow(cells: [
-                                      DataCell(Text(
-                                          '${Globals.getText('vehicleDataTopKM')}')),
-                                      DataCell(Text(vehicleData.km.toString())),
-                                      const DataCell(Text('')),
-                                      const DataCell(Text('')),
-                                    ]),
-                                    DataRow(cells: [
-                                      DataCell(Text(
-                                          '${Globals.getText('vehicleDataTopConsumption')}')),
-                                      DataCell(Text(
-                                          '${vehicleData.consumption} l/100km')),
-                                      const DataCell(Text('')),
-                                      const DataCell(Text('')),
-                                    ]),
                                   ],
                                 ),
                               ),
-                            ],
-                          ],
-                        ),
+                            );
+                          } else if (!snapshot.hasData) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  '${Globals.getText('noDataFound')}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          VehicleData vehicleData = snapshot.data!;
+                          _selectedCarData = vehicleData;
+
+                          return _buildVehicleInfoTable(vehicleData);
+                        },
                       ),
 
-                      // Vehicle Photos Section
-                      if (Globals.image1 != null ||
-                          Globals.image2 != null ||
-                          Globals.image3 != null ||
-                          Globals.image4 != null ||
-                          Globals.image5 != null)
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 16.0),
-                          padding: const EdgeInsets.all(20.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20.0),
-                            border: Border.all(
-                              width: 1,
-                              color: Colors.grey[300]!,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.3),
-                                spreadRadius: 2,
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Vehicle Photos',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 1, 160, 226),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              _buildImagePreviewButton(
-                                  'Dashboard', Globals.image1),
-                              const SizedBox(height: 8.0),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildImagePreviewButton(
-                                      'Front Left', Globals.image2),
-                                  _buildImagePreviewButton(
-                                      'Front Right', Globals.image3),
-                                ],
-                              ),
-                              const SizedBox(height: 8.0),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildImagePreviewButton(
-                                      'Rear Left', Globals.image4),
-                                  _buildImagePreviewButton(
-                                      'Rear Right', Globals.image5),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                    // Filter Section
+                    _buildFiltersSection(),
 
-                      // Filter Section
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            width: 1,
-                            color: Colors.grey[300]!,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isFilterVisible = !_isFilterVisible;
-                                });
-                              },
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Filters',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 1, 160, 226),
-                                    ),
-                                  ),
-                                  Icon(
-                                    _isFilterVisible
-                                        ? Icons.expand_less
-                                        : Icons.expand_more,
-                                    color:
-                                        const Color.fromARGB(255, 1, 160, 226),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (_isFilterVisible) ...[
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      icon: const Icon(Icons.calendar_today,
-                                          size: 18),
-                                      label: Text(
-                                        _startDate != null
-                                            ? DateFormat('yyyy-MM-dd')
-                                                .format(_startDate!)
-                                            : '${Globals.getText('vehicleDataFrom')}',
-                                      ),
-                                      onPressed: () =>
-                                          _selectStartDate(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black87,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 12,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          side: BorderSide(
-                                            color: Colors.grey[300]!,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      icon: const Icon(Icons.calendar_today,
-                                          size: 18),
-                                      label: Text(
-                                        _endDate != null
-                                            ? DateFormat('yyyy-MM-dd')
-                                                .format(_endDate!)
-                                            : '${Globals.getText('vehicleDataTo')}',
-                                      ),
-                                      onPressed: () => _selectEndDate(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.black87,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 12,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          side: BorderSide(
-                                            color: Colors.grey[300]!,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Expanded(
-                                    child: _buildFilterDropdown(
-                                      label:
-                                          '${Globals.getText('vehicleDataStatus')}',
-                                      value: _selectedStatus,
-                                      items: ['All', 'Active', 'Expired'],
-                                      onChanged: _filterByStatus,
-                                      getDisplayText: _getStatusDisplayText,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildFilterDropdown(
-                                      label:
-                                          '${Globals.getText('vehicleDataType')}',
-                                      value: _selectedType,
-                                      items: ['All', 'Oil', 'TUV', 'Insurance'],
-                                      onChanged: _filterByType,
-                                      getDisplayText: _getTypeDisplayText,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _applyFilters,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 1, 160, 226),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    elevation: 3,
-                                  ),
-                                  child: Text(
-                                    '${Globals.getText('vehicleDataApply')}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      // Results Table
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.0),
-                          border: Border.all(
-                            width: 1,
-                            color: Colors.grey[300]!,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                headingTextStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 1, 160, 226),
-                                ),
-                                dataTextStyle: const TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
-                                ),
-                                columnSpacing: 24,
-                                horizontalMargin: 12,
-                                columns: [
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomId')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomMake')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomModel')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomLicensePlate')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomType')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomMileage')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomStartDate')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomEndDate')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomDetails')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      '${Globals.getText('vehicleDataBottomPhoto')}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                rows: _filteredVehicleData.map((data) {
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Text(data.id.toString())),
-                                      DataCell(Text(data.make)),
-                                      DataCell(Text(data.model)),
-                                      DataCell(Text(data.licensePlate)),
-                                      DataCell(Text(data.type)),
-                                      DataCell(Text(data.mileage.toString())),
-                                      DataCell(Text(data.startDate)),
-                                      DataCell(Text(data.endDate)),
-                                      DataCell(Text(data.details)),
-                                      DataCell(
-                                        data.photo.isNotEmpty
-                                            ? GestureDetector(
-                                                onTap: () =>
-                                                    _showImage(data.photo),
-                                                child: const Icon(
-                                                  Icons.image,
-                                                  color: Color.fromARGB(
-                                                      255, 1, 160, 226),
-                                                ),
-                                              )
-                                            : const Text('No photos'),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                    // Results Table
+                    _buildMaintenanceRecordsTable(),
+                  ],
+                ],
               ),
             ),
           ),
         ));
+  }
+
+  Widget _buildVehicleInfoTable(VehicleData vehicleData) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isTableVisible = !_isTableVisible;
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${Globals.getText('vehicleDataInfo')}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 1, 160, 226),
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _isTableVisible ? Icons.expand_less : Icons.expand_more,
+                    color: const Color.fromARGB(255, 1, 160, 226),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isTableVisible) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingTextStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 1, 160, 226),
+                  ),
+                  dataTextStyle: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                  ),
+                  columnSpacing: 24,
+                  horizontalMargin: 12,
+                  columns: [
+                    DataColumn(
+                      label: Text(
+                        '${Globals.getText('vehicleDataTopType')}',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        '${Globals.getText('vehicleDataTopStartDate')}',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        '${Globals.getText('vehicleDataTopUntil')}',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        '${Globals.getText('vehicleDataTopStatus')}',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ],
+                  rows: [
+                    DataRow(cells: [
+                      DataCell(Text(
+                          '${Globals.getText('vehicleDataTopInsurance')}')),
+                      DataCell(Text(vehicleData.insuranceStartDate)),
+                      DataCell(Text(vehicleData.insuranceEndDate)),
+                      DataCell(Text(
+                        vehicleData.insuranceValidity != null &&
+                                vehicleData.insuranceValidity!
+                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                        style: TextStyle(
+                          color: vehicleData.insuranceValidity != null &&
+                                  vehicleData.insuranceValidity!
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      )),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text('${Globals.getText('vehicleDataTopTUV')}')),
+                      DataCell(Text(vehicleData.tuvStartDate)),
+                      DataCell(Text(vehicleData.tuvEndDate)),
+                      DataCell(Text(
+                        vehicleData.tuvValidity != null &&
+                                vehicleData.tuvValidity!
+                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                        style: TextStyle(
+                          color: vehicleData.tuvValidity != null &&
+                                  vehicleData.tuvValidity!
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      )),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text('${Globals.getText('vehicleDataTopOil')}')),
+                      DataCell(Text(vehicleData.oilStartDate)),
+                      DataCell(Text('${vehicleData.oilUntilKm ?? 'N/A'} km')),
+                      DataCell(Text(
+                        vehicleData.isOilValid()
+                            ? '${Globals.getText('vehicleDataTopStatusValid')}'
+                            : '${Globals.getText('vehicleDataTopStatusExpired')}',
+                        style: TextStyle(
+                          color: vehicleData.isOilValid()
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      )),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text('${Globals.getText('vehicleDataTopKM')}')),
+                      DataCell(Text(vehicleData.km.toString())),
+                      const DataCell(Text('')),
+                      const DataCell(Text('')),
+                    ]),
+                    DataRow(cells: [
+                      DataCell(Text(
+                          '${Globals.getText('vehicleDataTopConsumption')}')),
+                      DataCell(Text('${vehicleData.consumption} l/100km')),
+                      const DataCell(Text('')),
+                      const DataCell(Text('')),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFiltersSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isFilterVisible = !_isFilterVisible;
+              });
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${Globals.getText('logsApply')}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 1, 160, 226),
+                      ),
+                    ),
+                  ),
+                  if (_startDate != null && _endDate != null)
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 1, 160, 226)
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 1, 160, 226)
+                              .withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '${DateFormat('MMM dd').format(_startDate!)} - ${DateFormat('MMM dd, yyyy').format(_endDate!)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  Icon(
+                    _isFilterVisible ? Icons.expand_less : Icons.expand_more,
+                    color: const Color.fromARGB(255, 1, 160, 226),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isFilterVisible) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.calendar_today, size: 18),
+                          label: Text(
+                            _startDate != null
+                                ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                                : '${Globals.getText('vehicleDataFrom')}',
+                          ),
+                          onPressed: () => _selectStartDate(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black87,
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.calendar_today, size: 18),
+                          label: Text(
+                            _endDate != null
+                                ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                                : '${Globals.getText('vehicleDataTo')}',
+                          ),
+                          onPressed: () => _selectEndDate(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black87,
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: _buildFilterDropdown(
+                          label: '${Globals.getText('vehicleDataStatus')}',
+                          value: _selectedStatus,
+                          items: ['All', 'Active', 'Expired'],
+                          onChanged: _filterByStatus,
+                          getDisplayText: _getStatusDisplayText,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildFilterDropdown(
+                          label: '${Globals.getText('vehicleDataType')}',
+                          value: _selectedType,
+                          items: ['All', 'Oil', 'TUV', 'Insurance'],
+                          onChanged: _filterByType,
+                          getDisplayText: _getTypeDisplayText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _applyFilters,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 3,
+                      ),
+                      child: Text(
+                        '${Globals.getText('vehicleDataApply')}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaintenanceRecordsTable() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(
+          width: 1,
+          color: Colors.grey[300]!,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${Globals.getText('myLogs')}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 1, 160, 226),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward,
+                  color: const Color.fromARGB(255, 1, 160, 226),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                // Add this conditional check for empty data
+                if (_filteredVehicleData.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '${Globals.getText('noDataForDateAndType')}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 1, 160, 226),
+                      ),
+                      dataTextStyle: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                      ),
+                      columnSpacing: 24,
+                      horizontalMargin: 12,
+                      columns: [
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomId')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomMake')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomModel')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomLicensePlate')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomType')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomMileage')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomStartDate')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomEndDate')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomDetails')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            '${Globals.getText('vehicleDataBottomPhoto')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                      rows: _filteredVehicleData.map((data) {
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(data.id.toString())),
+                            DataCell(Text(data.make)),
+                            DataCell(Text(data.model)),
+                            DataCell(Text(data.licensePlate)),
+                            DataCell(Text(data.type)),
+                            DataCell(Text(data.mileage.toString())),
+                            DataCell(Text(data.startDate)),
+                            DataCell(Text(data.endDate)),
+                            DataCell(Text(data.details)),
+                            DataCell(
+                              data.photo.isNotEmpty
+                                  ? GestureDetector(
+                                      onTap: () => _showImage(data.photo),
+                                      child: const Icon(
+                                        Icons.image,
+                                        color: Color.fromARGB(255, 1, 160, 226),
+                                      ),
+                                    )
+                                  : const Icon(Icons.no_photography,
+                                      color: Colors.grey),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildFilterDropdown({
@@ -1266,31 +1228,6 @@ class _VehicleDataPageState extends State<VehicleDataPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildImagePreviewButton(String label, File? image) {
-    return ElevatedButton(
-      onPressed: () => _showImage1(image),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        side: const BorderSide(
-          color: Color.fromARGB(255, 1, 160, 226),
-          width: 1,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 14,
-        ),
-      ),
     );
   }
 }

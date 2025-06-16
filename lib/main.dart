@@ -404,13 +404,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
       Navigator.of(context).pop(); // Hide loading dialog
 
-      // Debugging: Print the response body to see what the server is returning
       print("Response: ${response.body}");
 
       if (data['success']) {
         Globals.userId = data['driver_id'];
 
-        // Print the driver ID from Globals
         print("Driver ID from Globals: ${Globals.userId}");
 
         Fluttertoast.showToast(

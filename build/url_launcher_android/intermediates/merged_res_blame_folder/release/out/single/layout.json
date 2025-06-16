@@ -25,7 +25,7 @@
     },
     {
         "merged": "io.flutter.plugins.urllauncher.url_launcher_android-merged_res-26:/layout/browser_actions_context_menu_page.xml",
-        "source": "io.flutter.plugins.urllauncher.url_launcher_android-browser-1.8.0-12:/layout/browser_actions_context_menu_page.xml"
+        "source": "io.flutter.plugins.urllauncher.url_launcher_android-browser-1.8.0-16:/layout/browser_actions_context_menu_page.xml"
     },
     {
         "merged": "io.flutter.plugins.urllauncher.url_launcher_android-merged_res-26:/layout/notification_template_custom_big.xml",
@@ -37,7 +37,7 @@
     },
     {
         "merged": "io.flutter.plugins.urllauncher.url_launcher_android-merged_res-26:/layout/browser_actions_context_menu_row.xml",
-        "source": "io.flutter.plugins.urllauncher.url_launcher_android-browser-1.8.0-12:/layout/browser_actions_context_menu_row.xml"
+        "source": "io.flutter.plugins.urllauncher.url_launcher_android-browser-1.8.0-16:/layout/browser_actions_context_menu_row.xml"
     },
     {
         "merged": "io.flutter.plugins.urllauncher.url_launcher_android-merged_res-26:/layout/ime_base_split_test_activity.xml",

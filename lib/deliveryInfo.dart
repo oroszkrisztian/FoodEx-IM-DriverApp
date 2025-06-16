@@ -24,9 +24,15 @@ import 'package:url_launcher/url_launcher.dart';
 class DeliveryInfo extends StatefulWidget {
   final int orderId;
   final bool? myRoutesPage;
+  final DateTime? startDateRoutes;
+  final DateTime? endDateRoutes;
 
   const DeliveryInfo(
-      {super.key, required this.orderId, this.myRoutesPage = false});
+      {super.key,
+      required this.orderId,
+      this.myRoutesPage = false,
+      this.startDateRoutes,
+      this.endDateRoutes});
 
   @override
   State<DeliveryInfo> createState() => _DeliveryInfoState();
@@ -46,8 +52,32 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   void initState() {
     super.initState();
     _loadOrder();
+    _loadCollections();
 
     widget.myRoutesPage;
+  }
+
+  Future<void> _loadCollections() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://vinczefi.com/foodexim/functions.php'),
+        body: {
+          'action': 'get-order-collection-units',
+          'order-id': widget.orderId.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedResponse = json.decode(response.body);
+        if (decodedResponse['success'] == true) {
+          setState(() {
+            collectionUnitsData = decodedResponse['data'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading collections: $e');
+    }
   }
 
   Future<void> _loadOrder() async {
@@ -57,31 +87,19 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         _error = null;
       });
 
-      // Load orders from cache
-      await orderService.loadOrdersFromCache();
-
-      // Find the complete order in cached data
-      final cachedOrder = [
-        ...orderService.activeOrders,
-        ...orderService.inactiveOrders
-      ].where((order) => order.orderId == widget.orderId).firstOrNull;
+      final orderData = await orderService.getOrderById(widget.orderId);
 
       if (mounted) {
         setState(() {
-          order = cachedOrder ?? Order.empty();
+          order = orderData ?? Order.empty();
           _isLoading = false;
-          if (cachedOrder == null) {
-            _error = 'Order not found in cache';
-          }
         });
       }
     } catch (e) {
-      debugPrint('Error loading order from cache: $e');
       if (mounted) {
         setState(() {
           _error = e.toString();
           _isLoading = false;
-          order = Order.empty();
         });
       }
     }
@@ -102,9 +120,11 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     return GestureDetector(
       onTap: () {
         if (isNoteEmpty) {
-          editUserNotes(context, order.orderId, _loadOrder, order.orderNote);
+          editUserNotes(context, order.orderId, _loadOrder, order.orderNote,
+              widget.myRoutesPage);
         } else {
-          openNotesUser(context, order.orderNote, _loadOrder);
+          openNotesUser(
+              context, order.orderNote, _loadOrder, widget.myRoutesPage);
         }
       },
       child: Container(
@@ -160,7 +180,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     );
   }
 
-  void openNotesUser(BuildContext context, String notes, Function reloadPage) {
+  void openNotesUser(BuildContext context, String notes, Function reloadPage,
+      bool? myRoutesPage) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
@@ -227,33 +248,34 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        editUserNotes(context, order.orderId, reloadPage,
-                            order.orderNote);
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSmallScreen ? 20 : 24,
-                          vertical: isSmallScreen ? 10 : 12,
+                    if (myRoutesPage == false) ...[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          editUserNotes(context, order.orderId, reloadPage,
+                              order.orderNote, widget.myRoutesPage);
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 20 : 24,
+                            vertical: isSmallScreen ? 10 : 12,
+                          ),
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                        child: Text(
+                          'Edit',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                      child: Text(
-                        'Edit',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 14.0 : 16.0,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                        width: 10), // Add some spacing between buttons
+                      const SizedBox(width: 10),
+                    ],
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
@@ -286,7 +308,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
   }
 
   void editUserNotes(BuildContext context, int orderId, Function reloadPage,
-      String orderNote) {
+      String orderNote, bool? myRoutesPage) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
     String? newUserNote;
@@ -350,43 +372,57 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text(
-                        '${Globals.getText('orderCancel')}',
-                        style: TextStyle(color: Colors.grey.shade700),
+                        () {
+                          if (myRoutesPage == true) {
+                            return '${Globals.getText('orderClose')}';
+                          } else {
+                            return '${Globals.getText('orderCancel')}';
+                          }
+                        }(),
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (newUserNote?.isNotEmpty ?? false) {
-                          try {
-                            await DeliveryService()
-                                .updateOrderNote(orderId, newUserNote!);
-                            Navigator.pop(context);
-                            reloadPage(); // Call the reloadPage function to refresh the page
+                    if (myRoutesPage == false) ...[
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (newUserNote?.isNotEmpty ?? false) {
+                            try {
+                              await DeliveryService()
+                                  .updateOrderNote(orderId, newUserNote!);
+                              Navigator.pop(context);
+                              reloadPage(); // Call the reloadPage function to refresh the page
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('User Notes updated successfully')),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${e.toString()}')),
-                            );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'User Notes updated successfully')),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text('Error: ${e.toString()}')),
+                              );
+                            }
                           }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 1, 160, 226),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 1, 160, 226),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
+                        child: Text('${Globals.getText('orderUpdate')}',
+                            style: TextStyle(color: Colors.white)),
                       ),
-                      child: Text('${Globals.getText('orderUpdate')}',
-                          style: TextStyle(color: Colors.white)),
-                    ),
+                    ],
                   ],
                 ),
               ],
@@ -527,8 +563,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                           product.productName,
                           widget.orderId,
                           _loadOrder,
-                          product.collection,
+                          product.collectionQuantity,
                           product.quantity.toDouble(),
+                          widget.myRoutesPage,
                         ),
                         cells: [
                           DataCell(
@@ -561,7 +598,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '${product.collection}',
+                                    '${product.collectionQuantity}',
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -671,10 +708,11 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           GestureDetector(
             onTap: () {
               if (Uit.isNotEmpty) {
-                showUitEkr(context, Uit, null, order.orderId, _loadOrder);
-              } else {
-                print("Uit update for orderID ${order.orderId}");
-                updateUit(context, order.orderId, _loadOrder);
+                showUitEkr(context, Uit, null, order.orderId, _loadOrder,
+                    widget.myRoutesPage);
+              } else if (widget.myRoutesPage == false) {
+                updateUit(
+                    context, order.orderId, _loadOrder, widget.myRoutesPage);
               }
             },
             child: Container(
@@ -726,9 +764,11 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           GestureDetector(
             onTap: () {
               if (Ekr.isNotEmpty) {
-                showUitEkr(context, null, Ekr, order.orderId, _loadOrder);
-              } else {
-                updateEkr(context, order.orderId, _loadOrder);
+                showUitEkr(context, null, Ekr, order.orderId, _loadOrder,
+                    widget.myRoutesPage);
+              } else if (widget.myRoutesPage == false) {
+                updateEkr(
+                    context, order.orderId, _loadOrder, widget.myRoutesPage);
               }
             },
             child: Container(
@@ -784,10 +824,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 child: GestureDetector(
                   onTap: () {
                     if (Invoice.isNotEmpty) {
-                      ShowInvoiceCmr(
-                          context, Invoice, _loadOrder, order.orderId);
-                    } else {
-                      print("Invoice update for order ${order.orderId}");
+                      ShowInvoiceCmr(context, Invoice, _loadOrder,
+                          order.orderId, widget.myRoutesPage);
+                    } else if (widget.myRoutesPage == false) {
                       updateInvoice(context, order.orderId, _loadOrder);
                     }
                   },
@@ -834,9 +873,9 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                 child: GestureDetector(
                   onTap: () {
                     if (Cmr.isNotEmpty) {
-                      ShowInvoiceCmr(context, Cmr, _loadOrder, order.orderId);
-                    } else {
-                      print("Cmr update for order ${order.orderId}");
+                      ShowInvoiceCmr(context, Cmr, _loadOrder, order.orderId,
+                          widget.myRoutesPage);
+                    } else if (widget.myRoutesPage == false) {
                       updateCmr(context, order.orderId, _loadOrder);
                     }
                   },
@@ -909,8 +948,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () =>
-                  updatePalets(context, order.orderId, _loadOrder, order),
+              onTap: () => updatePalets(context, order.orderId, _loadOrder,
+                  order, widget.myRoutesPage),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -951,8 +990,10 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           const SizedBox(width: 12.0),
           Expanded(
             child: GestureDetector(
-              onTap: () =>
-                  updateCrates(context, order.orderId, _loadOrder, order),
+              onTap: () => {
+                updateCrates(context, order.orderId, _loadOrder, order,
+                    widget.myRoutesPage)
+              },
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -1073,252 +1114,309 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
     );
   }
 
-  void showCompanyDetails(BuildContext context, Company company) {
+  void showCompanyDetails(BuildContext context, Company company) async {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+    try {
+      final companyData = await deliveryService.getPartnerDetails(company.id);
+      print(companyData);
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with Company Name and Icon
-                  Row(
-                    children: [
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with Company Name and Icon
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.business,
+                            size: isSmallScreen ? 24 : 30,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            companyData['name'] ?? '',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 20.0 : 24.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Photos Gallery Section
+                    if ((companyData['photos'] as List?)?.isNotEmpty ??
+                        false) ...[
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        height: 200,
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        child: Icon(
-                          Icons.business,
-                          size: isSmallScreen ? 24 : 30,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          company.companyName,
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 20.0 : 24.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: (companyData['photos'] as List).length,
+                            itemBuilder: (context, index) {
+                              String photoUrl =
+                                  'https://vinczefi.com/foodexim/' +
+                                      companyData['photos'][index];
+                              return GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Dialog(
+                                        backgroundColor: Colors.transparent,
+                                        insetPadding: EdgeInsets.zero,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            InteractiveViewer(
+                                              panEnabled: true,
+                                              boundaryMargin:
+                                                  EdgeInsets.all(20),
+                                              minScale: 0.5,
+                                              maxScale: 4,
+                                              child: Image.network(
+                                                photoUrl,
+                                                fit: BoxFit.contain,
+                                                loadingBuilder: (context, child,
+                                                    loadingProgress) {
+                                                  if (loadingProgress == null)
+                                                    return child;
+                                                  return Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      value: loadingProgress
+                                                                  .expectedTotalBytes !=
+                                                              null
+                                                          ? loadingProgress
+                                                                  .cumulativeBytesLoaded /
+                                                              loadingProgress
+                                                                  .expectedTotalBytes!
+                                                          : null,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            Positioned(
+                                              right: 8,
+                                              top: 8,
+                                              child: IconButton(
+                                                icon: Container(
+                                                  padding: EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(Icons.close,
+                                                      color: Colors.white),
+                                                ),
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Container(
+                                  width: 160,
+                                  margin: EdgeInsets.only(right: 8),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      photoUrl,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
                     ],
-                  ),
-                  const SizedBox(height: 20),
 
-                  // Photos Gallery Section - UPDATED
-                  if (company.photos.isNotEmpty) ...[
+                    // Contact Information Section
                     Container(
-                      height: 200,
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: company.photos.length,
-                          itemBuilder: (context, index) {
-                            String photoData = company.photos[index];
-                            return GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return Dialog(
-                                      backgroundColor: Colors.transparent,
-                                      insetPadding: EdgeInsets.zero,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          InteractiveViewer(
-                                            panEnabled: true,
-                                            boundaryMargin: EdgeInsets.all(20),
-                                            minScale: 0.5,
-                                            maxScale: 4,
-                                            child: _buildPhotoWidget(photoData),
-                                          ),
-                                          Positioned(
-                                            right: 8,
-                                            top: 8,
-                                            child: IconButton(
-                                              icon: Container(
-                                                padding: EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withOpacity(0.5),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Icon(Icons.close,
-                                                    color: Colors.white),
-                                              ),
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (companyData['address']?.isNotEmpty ?? false)
+                            GestureDetector(
+                              onTap: () async {
+                                final address =
+                                    companyData['coordinates']?.isNotEmpty ??
+                                            false
+                                        ? companyData['coordinates']
+                                        : companyData['address'];
+                                final Uri launchUri = Uri(
+                                  scheme: 'geo',
+                                  path: '0,0',
+                                  queryParameters: {'q': address},
                                 );
+                                try {
+                                  await launchUrl(launchUri);
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Could not open Google Maps.')),
+                                    );
+                                  }
+                                }
                               },
                               child: Container(
-                                width: 160,
-                                margin: EdgeInsets.only(right: 8),
-                                child: ClipRRect(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8),
-                                  child: _buildPhotoWidget(
-                                    photoData,
-                                    width: 160,
-                                    height: 184,
-                                  ),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Company Info Container
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (company.address.isNotEmpty)
-                          GestureDetector(
-                            onTap: () async {
-                              final address = company.coordinates.isNotEmpty
-                                  ? company.coordinates
-                                  : company.address;
-                              final Uri launchUri = Uri(
-                                scheme: 'geo',
-                                path: '0,0',
-                                queryParameters: {'q': address},
-                              );
-                              try {
-                                await launchUrl(launchUri);
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Could not open Google Maps.')),
-                                  );
-                                }
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.location_on,
-                                      color: Colors.blue.shade700),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      company.address,
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                                        color: Colors.blue.shade700,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.location_on,
+                                        color: Colors.blue.shade700),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        companyData['address'] ?? '',
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                                          color: Colors.blue.shade700,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        if (company.telephone.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () => openDialer(context, company.telephone),
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.phone,
-                                      color: Colors.green.shade700),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    company.telephone,
-                                    style: TextStyle(
-                                      fontSize: isSmallScreen ? 14.0 : 16.0,
-                                      color: Colors.green.shade700,
+                          if (companyData['telephone']?.isNotEmpty ??
+                              false) ...[
+                            const SizedBox(height: 12),
+                            GestureDetector(
+                              onTap: () =>
+                                  openDialer(context, companyData['telephone']),
+                              child: Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.phone,
+                                        color: Colors.green.shade700),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      companyData['telephone'] ?? '',
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14.0 : 16.0,
+                                        color: Colors.green.shade700,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ),
-
-                  // Contact People Section
-                  if (company.contactPeople.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      Globals.getText('orderDeliveryContact'),
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 16.0 : 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ...company.contactPeople.map((contact) => Padding(
+
+                    // Contact People Section
+                    if (companyData['contact_people'] is List &&
+                        companyData['contact_people'].isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        Globals.getText('orderDeliveryContact'),
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 16.0 : 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(
+                        companyData['contact_people'].length,
+                        (index) => Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
                           child: GestureDetector(
-                            onTap: () =>
-                                openDialer(context, contact['telephone'] ?? ''),
+                            onTap: () => openDialer(
+                                context,
+                                companyData['contact_people'][index]
+                                    ['telephone']),
                             child: Container(
                               padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -1344,7 +1442,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          contact['name'] ?? '',
+                                          companyData['contact_people'][index]
+                                              ['name'],
                                           style: TextStyle(
                                             fontSize:
                                                 isSmallScreen ? 14.0 : 16.0,
@@ -1352,7 +1451,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                           ),
                                         ),
                                         Text(
-                                          contact['telephone'] ?? '',
+                                          companyData['contact_people'][index]
+                                              ['telephone'],
                                           style: TextStyle(
                                             fontSize:
                                                 isSmallScreen ? 12.0 : 14.0,
@@ -1368,339 +1468,284 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                               ),
                             ),
                           ),
-                        )),
-                  ],
-
-                  // Details Section
-                  if (company.details.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.yellow.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.yellow.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: Colors.amber.shade700,
-                                size: isSmallScreen ? 20 : 24,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                '${Globals.getText('companyNotesTitle')}:',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 16.0 : 18.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            company.details,
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 14.0 : 16.0,
-                              color: Colors.grey.shade800,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 20),
-                  // Close Button
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.blue.shade800,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        '${Globals.getText('orderClose')}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isSmallScreen ? 14.0 : 16.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void showWarehouseDetails(BuildContext context, Warehouse warehouse) {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 600;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with Warehouse Name and Icon
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.warehouse,
-                          size: isSmallScreen ? 24 : 30,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          warehouse.warehouseName,
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 20.0 : 24.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
-                          ),
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
 
-                  // Photos Gallery Section - UPDATED TO SUPPORT BASE64
-                  if (warehouse.photos.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    // Close Button
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.blue.shade800,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderClose')}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading company details: $e')),
+      );
+    }
+  }
+
+  void showWarehouseDetails(BuildContext context, Warehouse warehouse) async {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
+    try {
+      final warehouseData =
+          await deliveryService.getWarehouseDetails(warehouse.id);
+      print(warehouseData);
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.warehouse,
+                            size: isSmallScreen ? 24 : 30,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            warehouseData['name'] ?? '',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 20.0 : 24.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Photo Gallery Section
+                    if ((warehouseData['photos'] as List?)?.isNotEmpty ??
+                        false) ...[
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: (warehouseData['photos'] as List).length,
+                            itemBuilder: (context, index) {
+                              String photoUrl =
+                                  'https://vinczefi.com/foodexim/' +
+                                      warehouseData['photos'][index];
+                              return GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Dialog(
+                                        backgroundColor: Colors.transparent,
+                                        insetPadding: EdgeInsets.zero,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            InteractiveViewer(
+                                              panEnabled: true,
+                                              boundaryMargin:
+                                                  EdgeInsets.all(20),
+                                              minScale: 0.5,
+                                              maxScale: 4,
+                                              child: Image.network(
+                                                photoUrl,
+                                                fit: BoxFit.contain,
+                                                loadingBuilder: (context, child,
+                                                    loadingProgress) {
+                                                  if (loadingProgress == null)
+                                                    return child;
+                                                  return Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            Positioned(
+                                              right: 8,
+                                              top: 8,
+                                              child: IconButton(
+                                                icon: Container(
+                                                  padding: EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(Icons.close,
+                                                      color: Colors.white),
+                                                ),
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Container(
+                                  width: 160,
+                                  margin: EdgeInsets.only(right: 8),
+                                  child: Image.network(
+                                    photoUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Address Section
                     Container(
-                      height: 200,
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: warehouse.photos.length,
-                          itemBuilder: (context, index) {
-                            String photoData = warehouse.photos[index];
-                            return GestureDetector(
-                              onTap: () {
-                                // Show full screen photo
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return Dialog(
-                                      backgroundColor: Colors.transparent,
-                                      insetPadding: EdgeInsets.zero,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          InteractiveViewer(
-                                            panEnabled: true,
-                                            boundaryMargin: EdgeInsets.all(20),
-                                            minScale: 0.5,
-                                            maxScale: 4,
-                                            child: _buildPhotoWidget(photoData),
-                                          ),
-                                          Positioned(
-                                            right: 8,
-                                            top: 8,
-                                            child: IconButton(
-                                              icon: Container(
-                                                padding: EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withOpacity(0.5),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: Icon(Icons.close,
-                                                    color: Colors.white),
-                                              ),
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                              child: Container(
-                                width: 160,
-                                margin: EdgeInsets.only(right: 8),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: _buildPhotoWidget(
-                                    photoData,
-                                    width: 160,
-                                    height: 184,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Address and Phone Section
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        // Address
-                        GestureDetector(
-                          onTap: () async {
-                            final address =
-                                warehouse.coordinates?.isNotEmpty ?? false
-                                    ? warehouse.coordinates!
-                                    : warehouse.warehouseAddress;
-                            final Uri launchUri = Uri(
-                              scheme: 'geo',
-                              path: '0,0',
-                              queryParameters: {'q': address},
-                            );
-                            try {
-                              await launchUrl(launchUri);
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Could not open Google Maps.')),
-                                );
-                              }
+                      child: GestureDetector(
+                        onTap: () async {
+                          final address =
+                              warehouseData['coordinates']?.isNotEmpty ?? false
+                                  ? warehouseData['coordinates']
+                                  : warehouseData['address'];
+                          final Uri launchUri = Uri(
+                            scheme: 'geo',
+                            path: '0,0',
+                            queryParameters: {'q': address},
+                          );
+                          try {
+                            await launchUrl(launchUri);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Could not open Google Maps.')),
+                              );
                             }
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.location_on,
-                                    color: Colors.blue.shade700),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    warehouse.warehouseAddress,
-                                    style: TextStyle(
-                                      fontSize: isSmallScreen ? 14.0 : 16.0,
-                                      color: Colors.blue.shade700,
-                                    ),
-                                  ),
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.location_on,
+                                color: Colors.blue.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                warehouseData['address'] ?? '',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 14.0 : 16.0,
+                                  color: Colors.blue.shade700,
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-
-                        // Phone Number (if available)
-                        if (warehouse.telephone.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () =>
-                                openDialer(context, warehouse.telephone),
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.phone,
-                                      color: Colors.green.shade700),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    warehouse.telephone,
-                                    style: TextStyle(
-                                      fontSize: isSmallScreen ? 14.0 : 16.0,
-                                      color: Colors.green.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Contact People Section
-                  if (warehouse.contactPeople.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      Globals.getText('orderDeliveryContact'),
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 16.0 : 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ...warehouse.contactPeople.map((contact) => Padding(
+
+                    // Contact People Section
+                    if (warehouseData['contact_people'] is List &&
+                        warehouseData['contact_people'].isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        Globals.getText('orderDeliveryContact'),
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 16.0 : 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(
+                        warehouseData['contact_people'].length,
+                        (index) => Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
                           child: GestureDetector(
-                            onTap: () =>
-                                openDialer(context, contact['telephone'] ?? ''),
+                            onTap: () => openDialer(
+                                context,
+                                warehouseData['contact_people'][index]
+                                    ['telephone']),
                             child: Container(
                               padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -1726,23 +1771,23 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          contact['name'] ?? '',
+                                          warehouseData['contact_people'][index]
+                                              ['name'],
                                           style: TextStyle(
                                             fontSize:
                                                 isSmallScreen ? 14.0 : 16.0,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        if (contact['telephone']?.isNotEmpty ??
-                                            false)
-                                          Text(
-                                            contact['telephone']!,
-                                            style: TextStyle(
-                                              fontSize:
-                                                  isSmallScreen ? 12.0 : 14.0,
-                                              color: Colors.blue.shade700,
-                                            ),
+                                        Text(
+                                          warehouseData['contact_people'][index]
+                                              ['telephone'],
+                                          style: TextStyle(
+                                            fontSize:
+                                                isSmallScreen ? 12.0 : 14.0,
+                                            color: Colors.blue.shade700,
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1752,110 +1797,91 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                               ),
                             ),
                           ),
-                        )),
-                  ],
-
-                  const SizedBox(height: 20),
-
-                  // Close Button
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.blue.shade800,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Text(
-                        '${Globals.getText('orderClose')}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                    ],
+
+                    // Details Section
+                    if (warehouseData['details']?.isNotEmpty ?? false) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.yellow.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: Colors.amber.shade700,
+                                  size: isSmallScreen ? 20 : 24,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  '${Globals.getText('companyNotesTitle')}:',
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 16.0 : 18.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              warehouseData['details'],
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14.0 : 16.0,
+                                color: Colors.grey.shade800,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.blue.shade800,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '${Globals.getText('orderClose')}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPhotoWidget(String photoData, {double? width, double? height}) {
-    // Check if photoData is base64 or URL
-    if (photoData.startsWith('data:image') || !photoData.startsWith('http')) {
-      // It's base64 data
-      try {
-        // Remove data:image/jpeg;base64, prefix if present
-        String base64String = photoData;
-        if (photoData.contains(',')) {
-          base64String = photoData.split(',').last;
-        }
-
-        final bytes = base64Decode(base64String);
-        return Image.memory(
-          bytes,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: width,
-              height: height,
-              color: Colors.grey.shade200,
-              child: Icon(Icons.error, color: Colors.grey.shade600),
-            );
-          },
-        );
-      } catch (e) {
-        debugPrint('Error loading base64 image: $e');
-        return Container(
-          width: width,
-          height: height,
-          color: Colors.grey.shade200,
-          child: Icon(Icons.error, color: Colors.grey.shade600),
-        );
-      }
-    } else {
-      // It's a URL
-      String photoUrl = photoData;
-      if (!photoUrl.startsWith('http')) {
-        photoUrl = 'https://vinczefi.com/foodexim/' + photoData;
-      }
-
-      return Image.network(
-        photoUrl,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
           );
         },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: width,
-            height: height,
-            color: Colors.grey.shade200,
-            child: Icon(Icons.error, color: Colors.grey.shade600),
-          );
-        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading warehouse details: $e')),
       );
     }
   }
@@ -1870,6 +1896,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       orElse: () => Warehouse(
         warehouseName: 'Unknown',
         warehouseAddress: 'N/A',
+        warehouseLocation: 'N/A',
         type: 'pickup',
         coordinates: 'N/A',
         id: 0,
@@ -1881,6 +1908,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       orElse: () => Warehouse(
         warehouseName: 'Unknown',
         warehouseAddress: 'N/A',
+        warehouseLocation: 'N/A',
         type: 'delivery',
         coordinates: 'N/A',
         id: 0,
@@ -1927,8 +1955,7 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         // Handle the navigation back with order refresh
-        final startDate = Globals.startDate;
-        final endDate = Globals.endDate;
+
         Globals.clearRouteDates();
 
         if (widget.myRoutesPage != null && widget.myRoutesPage!) {
@@ -1936,8 +1963,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
             context,
             MaterialPageRoute(
               builder: (context) => MyRoutesPage(
-                startDate: startDate ?? DateTime.now(),
-                endDate: endDate ?? DateTime.now(),
+                startDate: widget.startDateRoutes ?? DateTime.now(),
+                endDate: widget.endDateRoutes ?? DateTime.now(),
               ),
             ),
           );
@@ -1954,8 +1981,6 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              final startDate = Globals.startDate;
-              final endDate = Globals.endDate;
               Globals.clearRouteDates();
 
               if (widget.myRoutesPage != null && widget.myRoutesPage!) {
@@ -1963,8 +1988,8 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MyRoutesPage(
-                      startDate: startDate ?? DateTime.now(),
-                      endDate: endDate ?? DateTime.now(),
+                      startDate: widget.startDateRoutes ?? DateTime.now(),
+                      endDate: widget.endDateRoutes ?? DateTime.now(),
                     ),
                   ),
                 );
@@ -2064,43 +2089,12 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black),
                                     ),
-                                    GestureDetector(
-                                      onTap: () async {
-                                        // Use coordinates if available, otherwise use address
-                                        final address =
-                                            pickupWarehouse.coordinates != 'N/A'
-                                                ? pickupWarehouse.coordinates
-                                                : pickupWarehouse
-                                                    .warehouseAddress;
-
-                                        final Uri launchUri = Uri(
-                                          scheme: 'geo',
-                                          path: '0,0',
-                                          queryParameters: {'q': address},
-                                        );
-
-                                        try {
-                                          await launchUrl(launchUri);
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      'Could not open Google Maps.')),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: Text(
-                                        pickupWarehouse.warehouseAddress,
-                                        style: TextStyle(
-                                          fontSize: isSmallScreen ? 16.0 : 18.0,
-                                          color: Colors
-                                              .black, // Change color to indicate it's tappable
-                                          decoration: TextDecoration
-                                              .none, // Add underline to show it's clickable
-                                        ),
+                                    Text(
+                                      ("${pickupWarehouse.warehouseName} (${pickupWarehouse.warehouseAddress})"),
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 16.0 : 18.0,
+                                        color: Colors.black,
+                                        decoration: TextDecoration.none,
                                       ),
                                     ),
                                   ],
@@ -2306,44 +2300,12 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black),
                                     ),
-                                    GestureDetector(
-                                      onTap: () async {
-                                        final address =
-                                            deliveryWarehouse.coordinates !=
-                                                    'N/A'
-                                                ? deliveryWarehouse.coordinates
-                                                : deliveryWarehouse
-                                                    .warehouseAddress;
-
-                                        final Uri launchUri = Uri(
-                                          scheme: 'geo',
-                                          path: '0,0',
-                                          queryParameters: {'q': address},
-                                        );
-
-                                        try {
-                                          await launchUrl(launchUri);
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      'Could not open Google Maps.')),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: Text(
-                                        deliveryWarehouse.warehouseAddress,
-                                        style: TextStyle(
-                                            fontSize:
-                                                isSmallScreen ? 16.0 : 18.0,
-                                            color: Colors
-                                                .black, // Change color to indicate it's tappable
-                                            decoration: TextDecoration
-                                                .none // Add underline to show it's clickable
-                                            ),
+                                    Text(
+                                      ("${deliveryWarehouse.warehouseName} (${deliveryWarehouse.warehouseAddress})"),
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 16.0 : 18.0,
+                                        color: Colors.black,
+                                        decoration: TextDecoration.none,
                                       ),
                                     ),
                                   ],
@@ -2517,51 +2479,27 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                               order.invoice, order.cmr, isSmallScreen),
 
                           //CONTAINERS
-
-                          const SizedBox(height: 16),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border:
-                                  Border.all(color: Colors.black, width: 1.0),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: () => updatePhotos(
-                                      context, order.orderId, _loadOrder),
-                                  icon: Icon(Icons.camera_alt,
-                                      color: Colors.white),
-                                  label: Text(
-                                    '${Globals.getText('orderUploadPhoto')}',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 1, 160, 226),
-                                    minimumSize: Size(double.infinity,
-                                        isSmallScreen ? 44 : 48),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                if (order.existsPhotos) ...[
+                          if (widget.myRoutesPage != true) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border:
+                                    Border.all(color: Colors.black, width: 1.0),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   ElevatedButton.icon(
-                                    onPressed: () {
-                                      openPhotos(
-                                          context, order.orderId, _loadOrder);
-                                      print(order.existsPhotos);
-                                    },
-                                    icon: Icon(Icons.photo_library,
+                                    onPressed: () => updatePhotos(
+                                        context, order.orderId, _loadOrder),
+                                    icon: Icon(Icons.camera_alt,
                                         color: Colors.white),
                                     label: Text(
-                                      '${Globals.getText('orderPrewviewPhoto')}',
+                                      '${Globals.getText('orderUploadPhoto')}',
                                       style: TextStyle(color: Colors.white),
                                     ),
                                     style: ElevatedButton.styleFrom(
@@ -2574,19 +2512,45 @@ class _DeliveryInfoState extends State<DeliveryInfo> {
                                       ),
                                     ),
                                   ),
-                                ]
-                              ],
+                                  SizedBox(height: 10),
+                                  if (order.existsPhotos) ...[
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        openPhotos(
+                                            context, order.orderId, _loadOrder);
+                                        print(order.existsPhotos);
+                                      },
+                                      icon: Icon(Icons.photo_library,
+                                          color: Colors.white),
+                                      label: Text(
+                                        '${Globals.getText('orderPrewviewPhoto')}',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 1, 160, 226),
+                                        minimumSize: Size(double.infinity,
+                                            isSmallScreen ? 44 : 48),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ]
+                                ],
+                              ),
                             ),
-                          ),
 
-                          //DELIVER/PICKUP BUTTON
-                          if (Globals.vehicleID != null) ...[
-                            if (order.pickedUp == '0000-00-00 00:00:00' ||
-                                order.delivered == '0000-00-00 00:00:00') ...[
-                              const SizedBox(height: 16),
-                              _buildActionButton(context, isSmallScreen),
+                            //DELIVER/PICKUP BUTTON
+                            if (Globals.vehicleID != null) ...[
+                              if (order.pickedUp == '0000-00-00 00:00:00' ||
+                                  order.delivered == '0000-00-00 00:00:00') ...[
+                                const SizedBox(height: 16),
+                                _buildActionButton(context, isSmallScreen),
+                              ]
                             ]
-                          ]
+                          ],
                         ],
                       ),
                     ),
@@ -2839,11 +2803,10 @@ void openNotes(BuildContext context, String notes) {
 }
 
 void showUitEkr(BuildContext context, String? uit, String? ekr, int orderId,
-    Function reloadPage) {
+    Function reloadPage, bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
 
-  // Determine which value to show
   String? valueToShow;
   String labelToShow;
   if (uit != null && uit.isNotEmpty) {
@@ -2912,34 +2875,36 @@ void showUitEkr(BuildContext context, String? uit, String? ekr, int orderId,
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      if (uit != null && uit.isNotEmpty) {
-                        updateUit(context, orderId, reloadPage);
-                      } else {
-                        updateEkr(context, orderId, reloadPage);
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 20 : 24,
-                        vertical: isSmallScreen ? 10 : 12,
+                  if (myRoutesPage == false) ...[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        if (uit != null && uit.isNotEmpty) {
+                          updateUit(context, orderId, reloadPage, false);
+                        } else {
+                          updateEkr(context, orderId, reloadPage, false);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 20 : 24,
+                          vertical: isSmallScreen ? 10 : 12,
+                        ),
+                        backgroundColor: Colors.blue.shade50,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      backgroundColor: Colors.blue.shade50,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      child: Text(
+                        'Edit',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14.0 : 16.0,
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      'Edit',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14.0 : 16.0,
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+                  ],
                   const SizedBox(width: 12),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -2973,7 +2938,7 @@ void showUitEkr(BuildContext context, String? uit, String? ekr, int orderId,
 }
 
 void ShowInvoiceCmr(BuildContext context, String relativePdfUrl,
-    Function reloadPage, int orderId) async {
+    Function reloadPage, int orderId, bool? myRoutesPage) async {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   // Show loading dialog immediately
@@ -3102,34 +3067,36 @@ void ShowInvoiceCmr(BuildContext context, String relativePdfUrl,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          if (documentType == 'Invoice') {
-                            updateInvoice(context, orderId, reloadPage);
-                          } else {
-                            updateCmr(context, orderId, reloadPage);
-                          }
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 20 : 24,
-                            vertical: isSmallScreen ? 10 : 12,
+                      if (myRoutesPage == false) ...[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            if (documentType == 'Invoice') {
+                              updateInvoice(context, orderId, reloadPage);
+                            } else {
+                              updateCmr(context, orderId, reloadPage);
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 20 : 24,
+                              vertical: isSmallScreen ? 10 : 12,
+                            ),
+                            backgroundColor: Colors.blue.shade50,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          backgroundColor: Colors.blue.shade50,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          child: Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 14.0 : 16.0,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          'Edit',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14.0 : 16.0,
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      ],
                       const SizedBox(width: 12),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -3191,7 +3158,8 @@ void ShowInvoiceCmr(BuildContext context, String relativePdfUrl,
   }
 }
 
-void updateUit(BuildContext context, int orderId, Function reloadPage) {
+void updateUit(BuildContext context, int orderId, Function reloadPage,
+    bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? newUit;
@@ -3251,6 +3219,7 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  //if (widget.my)
                   ElevatedButton(
                     onPressed: () async {
                       if (newUit?.isNotEmpty ?? false) {
@@ -3292,7 +3261,8 @@ void updateUit(BuildContext context, int orderId, Function reloadPage) {
   );
 }
 
-void updateEkr(BuildContext context, int orderId, Function reloadPage) {
+void updateEkr(BuildContext context, int orderId, Function reloadPage,
+    bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? newEkr;
@@ -4235,8 +4205,8 @@ void openPhotos(BuildContext context, int orderId, Function reloadPage) async {
   }
 }
 
-void updateCrates(
-    BuildContext context, int orderId, Function reloadPage, Order order) {
+void updateCrates(BuildContext context, int orderId, Function reloadPage,
+    Order order, bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? selectedCrateType;
@@ -4335,29 +4305,76 @@ void updateCrates(
                   const SizedBox(height: 24),
 
                   // Form Container
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        if (isLoading)
-                          const Center(child: CircularProgressIndicator())
-                        else if (crateTypes.isEmpty)
-                          Center(
-                            child: Text(
-                              'No crate types available',
-                              style: TextStyle(color: Colors.grey.shade600),
+                  if (myRoutesPage == false) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          if (isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else if (crateTypes.isEmpty)
+                            Center(
+                              child: Text(
+                                'No crate types available',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            )
+                          else
+                            DropdownButtonFormField<String>(
+                              value: selectedCrateType,
+                              hint: Text(Globals.getText('orderCratesType')),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                              ),
+                              items: crateTypes.map((type) {
+                                return DropdownMenuItem(
+                                  value: type['id'].toString(),
+                                  child: Text(type['name']),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedCrateType = value;
+                                  // Find matching existing crate and set quantity
+                                  if (value != null) {
+                                    final existingCrate =
+                                        existingCrates.firstWhere(
+                                      (crate) => crate.id.toString() == value,
+                                      orElse: () => CollectionUnit(
+                                          id: 0,
+                                          type: '',
+                                          name: '',
+                                          quantity: 0),
+                                    );
+                                    if (existingCrate.id != 0) {
+                                      // Check if we found a real crate
+                                      crateQuantity = existingCrate.quantity;
+                                      crateQuantityController.text =
+                                          crateQuantity.toString();
+                                    } else {
+                                      crateQuantity = 0;
+                                      crateQuantityController.text = '';
+                                    }
+                                  }
+                                });
+                              },
                             ),
-                          )
-                        else
-                          DropdownButtonFormField<String>(
-                            value: selectedCrateType,
-                            hint: Text(Globals.getText('orderCratesType')),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: crateQuantityController,
                             decoration: InputDecoration(
+                              labelText: Globals.getText('orderCratesQuantity'),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -4366,57 +4383,15 @@ void updateCrates(
                                     BorderSide(color: Colors.grey.shade300),
                               ),
                             ),
-                            items: crateTypes.map((type) {
-                              return DropdownMenuItem(
-                                value: type['id'].toString(),
-                                child: Text(type['name']),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedCrateType = value;
-                                // Find matching existing crate and set quantity
-                                if (value != null) {
-                                  final existingCrate =
-                                      existingCrates.firstWhere(
-                                    (crate) => crate.id.toString() == value,
-                                    orElse: () => CollectionUnit(
-                                        id: 0, type: '', name: '', quantity: 0),
-                                  );
-                                  if (existingCrate.id != 0) {
-                                    // Check if we found a real crate
-                                    crateQuantity = existingCrate.quantity;
-                                    crateQuantityController.text =
-                                        crateQuantity.toString();
-                                  } else {
-                                    crateQuantity = 0;
-                                    crateQuantityController.text = '';
-                                  }
-                                }
-                              });
-                            },
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) => setState(
+                                () => crateQuantity = int.tryParse(value) ?? 0),
                           ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: crateQuantityController,
-                          decoration: InputDecoration(
-                            labelText: Globals.getText('orderCratesQuantity'),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) => setState(
-                              () => crateQuantity = int.tryParse(value) ?? 0),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Current Value Display
                   if (existingCrates.isNotEmpty) ...[
@@ -4485,57 +4460,72 @@ void updateCrates(
                           ),
                         ),
                         child: Text(
-                          Globals.getText('orderCancel'),
-                          style: TextStyle(color: Colors.grey.shade700),
+                          () {
+                            if (myRoutesPage == true) {
+                              return '${Globals.getText('orderClose')}';
+                            } else {
+                              return '${Globals.getText('orderCancel')}';
+                            }
+                          }(),
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: (selectedCrateType == null ||
-                                crateQuantity <= 0)
-                            ? null
-                            : () async {
-                                try {
-                                  await DeliveryService().updateCrates(
-                                    orderId,
-                                    crateQuantity,
-                                    selectedCrateType!,
-                                  );
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(Globals.getText(
-                                            'orderCratesUpdateSuccess')),
-                                      ),
+                      if (myRoutesPage == false) ...[
+                        ElevatedButton(
+                          onPressed: (selectedCrateType == null ||
+                                  crateQuantity <= 0)
+                              ? null
+                              : () async {
+                                  try {
+                                    await DeliveryService().updateCrates(
+                                      orderId,
+                                      crateQuantity,
+                                      selectedCrateType!,
                                     );
-                                    reloadPage();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(Globals.getText(
+                                              'orderCratesUpdateSuccess')),
+                                        ),
+                                      );
+                                      reloadPage();
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Error: ${e.toString()}'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
                                   }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Error: ${e.toString()}'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 1, 160, 226),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            Globals.getText('orderUpdate'),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
-                        child: Text(
-                          Globals.getText('orderUpdate'),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ],
@@ -4554,16 +4544,16 @@ void updateProductDetails(
     String productName,
     int orderId,
     Function reloadPage,
-    int currentCollection,
-    double currentQuantity) {
+    int currentCollectionQuantity,
+    double currentQuantity,
+    bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
 
-  // Controllers for the input fields
   TextEditingController quantityController =
       TextEditingController(text: currentQuantity.toString());
-  TextEditingController collectionController =
-      TextEditingController(text: currentCollection.toString());
+  TextEditingController collectionControllerQuantity =
+      TextEditingController(text: currentCollectionQuantity.toString());
 
   String? selectedContainerType;
   List<Map<String, dynamic>> containerTypes = [];
@@ -4576,7 +4566,6 @@ void updateProductDetails(
           .getCollectionUnits('crate', productId.toString());
       setState(() {
         containerTypes = types;
-        // Autofill with first element if available
         if (types.isNotEmpty) {
           selectedContainerType = types[0]['id'].toString();
         }
@@ -4616,9 +4605,9 @@ void updateProductDetails(
               final double receivedQuantity =
                   double.tryParse(quantityController.text) ?? currentQuantity;
               final int collectionQuantity =
-                  int.tryParse(collectionController.text) ?? currentCollection;
+                  int.tryParse(collectionControllerQuantity.text) ??
+                      currentCollectionQuantity;
 
-              // First try to update the collection/container if needed
               if (selectedContainerType != null) {
                 try {
                   await DeliveryService().updateProductCollection(
@@ -4629,11 +4618,9 @@ void updateProductDetails(
                   );
                   updatedSomething = true;
                 } catch (e) {
-                  // If collection update fails but it's not the only update, continue
                   if (receivedQuantity == currentQuantity) {
-                    throw e; // Rethrow if this is the only update
+                    throw e;
                   }
-                  // Otherwise log and continue with quantity update
                   print('Warning: Collection update failed: $e');
                 }
               }
@@ -4744,7 +4731,6 @@ void updateProductDetails(
                       ),
                       const SizedBox(height: 24),
 
-                      // Form fields container
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -4755,7 +4741,6 @@ void updateProductDetails(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Container unit selection
                             if (isLoading)
                               Center(child: CircularProgressIndicator())
                             else if (containerTypes.isEmpty)
@@ -4781,9 +4766,12 @@ void updateProductDetails(
                                   DropdownButtonFormField<String>(
                                     value: selectedContainerType,
                                     hint: Text('Select container type'),
+                                    style: TextStyle(color: Colors.black),
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: Colors.white,
+                                      fillColor: myRoutesPage == true
+                                          ? Colors.grey.shade200
+                                          : Colors.white,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                         borderSide: BorderSide(
@@ -4793,21 +4781,27 @@ void updateProductDetails(
                                     items: containerTypes.map((type) {
                                       return DropdownMenuItem(
                                         value: type['id'].toString(),
-                                        child: Text(type['name']),
+                                        child: Text(
+                                          type['name'],
+                                          style: TextStyle(
+                                            color: myRoutesPage == true
+                                                ? Colors.black
+                                                : null,
+                                          ),
+                                        ),
                                       );
                                     }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedContainerType = value;
-                                      });
-                                    },
+                                    onChanged: myRoutesPage == true
+                                        ? null
+                                        : (value) {
+                                            setState(() {
+                                              selectedContainerType = value;
+                                            });
+                                          },
                                   ),
                                 ],
                               ),
-
                             SizedBox(height: 16),
-
-                            // Collection quantity input
                             Text(
                               '${Globals.getText('collection_unit')} ${Globals.getText('productTableQuantity')}:',
                               style: TextStyle(
@@ -4818,25 +4812,32 @@ void updateProductDetails(
                             ),
                             SizedBox(height: 8),
                             TextField(
-                              controller: collectionController,
+                              controller: collectionControllerQuantity,
                               keyboardType: TextInputType.number,
+                              enabled: myRoutesPage != true,
+                              style: TextStyle(
+                                color:
+                                    myRoutesPage == true ? Colors.black : null,
+                              ),
                               decoration: InputDecoration(
-                                hintText: 'Enter collection quantity',
+                                hintText: myRoutesPage == true
+                                    ? 'View only'
+                                    : 'Enter collection quantity',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: myRoutesPage == true
+                                    ? Colors.grey.shade200
+                                    : Colors.white,
                               ),
-                              // Add onSubmitted to support keyboard update
-                              onSubmitted: (_) {
-                                processUpdate();
-                              },
+                              onSubmitted: myRoutesPage == true
+                                  ? null
+                                  : (_) {
+                                      processUpdate();
+                                    },
                             ),
-
                             SizedBox(height: 16),
-
-                            // Received quantity input
                             Text(
                               '${Globals.getText('order_received')} (kg):',
                               style: TextStyle(
@@ -4850,18 +4851,28 @@ void updateProductDetails(
                               controller: quantityController,
                               keyboardType: TextInputType.numberWithOptions(
                                   decimal: true),
+                              enabled: myRoutesPage != true,
+                              style: TextStyle(
+                                color:
+                                    myRoutesPage == true ? Colors.black : null,
+                              ),
                               decoration: InputDecoration(
-                                hintText: 'Enter received quantity',
+                                hintText: myRoutesPage == true
+                                    ? 'View only'
+                                    : 'Enter received quantity',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: myRoutesPage == true
+                                    ? Colors.grey.shade200
+                                    : Colors.white,
                               ),
-                              // Add onSubmitted to support keyboard update
-                              onSubmitted: (_) {
-                                processUpdate();
-                              },
+                              onSubmitted: myRoutesPage == true
+                                  ? null
+                                  : (_) {
+                                      processUpdate();
+                                    },
                             ),
                           ],
                         ),
@@ -4874,7 +4885,6 @@ void updateProductDetails(
                         children: [
                           TextButton(
                             onPressed: () {
-                              // Dismiss keyboard before closing dialog
                               FocusScope.of(context).unfocus();
                               Navigator.of(context).pop();
                             },
@@ -4889,7 +4899,13 @@ void updateProductDetails(
                               ),
                             ),
                             child: Text(
-                              '${Globals.getText('orderCancel')}',
+                              () {
+                                if (myRoutesPage == true) {
+                                  return '${Globals.getText('orderClose')}';
+                                } else {
+                                  return '${Globals.getText('orderCancel')}';
+                                }
+                              }(),
                               style: TextStyle(
                                 fontSize: isSmallScreen ? 14.0 : 16.0,
                                 color: Colors.grey.shade700,
@@ -4898,26 +4914,28 @@ void updateProductDetails(
                             ),
                           ),
                           const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: processUpdate,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 1, 160, 226),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isSmallScreen ? 20 : 24,
-                                vertical: isSmallScreen ? 10 : 12,
+                          if (myRoutesPage == false) ...{
+                            ElevatedButton(
+                              onPressed: processUpdate,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 1, 160, 226),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 20 : 24,
+                                  vertical: isSmallScreen ? 10 : 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              child: Text(
+                                '${Globals.getText('orderUpdate')}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              '${Globals.getText('orderUpdate')}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          }
                         ],
                       ),
                     ],
@@ -4932,8 +4950,8 @@ void updateProductDetails(
   );
 }
 
-void updatePalets(
-    BuildContext context, int orderId, Function reloadPage, Order order) {
+void updatePalets(BuildContext context, int orderId, Function reloadPage,
+    Order order, bool? myRoutesPage) {
   final screenSize = MediaQuery.of(context).size;
   final isSmallScreen = screenSize.width < 600;
   String? selectedPaletType;
@@ -5032,29 +5050,76 @@ void updatePalets(
                   const SizedBox(height: 24),
 
                   // Form Container
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        if (isLoading)
-                          const Center(child: CircularProgressIndicator())
-                        else if (paletTypes.isEmpty)
-                          Center(
-                            child: Text(
-                              'No pallet types available',
-                              style: TextStyle(color: Colors.grey.shade600),
+                  if (myRoutesPage == false) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          if (isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else if (paletTypes.isEmpty)
+                            Center(
+                              child: Text(
+                                'No pallet types available',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            )
+                          else
+                            DropdownButtonFormField<String>(
+                              value: selectedPaletType,
+                              hint: Text(Globals.getText('orderPaletsType')),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade300),
+                                ),
+                              ),
+                              items: paletTypes.map((type) {
+                                return DropdownMenuItem(
+                                  value: type['id'].toString(),
+                                  child: Text(type['name']),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedPaletType = value;
+                                  // Find matching existing pallet and set quantity
+                                  if (value != null) {
+                                    final existingPallet =
+                                        existingPallets.firstWhere(
+                                      (pallet) => pallet.id.toString() == value,
+                                      orElse: () => CollectionUnit(
+                                          id: 0,
+                                          type: '',
+                                          name: '',
+                                          quantity: 0),
+                                    );
+                                    if (existingPallet.id != 0) {
+                                      // Check if we found a real pallet
+                                      paletQuantity = existingPallet.quantity;
+                                      paletQuantityController.text =
+                                          paletQuantity.toString();
+                                    } else {
+                                      paletQuantity = 0;
+                                      paletQuantityController.text = '';
+                                    }
+                                  }
+                                });
+                              },
                             ),
-                          )
-                        else
-                          DropdownButtonFormField<String>(
-                            value: selectedPaletType,
-                            hint: Text(Globals.getText('orderPaletsType')),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: paletQuantityController,
                             decoration: InputDecoration(
+                              labelText: Globals.getText('orderPaletsQuantity'),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -5063,57 +5128,15 @@ void updatePalets(
                                     BorderSide(color: Colors.grey.shade300),
                               ),
                             ),
-                            items: paletTypes.map((type) {
-                              return DropdownMenuItem(
-                                value: type['id'].toString(),
-                                child: Text(type['name']),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedPaletType = value;
-                                // Find matching existing pallet and set quantity
-                                if (value != null) {
-                                  final existingPallet =
-                                      existingPallets.firstWhere(
-                                    (pallet) => pallet.id.toString() == value,
-                                    orElse: () => CollectionUnit(
-                                        id: 0, type: '', name: '', quantity: 0),
-                                  );
-                                  if (existingPallet.id != 0) {
-                                    // Check if we found a real pallet
-                                    paletQuantity = existingPallet.quantity;
-                                    paletQuantityController.text =
-                                        paletQuantity.toString();
-                                  } else {
-                                    paletQuantity = 0;
-                                    paletQuantityController.text = '';
-                                  }
-                                }
-                              });
-                            },
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) => setState(
+                                () => paletQuantity = int.tryParse(value) ?? 0),
                           ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: paletQuantityController,
-                          decoration: InputDecoration(
-                            labelText: Globals.getText('orderPaletsQuantity'),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) => setState(
-                              () => paletQuantity = int.tryParse(value) ?? 0),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Current Value Display
                   if (existingPallets.isNotEmpty) ...[
@@ -5183,57 +5206,72 @@ void updatePalets(
                           ),
                         ),
                         child: Text(
-                          Globals.getText('orderCancel'),
-                          style: TextStyle(color: Colors.grey.shade700),
+                          () {
+                            if (myRoutesPage == true) {
+                              return '${Globals.getText('orderClose')}';
+                            } else {
+                              return '${Globals.getText('orderCancel')}';
+                            }
+                          }(),
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14.0 : 16.0,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: (selectedPaletType == null ||
-                                paletQuantity <= 0)
-                            ? null
-                            : () async {
-                                try {
-                                  await DeliveryService().updatePallets(
-                                    orderId,
-                                    paletQuantity,
-                                    selectedPaletType!,
-                                  );
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(Globals.getText(
-                                            'orderPaletsUpdateSuccess')),
-                                      ),
+                      if (myRoutesPage == false) ...[
+                        ElevatedButton(
+                          onPressed: (selectedPaletType == null ||
+                                  paletQuantity <= 0)
+                              ? null
+                              : () async {
+                                  try {
+                                    await DeliveryService().updatePallets(
+                                      orderId,
+                                      paletQuantity,
+                                      selectedPaletType!,
                                     );
-                                    reloadPage();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(Globals.getText(
+                                              'orderPaletsUpdateSuccess')),
+                                        ),
+                                      );
+                                      reloadPage();
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Error: ${e.toString()}'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
                                   }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Error: ${e.toString()}'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 1, 160, 226),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 1, 160, 226),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            Globals.getText('orderUpdate'),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
-                        child: Text(
-                          Globals.getText('orderUpdate'),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
+                      ]
                     ],
                   ),
                 ],

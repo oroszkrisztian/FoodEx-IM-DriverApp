@@ -43,7 +43,7 @@ class Shift {
       startTime: DateTime.parse(json['start_time']),
       endTime: DateTime.parse(json['end_time']),
       remarks:
-          json['remarks']?.toString(), // Ensure remarks is converted to String
+          json['remarks']?.toString(), 
       orders: ordersData,
     );
   }
@@ -106,9 +106,9 @@ class Shift {
               } else {
                 // Create new collection unit
                 combinedUnits[key] = CollectionUnit(
-                    id: 1, // Default ID since it's not in the product data
+                    id: 1, 
                     type:
-                        'default', // Default type since it's not in the product data
+                        'default', 
                     name: unitName,
                     quantity: quantity);
               }

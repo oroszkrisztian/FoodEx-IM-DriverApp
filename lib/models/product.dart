@@ -8,7 +8,7 @@ class Product {
   final double productWeight;
   final int quantity;
   final double price;
-  final int collection;
+  final int collectionQuantity;
   final int ordered;
 
   Product({
@@ -19,7 +19,7 @@ class Product {
     required this.productWeight,
     required this.quantity,
     required this.price,
-    required this.collection,
+    required this.collectionQuantity,
     required this.ordered,
   });
 
@@ -33,7 +33,7 @@ class Product {
         productWeight: (json['product_weight'] as num?)?.toDouble() ?? 0.0,
         quantity: json['quantity'] ?? 0,
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
-        collection: json['collection_quantity'] ?? 0,
+        collectionQuantity: json['collection_quantity'] ?? 0,
         ordered: json['ordered'] ?? 0,
       );
     } catch (e) {
@@ -51,7 +51,7 @@ class Product {
       'product_weight': productWeight,
       'quantity': quantity,
       'price': price,
-      'collection_quantity': collection,
+      'collection_quantity': collectionQuantity,
       'ordered': ordered,
     };
   }

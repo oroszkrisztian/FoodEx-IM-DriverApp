@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foodex/ConnectionErrorPage.dart';
 import 'package:foodex/ServerUpdate.dart';
 import 'package:foodex/deliveryInfo.dart';
 import 'package:foodex/expense_log_page.dart';
@@ -30,6 +31,7 @@ import 'globals.dart';
 final defaultPickupWarehouse = Warehouse(
   warehouseName: 'Unknown Pickup Warehouse',
   warehouseAddress: 'N/A',
+  warehouseLocation: 'N/A',
   type: 'pickup',
   coordinates: 'N/A',
   id: 0,
@@ -56,6 +58,7 @@ class DriverPage extends StatefulWidget {
 
 class _DriverPageState extends State<DriverPage> {
   StreamSubscription? _ordersSubscription;
+  Timer? _connectionTimer;
   bool _isLoggedIn = false;
   bool _vehicleLoggedIn = false;
   bool hasOrders = false;
@@ -67,7 +70,9 @@ class _DriverPageState extends State<DriverPage> {
   final deliveryService = DeliveryService();
   final userService = UserService(baseUrl: 'https://vinczefi.com');
   String? errorMessage;
-  final ShorebirdCodePush _shorebirdCodePush = ShorebirdCodePush();
+  bool _hasConnection = true;
+  bool _connectionCheckedDuringInit = false;
+  bool _hasUserAndVehicleData = false;
 
   @override
   void initState() {
@@ -75,68 +80,51 @@ class _DriverPageState extends State<DriverPage> {
     _loadSavedLanguage();
     _initializeData();
     _setupOrdersListener();
+    _startConnectionMonitoring();
   }
 
   @override
   void dispose() {
     _ordersSubscription?.cancel();
+    _connectionTimer?.cancel();
     super.dispose();
   }
 
-  void _checkForUpdates() async {
-    try {
-      final isUpdateAvailable =
-          await _shorebirdCodePush.isNewPatchAvailableForDownload();
-      if (isUpdateAvailable) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(Globals.getText('newVersionAvailable')),
-            content: Text(Globals.getText('wouldYouLikeToUpdate')),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(Globals.getText('later')),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(Globals.getText('downloadingUpdate')),
-                    ),
-                  );
-                  await _shorebirdCodePush.downloadUpdateIfAvailable();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(Globals.getText('updateComplete')),
-                      ),
-                    );
-                  }
-                },
-                child: Text(Globals.getText('updateNow')),
-              ),
-            ],
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(Globals.getText('noUpdatesAvailable')),
-          ),
-        );
+  void _startConnectionMonitoring() {
+    _connectionTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (mounted) {
+        final hasConnection = await _hasInternetConnection();
+
+        final connectionRestored = !_hasConnection && hasConnection;
+
+        if (_hasConnection != hasConnection) {
+          setState(() {
+            _hasConnection = hasConnection;
+          });
+        }
+
+        if (connectionRestored) {
+          debugPrint('Connection restored - automatically loading orders');
+
+          setState(() {
+            _isLoading = true;
+          });
+
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          await fetchInitialOrders();
+        }
       }
-    } catch (e) {
-      debugPrint('Error checking for updates: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    });
+  }
+
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
     }
   }
 
@@ -164,28 +152,71 @@ class _DriverPageState extends State<DriverPage> {
 
     try {
       await _checkLoginStatus();
+      await _syncVehicleStatus();
 
-      // Try to load user, but don't fail if it doesn't work
-      try {
-        final user = await userService.loadUser(Globals.userId!);
+      print(Globals.vehicleID);
+      print(Globals.userId);
+      print(Globals.vehicleName);
+
+      _hasUserAndVehicleData = _isLoggedIn &&
+          _vehicleLoggedIn &&
+          Globals.userId != null &&
+          Globals.vehicleID != null;
+
+      final hasConnection = await _hasInternetConnection();
+      setState(() {
+        _hasConnection = hasConnection;
+        _connectionCheckedDuringInit = true;
+      });
+
+      if (!hasConnection) {
         setState(() {
-          _user = user;
+          _isLoading = false;
+          errorMessage = 'No internet connection';
         });
-      } catch (userError) {
-        debugPrint(
-            'Error loading user, continuing with cached user data: $userError');
+
+        if (!_hasUserAndVehicleData) {
+          return;
+        }
       }
 
-      await _syncVehicleStatus();
-      if (_isLoggedIn && _vehicleLoggedIn) {
-       
-        await _loadOrdersWithFallback();
+      if (hasConnection && Globals.userId != null) {
+        try {
+          final user = await userService.loadUser(Globals.userId!);
+          setState(() {
+            _user = user;
+          });
+        } catch (e) {
+          if (e.toString().contains('Failed host lookup') ||
+              e.toString().contains('No address associated with hostname') ||
+              e.toString().contains('SocketException')) {
+            setState(() {
+              _hasConnection = false;
+              errorMessage = 'Connection error while loading user data';
+            });
+          } else {
+            debugPrint('Error loading user: $e');
+          }
+        }
+      }
+
+      if (_isLoggedIn && _vehicleLoggedIn && _hasConnection) {
+        await fetchInitialOrders();
       }
     } catch (e) {
-      debugPrint('Error in initialization: $e');
-      setState(() {
-        errorMessage = 'Error initializing: ${e.toString()}';
-      });
+      if (e.toString().contains('Failed host lookup') ||
+          e.toString().contains('No address associated with hostname') ||
+          e.toString().contains('SocketException')) {
+        setState(() {
+          _hasConnection = false;
+          errorMessage = 'Connection error during initialization';
+        });
+      } else {
+        debugPrint('Error in initialization: $e');
+        setState(() {
+          errorMessage = 'Error initializing: ${e.toString()}';
+        });
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -193,45 +224,51 @@ class _DriverPageState extends State<DriverPage> {
     }
   }
 
-// New method that tries API first, then falls back to cache
-  Future<void> _loadOrdersWithFallback() async {
+  Future<void> fetchInitialOrders() async {
+    final hasConnection = await _hasInternetConnection();
+    if (!hasConnection) {
+      setState(() {
+        _isLoading = false;
+        _hasConnection = false;
+        errorMessage = 'No internet connection available';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      errorMessage = null;
+      _hasConnection = true;
+    });
+
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
     DateTime pastDate = DateTime(today.year, today.month, today.day, 0, 1);
     String formattedPastDate = DateFormat('yyyy-MM-dd').format(pastDate);
 
     try {
-      // First, try to fetch fresh data from API
-      debugPrint('Attempting to fetch fresh orders from API...');
+      debugPrint(
+          "Fetching orders for today: $formattedPastDate - $formattedPastDate");
       await _orderService.fetchAllOrders(
           fromDate: formattedPastDate, toDate: formattedPastDate);
 
-      debugPrint('Successfully fetched fresh orders from API');
       setState(() {
-        hasOrders = _orderService.activeOrders.isNotEmpty;
-        errorMessage = null; // Clear any previous error
+        _isLoading = false;
       });
     } catch (e) {
-      // API failed, try to load from cache
-      debugPrint('API failed, loading from cache: $e');
-      try {
-        await _orderService.loadOrdersFromCache();
-        debugPrint('Successfully loaded orders from cache');
-
+      if (e.toString().contains('Failed host lookup') ||
+          e.toString().contains('No address associated with hostname') ||
+          e.toString().contains('SocketException')) {
         setState(() {
-          hasOrders = _orderService.activeOrders.isNotEmpty;
-          if (_orderService.activeOrders.isEmpty) {
-            errorMessage = 'No cached orders found.';
-          } else {
-            errorMessage = 'Using cached data (offline mode)';
-          }
+          _isLoading = false;
+          _hasConnection = false;
+          errorMessage = 'Failed to load orders - Connection error';
         });
-      } catch (cacheError) {
-        // Both API and cache failed
-        debugPrint('Both API and cache failed: $cacheError');
+      } else {
         setState(() {
+          _isLoading = false;
           hasOrders = false;
-          errorMessage = 'No orders available (API failed and no cache)';
+          errorMessage = 'No orders found for today.';
         });
       }
     }
@@ -246,33 +283,61 @@ class _DriverPageState extends State<DriverPage> {
     }
 
     try {
-      final vehicleId = await _orderService.checkVehicleLogin();
+      final vehicleId = await userService.checkVehicleLogin();
       setState(() {
         _vehicleLoggedIn = vehicleId != null;
       });
     } catch (e) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final savedVehicleId = prefs.getInt('selected_vehicle_id');
+      if (e.toString().contains('Failed host lookup') ||
+          e.toString().contains('No address associated with hostname') ||
+          e.toString().contains('SocketException')) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final savedVehicleId = prefs.getInt('selected_vehicle_id');
 
-        if (savedVehicleId != null) {
-          Globals.vehicleID = savedVehicleId;
-          debugPrint(
-              'Using saved vehicle ID from SharedPreferences: $savedVehicleId');
-          setState(() {
-            _vehicleLoggedIn = true;
-          });
-        } else {
-          debugPrint('No saved vehicle ID found');
+          if (savedVehicleId != null) {
+            Globals.vehicleID = savedVehicleId;
+            debugPrint(
+                'Using saved vehicle ID from SharedPreferences: $savedVehicleId');
+            setState(() {
+              _vehicleLoggedIn = true;
+            });
+          } else {
+            debugPrint('No saved vehicle ID found and no connection');
+            setState(() {
+              _vehicleLoggedIn = false;
+            });
+          }
+        } catch (prefsError) {
+          debugPrint('Error accessing SharedPreferences: $prefsError');
           setState(() {
             _vehicleLoggedIn = false;
           });
         }
-      } catch (prefsError) {
-        debugPrint('Error accessing SharedPreferences: $prefsError');
-        setState(() {
-          _vehicleLoggedIn = false;
-        });
+      } else {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final savedVehicleId = prefs.getInt('selected_vehicle_id');
+
+          if (savedVehicleId != null) {
+            Globals.vehicleID = savedVehicleId;
+            debugPrint(
+                'Using saved vehicle ID from SharedPreferences: $savedVehicleId');
+            setState(() {
+              _vehicleLoggedIn = true;
+            });
+          } else {
+            debugPrint('No saved vehicle ID found');
+            setState(() {
+              _vehicleLoggedIn = false;
+            });
+          }
+        } catch (prefsError) {
+          debugPrint('Error accessing SharedPreferences: $prefsError');
+          setState(() {
+            _vehicleLoggedIn = false;
+          });
+        }
       }
     }
   }
@@ -283,8 +348,20 @@ class _DriverPageState extends State<DriverPage> {
         _isLoading = true;
       });
 
-      // Use the same API-first, cache-fallback logic
-      await _loadOrdersWithFallback();
+      final hasConnection = await _hasInternetConnection();
+      setState(() {
+        _hasConnection = hasConnection;
+      });
+
+      if (!hasConnection) {
+        setState(() {
+          _isLoading = false;
+          errorMessage = 'No internet connection available';
+        });
+        return;
+      }
+
+      await fetchInitialOrders();
 
       if (mounted) {
         setState(() {
@@ -324,11 +401,25 @@ class _DriverPageState extends State<DriverPage> {
   }
 
   Future<void> _checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    setState(() {
-      _isLoggedIn = isLoggedIn;
-    });
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+      // Read as string since you save it as string in login
+      String? userIdString = prefs.getString('userId');
+      if (userIdString != null) {
+        Globals.userId = int.tryParse(userIdString);
+      }
+
+      setState(() {
+        _isLoggedIn = isLoggedIn && Globals.userId != null;
+      });
+    } catch (e) {
+      debugPrint('Error checking login status: $e');
+      setState(() {
+        _isLoggedIn = false;
+      });
+    }
   }
 
   Widget _buildBody() {
@@ -343,7 +434,7 @@ class _DriverPageState extends State<DriverPage> {
       return Column(
         children: [
           Text(
-            DateFormat('yyyy-MM-dd').format(now), // Shows date as YYYY-MM-DD
+            DateFormat('yyyy-MM-dd').format(now),
             style: TextStyle(
               fontSize: isSmallScreen ? 16 : 20,
               color: Colors.black87,
@@ -352,8 +443,7 @@ class _DriverPageState extends State<DriverPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            DateFormat('EEEE')
-                .format(now), // Shows full day name (e.g., "Monday")
+            DateFormat('EEEE').format(now),
             style: TextStyle(
               fontSize: isSmallScreen ? 20 : 24,
               color: Colors.black54,
@@ -373,261 +463,137 @@ class _DriverPageState extends State<DriverPage> {
       );
     }
 
-    // If we have orders, show the orders list
-    if (hasOrders && vehicleId != null) {
-      return Align(
-        alignment: Alignment.topCenter,
-        child: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _orderService.activeOrders.length,
-          itemBuilder: (context, index) {
-            final order = _orderService.activeOrders[index];
-            final pickupWarehouse = order.warehouses.firstWhere(
-                (wh) => wh.type == 'pickup',
-                orElse: () => defaultPickupWarehouse);
-            final deliverWarehouse = order.warehouses.firstWhere(
-                (wh) => wh.type == 'delivery',
-                orElse: () => defaultPickupWarehouse);
-            order.warehouses.firstWhere((wh) => wh.type == 'delivery',
-                orElse: () => defaultPickupWarehouse);
-            final pickupCompany = order.companies.firstWhere(
-                (comp) => comp.type == 'pickup',
-                orElse: () => defaultCompany);
-            final deliveryCompany = order.companies.firstWhere(
-                (comp) => comp.type == 'delivery',
-                orElse: () => defaultCompany);
-            final pickupContact = order.contactPeople.firstWhere(
-                (cp) => cp.type == 'pickup',
-                orElse: () => defaultContactPerson);
-            final deliveryContact = order.contactPeople.firstWhere(
-                (cp) => cp.type == 'delivery',
-                orElse: () => defaultContactPerson);
-
-            return GestureDetector(
-              onTap: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => DeliveryInfo(orderId: order.orderId)),
-              ),
-              child: Stack(
-                children: [
-                  Card(
-                    color: order.pickedUp == '0000-00-00 00:00:00'
-                        ? const Color.fromARGB(255, 255, 189,
-                            189) // Changed to red tint for pickup
-                        : Color.fromARGB(255, 166, 250,
-                            118), // Changed to green tint for delivery
-                    elevation: 2.0,
-                    margin: EdgeInsets.symmetric(
-                      vertical: 4.0,
-                      horizontal: isSmallScreen ? 2.0 : 8.0,
+    if (!_hasConnection) {
+      return Center(
+        child: Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red, width: 2),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.wifi_off,
+                      color: Colors.red,
+                      size: isSmallScreen ? 40 : 48,
                     ),
-                    shape: RoundedRectangleBorder(
-                      side: const BorderSide(color: Colors.black, width: 1.0),
-                      borderRadius: BorderRadius.circular(6.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(isSmallScreen ? 6.0 : 10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text('${Globals.getText('partner')}: ',
-                                  style: TextStyle(
-                                      fontSize: 14.0,
-                                      fontWeight: FontWeight.bold)),
-                              Text(pickupCompany.companyName,
-                                  style: const TextStyle(
-                                      fontSize: 14.0,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          const SizedBox(height: 8.0),
-                          // Pickup Info
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 6.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6.0),
-                              border: Border.all(color: Colors.black),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(pickupCompany.companyName,
-                                        style: TextStyle(
-                                            fontSize: 14.0,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .red)), // Changed to red for pickup
-                                    Text(
-                                        '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
-                                        style: const TextStyle(
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                        child: Text(
-                                            '${Globals.getText('address')}: ${pickupWarehouse.warehouseAddress}',
-                                            style: const TextStyle(
-                                                fontSize: 12.0))),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SharedIndicators.buildIcon(
-                                            Icons.note_rounded,
-                                            order.upNotes.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red),
-                                        const SizedBox(width: 4.0),
-                                        SharedIndicators.buildContactStatus(
-                                          name: pickupContact.name,
-                                          telephone: pickupContact.telephone,
-                                          isSmallScreen: isSmallScreen,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          // Delivery Info
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 6.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6.0),
-                              border: Border.all(color: Colors.black),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(deliveryCompany.companyName,
-                                        style: const TextStyle(
-                                            fontSize: 14.0,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .green)), // Changed to green for delivery
-                                    Text(
-                                        '${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.deliveryTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
-                                        style: const TextStyle(
-                                            fontSize: 12.0,
-                                            fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                        child: Text(
-                                            '${Globals.getText('address')}: ${deliverWarehouse.warehouseAddress}',
-                                            style: const TextStyle(
-                                                fontSize: 12.0))),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SharedIndicators.buildIcon(
-                                            Icons.note_rounded,
-                                            order.downNotes.isNotEmpty
-                                                ? Colors.green
-                                                : Colors.red),
-                                        const SizedBox(width: 4.0),
-                                        SharedIndicators.buildContactStatus(
-                                          name: deliveryContact.name,
-                                          telephone: deliveryContact.telephone,
-                                          isSmallScreen: isSmallScreen,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8.0),
-                          // Bottom indicators
-                          Wrap(
-                            spacing: 6.0,
-                            runSpacing: 4.0,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${order.getTotalOrderedQuantity()} kg',
-                                      style: const TextStyle(
-                                          fontSize: 14.0,
-                                          fontWeight: FontWeight.bold)),
-                                  Wrap(
-                                    spacing: isSmallScreen ? 8 : 10,
-                                    children: [
-                                      SharedIndicators.buildDocumentIndicator(
-                                          'UIT', order.uit.isNotEmpty),
-                                      SharedIndicators.buildDocumentIndicator(
-                                          'EKR', order.ekr.isNotEmpty),
-                                      SharedIndicators.buildDocumentIndicator(
-                                          '${Globals.getText('orderInvoice')}',
-                                          order.invoice.isNotEmpty),
-                                      SharedIndicators.buildDocumentIndicator(
-                                          'CMR', order.cmr.isNotEmpty),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                    SizedBox(height: isSmallScreen ? 12 : 16),
+                    Text(
+                      Globals.getText('noInternetConnection'),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 18 : 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade700,
                       ),
                     ),
-                  ),
-                  // Status Arrow
-                  Positioned(
-                    top: 0,
-                    right: isSmallScreen ? 4.0 : 8.0,
-                    child: order.pickedUp == '0000-00-00 00:00:00'
-                        ? Icon(
-                            Icons.keyboard_arrow_up,
-                            color: Colors.red, // Shows red for pickup state
-                            size: isSmallScreen ? 48 : 54,
-                          )
-                        : order.delivered == '0000-00-00 00:00:00'
-                            ? Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors
-                                    .green, // Shows green for delivery state
-                                size: isSmallScreen ? 48 : 54,
-                              )
-                            : Container(),
-                  ),
-                ],
+                    SizedBox(height: isSmallScreen ? 6 : 8),
+                  ],
+                ),
               ),
-            );
-          },
+              SizedBox(height: isSmallScreen ? 20 : 24),
+              ElevatedButton.icon(
+                onPressed: _refreshOrderData,
+                icon: Icon(Icons.refresh, size: isSmallScreen ? 20 : 24),
+                label: Text(
+                  Globals.getText('retryConnection'),
+                  style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 20 : 24,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    // If no orders but vehicle is logged in, show "No orders found"
-    if (vehicleId != null) {
+    // If no vehicle logged in, show centered vehicle login prompt
+    if (vehicleId == null) {
+      return Center(
+        child: Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: themeColor.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.directions_car_filled_outlined,
+                      color: themeColor,
+                      size: isSmallScreen ? 40 : 48,
+                    ),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
+                    Text(
+                      '${Globals.getText('pleaseLoginVehicle')}',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 18 : 20,
+                        fontWeight: FontWeight.bold,
+                        color: themeColor,
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
+                  ],
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 20 : 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()));
+                },
+                icon: Icon(Icons.login, size: isSmallScreen ? 20 : 24),
+                label: Text(
+                  '${Globals.getText('loginVehicleButton')}',
+                  style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 20 : 24,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // If no orders but has connection and vehicle, show centered no orders message
+    if (!hasOrders && _hasConnection) {
       return Center(
         child: Padding(
           padding:
@@ -690,89 +656,335 @@ class _DriverPageState extends State<DriverPage> {
       );
     }
 
-    // If no vehicle logged in, show vehicle login prompt
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: themeColor.withOpacity(0.3)),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.directions_car_filled_outlined,
-                    color: themeColor,
-                    size: isSmallScreen ? 40 : 48,
-                  ),
-                  SizedBox(height: isSmallScreen ? 12 : 16),
-                  Text(
-                    '${Globals.getText('pleaseLoginVehicle')}',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 18 : 20,
-                      fontWeight: FontWeight.bold,
-                      color: themeColor,
-                    ),
-                  ),
-                  SizedBox(height: isSmallScreen ? 6 : 8),
-                ],
-              ),
-            ),
-            SizedBox(height: isSmallScreen ? 20 : 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()));
-              },
-              icon: Icon(Icons.login, size: isSmallScreen ? 20 : 24),
-              label: Text(
-                '${Globals.getText('loginVehicleButton')}',
-                style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeColor,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 20 : 24,
-                  vertical: isSmallScreen ? 10 : 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ],
+    // If has orders, show the orders list
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.topCenter,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _orderService.activeOrders.length,
+            itemBuilder: (context, index) {
+              final order = _orderService.activeOrders[index];
+              final pickupWarehouse = order.warehouses.firstWhere(
+                  (wh) => wh.type == 'pickup',
+                  orElse: () => defaultPickupWarehouse);
+              final deliverWarehouse = order.warehouses.firstWhere(
+                  (wh) => wh.type == 'delivery',
+                  orElse: () => defaultPickupWarehouse);
+              final pickupCompany = order.companies.firstWhere(
+                  (comp) => comp.type == 'pickup',
+                  orElse: () => defaultCompany);
+              final deliveryCompany = order.companies.firstWhere(
+                  (comp) => comp.type == 'delivery',
+                  orElse: () => defaultCompany);
+              final pickupContact = order.contactPeople.firstWhere(
+                  (cp) => cp.type == 'pickup',
+                  orElse: () => defaultContactPerson);
+              final deliveryContact = order.contactPeople.firstWhere(
+                  (cp) => cp.type == 'delivery',
+                  orElse: () => defaultContactPerson);
+
+              return GestureDetector(
+                  onTap: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                DeliveryInfo(orderId: order.orderId)),
+                      ),
+                  child: Stack(
+                    children: [
+                      Card(
+                        color: order.pickedUp == '0000-00-00 00:00:00'
+                            ? const Color.fromARGB(255, 255, 189, 189)
+                            : Color.fromARGB(255, 166, 250, 118),
+                        elevation: 2.0,
+                        margin: EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: isSmallScreen ? 2.0 : 8.0,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          side:
+                              const BorderSide(color: Colors.black, width: 1.0),
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(isSmallScreen ? 6.0 : 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('${Globals.getText('partner')}: ',
+                                      style: TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold)),
+                                  Text(pickupCompany.companyName,
+                                      style: const TextStyle(
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 8.0),
+                              // Pickup Info
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  border: Border.all(color: Colors.black),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(pickupCompany.companyName,
+                                            style: TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.red)),
+                                        Text(
+                                            '${Globals.getText(DateFormat('E').format(DateTime.parse(order.pickupTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.pickupTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.pickupTime))}',
+                                            style: const TextStyle(
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                            child: Text(
+                                                '${Globals.getText('address')}: ${pickupWarehouse.warehouseName} (${pickupWarehouse.warehouseAddress})',
+                                                style: const TextStyle(
+                                                    fontSize: 12.0))),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SharedIndicators.buildIcon(
+                                                Icons.note_rounded,
+                                                order.upNotes.isNotEmpty
+                                                    ? Colors.green
+                                                    : Colors.red),
+                                            const SizedBox(width: 4.0),
+                                            SharedIndicators.buildContactStatus(
+                                              name: pickupContact.name,
+                                              telephone:
+                                                  pickupContact.telephone,
+                                              isSmallScreen: isSmallScreen,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              // Delivery Info
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  border: Border.all(color: Colors.black),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(deliveryCompany.companyName,
+                                            style: const TextStyle(
+                                                fontSize: 14.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green)),
+                                        Text(
+                                            '${Globals.getText(DateFormat('E').format(DateTime.parse(order.deliveryTime)))} ${DateFormat('dd.MM').format(DateTime.parse(order.deliveryTime))},  ${DateFormat('HH:mm').format(DateTime.parse(order.deliveryTime))}',
+                                            style: const TextStyle(
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                            child: Text(
+                                                '${Globals.getText('address')}:${deliverWarehouse.warehouseName} (${deliverWarehouse.warehouseAddress})',
+                                                style: const TextStyle(
+                                                    fontSize: 12.0))),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SharedIndicators.buildIcon(
+                                                Icons.note_rounded,
+                                                order.downNotes.isNotEmpty
+                                                    ? Colors.green
+                                                    : Colors.red),
+                                            const SizedBox(width: 4.0),
+                                            SharedIndicators.buildContactStatus(
+                                              name: deliveryContact.name,
+                                              telephone:
+                                                  deliveryContact.telephone,
+                                              isSmallScreen: isSmallScreen,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              // Bottom indicators
+                              Wrap(
+                                spacing: 6.0,
+                                runSpacing: 4.0,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                          '${order.getTotalOrderedQuantity()} kg',
+                                          style: const TextStyle(
+                                              fontSize: 14.0,
+                                              fontWeight: FontWeight.bold)),
+                                      Wrap(
+                                        spacing: isSmallScreen ? 8 : 10,
+                                        children: [
+                                          SharedIndicators
+                                              .buildDocumentIndicator(
+                                                  'UIT', order.uit.isNotEmpty),
+                                          SharedIndicators
+                                              .buildDocumentIndicator(
+                                                  'EKR', order.ekr.isNotEmpty),
+                                          SharedIndicators.buildDocumentIndicator(
+                                              '${Globals.getText('orderInvoice')}',
+                                              order.invoice.isNotEmpty),
+                                          SharedIndicators
+                                              .buildDocumentIndicator(
+                                                  'CMR', order.cmr.isNotEmpty),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Status Arrow
+                      Positioned(
+                        top: 0,
+                        right: isSmallScreen ? 4.0 : 8.0,
+                        child: order.pickedUp == '0000-00-00 00:00:00'
+                            ? Icon(
+                                Icons.keyboard_arrow_up,
+                                color: Colors.red,
+                                size: isSmallScreen ? 48 : 54,
+                              )
+                            : order.delivered == '0000-00-00 00:00:00'
+                                ? Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: Colors.green,
+                                    size: isSmallScreen ? 48 : 54,
+                                  )
+                                : Container(),
+                      ),
+                    ],
+                  ));
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 600;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(Globals.getText('driverPage'),
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 1, 160, 226),
         actions: [
-          if (_vehicleLoggedIn) // Add refresh button when vehicle is logged in
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              onPressed: _refreshOrderData,
-              tooltip: 'Refresh Orders',
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
             ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                _hasConnection ? Icons.wifi : Icons.wifi_off,
+                color: _hasConnection ? Colors.green : Colors.red,
+                size: 28,
+                key: ValueKey(_hasConnection),
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Globals.vehicleID != null
+                ? (Globals.vehicleName?.contains('Iroda') == true
+                    ? const Icon(
+                        Icons.business,
+                        color: Colors.green,
+                        size: 28,
+                      )
+                    : const Icon(
+                        Icons.local_shipping,
+                        color: Colors.green,
+                        size: 28,
+                      ))
+                : const Icon(
+                    Icons.local_shipping,
+                    color: Colors.red,
+                    size: 28,
+                  ),
+          ),
+          const SizedBox(width: 20),
+          if (_vehicleLoggedIn)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: GestureDetector(
+                onTap: _refreshOrderData,
+                child: const Icon(
+                  Icons.refresh,
+                  color: Colors.black,
+                  size: 28,
+                ),
+              ),
+            ),
+          const SizedBox(width: 30),
         ],
-        iconTheme:
-            const IconThemeData(color: Colors.white), // For hamburger icon
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       drawer: _buildDrawer(),
       body: LayoutBuilder(
@@ -812,13 +1024,8 @@ class _DriverPageState extends State<DriverPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.local_shipping,
-                    color: Colors.white,
-                    size: 50,
-                  ),
                   const SizedBox(height: 10),
-                  if (_user != null) // Add null check here
+                  if (_user != null)
                     Text(
                       _user!.name,
                       style: const TextStyle(
@@ -836,6 +1043,28 @@ class _DriverPageState extends State<DriverPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                  if (Globals.vehicleID != null) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Globals.vehicleName?.contains('Iroda') == true
+                              ? Icons.business
+                              : Icons.local_shipping,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          Globals.vehicleName ?? 'Unknown Vehicle',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        )
+                      ],
+                    )
+                  ]
                 ],
               ),
             ),
@@ -852,30 +1081,40 @@ class _DriverPageState extends State<DriverPage> {
               );
             },
           ),
-          if (vehcileId != null) ...[
-            ListTile(
-              leading: const Icon(Icons.directions_car,
-                  color: Color.fromARGB(255, 1, 160, 226)),
-              title: Text(Globals.getText("myCar")),
-              onTap: () {
-                Navigator.pop(context);
+
+          ListTile(
+            leading: const Icon(Icons.directions_car,
+                color: Color.fromARGB(255, 1, 160, 226)),
+            title: Text(Globals.getText("myCar")),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const VehicleDataPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.attach_money,
+                color: Color.fromARGB(255, 1, 160, 226)),
+            title: Text(Globals.vehicleID == null
+                ? "${Globals.getText('expense')} - ${Globals.getText('myLogs')}"
+                : Globals.getText('expense')),
+            onTap: () {
+              Navigator.pop(context);
+              if (Globals.vehicleID == null) {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const VehicleDataPage()),
+                      builder: (context) => const ExpenseLogPage()),
                 );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.attach_money,
-                  color: Color.fromARGB(255, 1, 160, 226)),
-              title: Text(Globals.getText('expense')),
-              onTap: () {
-                Navigator.pop(context);
+              } else {
                 _showExpenseDialog();
-              },
-            ),
-          ],
+              }
+            },
+          ),
+
           ListTile(
             leading: const Icon(Icons.punch_clock_rounded,
                 color: Color.fromARGB(255, 1, 160, 226)),
@@ -984,7 +1223,7 @@ class _DriverPageState extends State<DriverPage> {
             padding: const EdgeInsets.all(16.0),
             alignment: Alignment.center,
             child: Text(
-              'Version 1.3.11',
+              'Version 1.3.12',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: isSmallScreen ? 16.0 : 20.0,
